@@ -35,12 +35,6 @@ The tree normal form enumerator must be a function that can split after getting 
 
 ## Holdouts Reduction
 
-*While loops must never be empty.  
+While loops must never be empty.  
 Empty while loops either never run or never halt.  
-This decreases programs count exponentially.*
-
-**TODO**
-
-While \<var> loops must always contain a dec \<var> instruction.  
-This ensure that \<var> can reach 0, causing the loop to halt.  
-This decreases programs and holdouts count exponentially.
+This decreases programs count exponentially.
