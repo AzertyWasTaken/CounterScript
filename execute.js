@@ -1,10 +1,6 @@
 "use strict";
 export function execute(prog, maxSteps, vars = {}, steps = 0) {
-    let pointer = 0;
-
-    while (pointer < prog.length) {
-        const instr = prog[pointer];
-
+    for (const instr of prog) {
         if (instr.type === "inc") {
             vars[instr.var] = (vars[instr.var] ?? 0) + 1;
 
@@ -23,8 +19,6 @@ export function execute(prog, maxSteps, vars = {}, steps = 0) {
                 }
             }
         }
-
-        pointer++;
     }
 
     return {halted: true, vars, steps};

@@ -4,6 +4,7 @@ import {config} from "./config.js";
 import {unparse} from "./unparse.js";
 import {enumerate} from "./enumerate.js";
 import {execute} from "./execute.js";
+import {canHalt} from "./canHalt.js";
 
 let total = 0;
 let halted = 0;
@@ -20,6 +21,8 @@ function getMaxValue(variables) {
 }
 
 for (const prog of enumerate(config.progLength)) {
+    if (!canHalt(prog)) {continue;}
+
     const result = execute(prog, config.maxSteps);
     
     if (result.halted) {
