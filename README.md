@@ -15,9 +15,9 @@ The length of the program is the number of instructions it contains.
 
 | Instruction | Definition |
 | - | - |
-| A++; | Increment *A* |
-| A--; | Decrement *A* |
-| while A > 0 {} | Repeat while *var* is above 0 |
+| `A++;` | Increment *A* |
+| `A--;` | Decrement *A* |
+| `while A > 0 {}` | Repeat while *var* is above 0 |
 
 ## Difficulty
 
