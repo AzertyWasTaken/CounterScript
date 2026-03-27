@@ -22,7 +22,10 @@ export function* enumerate(length, usedVars = 0, minInstrIndex = 0, isInLoop = f
 
         for (let bodyLen = 1; bodyLen < length; bodyLen++) {
             for (const body of enumerate(bodyLen, newUsedVars, 0, true)) {
-                if (!canHalt([{type: "while", var: varIndex, body}])) {continue;}
+                if (
+                    body.at(-1).type === "while" && body.at(-1).var === varIndex ||
+                    !canHalt([{type: "while", var: varIndex, body}])
+                ) {continue;}
 
                 for (const tail of enumerate(length - bodyLen - 1, newUsedVars, 0, isInLoop)) {
                     yield [{type: "while", var: varIndex, body}, ...tail];

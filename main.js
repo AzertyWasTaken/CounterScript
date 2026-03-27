@@ -4,6 +4,7 @@ import {config} from "./config.js";
 import {unparse} from "./unparse.js";
 import {enumerate} from "./enumerate.js";
 import {execute} from "./execute.js";
+import {hasIncrementForEveryWhile} from "./reachableLoops.js";
 
 let total = 0;
 let halted = 0;
@@ -20,8 +21,13 @@ function getMaxValue(variables) {
 }
 
 for (const prog of enumerate(config.progLength)) {
+    if (
+        prog.at(-1).type !== "while" ||
+        !hasIncrementForEveryWhile(prog)
+    ) {continue;}
+
     const result = execute(prog, config.maxSteps);
-    
+
     if (result.halted) {
         halted++;
 
@@ -38,13 +44,14 @@ for (const prog of enumerate(config.progLength)) {
         } else {
             if (config.printHalted) {print("Halted:", unparse(prog))};
         }
-    
+
     } else {
         holdouts++;
         if (config.printNonHalted) {print("Timed out:", unparse(prog))};
     }
-    
+
     total++;
+    if (total > config.programsCount) {break;}
 }
 
 print("Total: ", total);
