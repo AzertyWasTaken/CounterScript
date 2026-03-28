@@ -13,11 +13,11 @@ The length of the program is the number of instructions it contains.
 
 ## Notation
 
-| Instruction | Definition |
-| - | - |
-| `A++;` | Increment *A* |
-| `A--;` | Decrement *A* |
-| `while A > 0 {}` | Repeat while *var* is above 0 |
+| Instruction | Definition
+| - | -
+| `A++;` | Increment *A*
+| `A--;` | Decrement *A*
+| `while A > 0 {}` | Repeat while *var* is above 0
 
 ## Difficulty
 
@@ -31,28 +31,28 @@ A list of the hardest programs of length *n* to decide.
 - `A++; while A > 0 {A--; A++;}`
 - `A++; while A > 0 {while B > 0 {A--; B--;}}`
 - `A++; while A > 0 {B--; while B > 0 {A--; B--;}}`
-- `A++; while A > 0 {while B > 0 {while A > 0 {A--; B++;} B--;}}`
+- `A++; while A > 0 {B++; while B > 0 {A++; B--;} A--;}`
 
 ### BBCS(n) vs BB(n,m)
 
-| BBCS(n) | BB(n,m) | Explanation |
-| - | - | - |
-| BBCS(6) | BB(2,2) | Both have cyclers and translated cyclers with a nontrivial period. |
+| BBCS(n) | BB(n,m) | Analysis
+| - | - | -
+| BBCS(6) | BB(2,2) | Both have cyclers and translated cyclers with a nontrivial period.
 
 ## How it works
 
 ### Scripts
 
-| Name | Description |
-| - | - |
-| canHalt | Checks if some programs have nonhalting loops. |
-| config | Configurations of the enumerator and results printing. |
-| enumerate | Generates a list of possible length *n* programs. |
-| execute | Interprets parsed CounterScript. |
-| main | Runs other scripts and prints results. |
-| print | Custom print function. |
-| reachableLoops | Checks if all loops can be reached. |
-| unparse | Converts the code into more a more readable string. |
+| Name | Description
+| - | -
+| canHalt | Checks if some programs have nonhalting loops.
+| config | Configurations of the enumerator and results printing.
+| enumerate | Generates a list of possible length *n* programs.
+| execute | Interprets parsed CounterScript.
+| main | Runs other scripts and prints results.
+| print | Custom print function.
+| reachableLoops | Checks if all loops can be reached.
+| unparse | Converts the code into more a more readable string.
 
 ### Enumeration
 
@@ -72,24 +72,24 @@ Ensures that *var* can reach 0, causing the loop to halt.
 Decides most trivial non halting program.
 
 In every string that does **not** contain any while loop, instructions must be ordered by their var name with decrements before increments.  
-If inc *var* follows dec *var*, they cancel each other.
+If inc *var* follows dec *var*, they cancel each other.  
 Removes some programs equivalence.
 
-New variables outside of a loop must start with an increment.
+New variables outside of a loop must start with an increment.  
 Prevents some wasted instructions.
 
-Any *var* loop must not end with another *var* loop.
-When a *var* loop ends, *var* equals 0, ending immediately the other *var* loop.
-Prevents some wasted instructions.
-
-Each *var* must have an increment *var*.
-Prevents unreachable loops and unused instructions.
+Any *var* loop must not end with another *var* loop.  
+When a *var* loop ends, *var* equals 0, ending immediately the other *var* loop.  
 Prevents some wasted instructions.
 
 ### Execution
 
-Programs must end with a while loop.
-Incrementing or decrementing at the end do **not** change the halting status.
+Each *var* must have an increment *var* outside of a *var* loop.  
+Prevents unreachable loops and unused instructions.  
+Prevents some wasted instructions.
+
+Programs must end with a while loop of length above 3.  
+Increments, decrements and smaller loops at the end do **not** increase the value.  
 It removes wasted instructions.
 
 ## Holdouts
@@ -108,14 +108,5 @@ A++; B++; while B > 0 {B++; while A > 0 {A--; B--;}}
 A++; while A > 0 {A--; B++; while B > 0 {A++; B--;}}
 A++; while A > 0 {A++; B++; while B > 0 {B--;} A--;}
 A++; while A > 0 {A++; B++; while B > 0 {A--; B--;}}
-A++; while A > 0 {A++; while B > 0 {B--;} A--; B++;}
-A++; while A > 0 {A++; while B > 0 {A--; B--;} B++;}
-A++; while A > 0 {B--; while B > 0 {A--; B--;} B++;}
 A++; while A > 0 {B++; while B > 0 {A++; B--;} A--;}
-A++; while A > 0 {while A > 0 {while B > 0 {A--; B--;}} B++;}
-A++; while A > 0 {while B > 0 {B--; while A > 0 {A--; B++;}}}
-A++; while A > 0 {while B > 0 {B++; while A > 0 {A--;} B--;}}
-A++; while A > 0 {while B > 0 {B++; while A > 0 {A--; B--;}}}
-A++; while A > 0 {while B > 0 {B++; while B > 0 {B--;} A--;}}
-A++; while A > 0 {while B > 0 {while A > 0 {A--; B++;} B--;}}
 ```

@@ -4,7 +4,8 @@ import {config} from "./config.js";
 import {unparse} from "./unparse.js";
 import {enumerate} from "./enumerate.js";
 import {execute} from "./execute.js";
-import {hasIncrementForEveryWhile} from "./reachableLoops.js";
+import {hasIncForEveryVar} from "./hasIncForEveryVar.js";
+import {checkStatements} from "./checkStatements.js";
 
 let total = 0;
 let halted = 0;
@@ -21,10 +22,7 @@ function getMaxValue(variables) {
 }
 
 for (const prog of enumerate(config.progLength)) {
-    if (
-        prog.at(-1).type !== "while" ||
-        !hasIncrementForEveryWhile(prog)
-    ) {continue;}
+    if (!hasIncForEveryVar(prog) || !checkStatements(prog)) {continue;}
 
     const result = execute(prog, config.maxSteps);
 

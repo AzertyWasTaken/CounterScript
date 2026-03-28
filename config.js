@@ -1,7 +1,7 @@
 "use strict";
 export const config = {
     maxSteps: 10,
-    progLength: 7,
+    progLength: 10,
     programsCount: Infinity,
 
     printNonHalted: false,
