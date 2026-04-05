@@ -1,23 +1,24 @@
 "use strict";
-export function hasIncForEveryVar(program) {
+export function hasIncVar(prog) {
     const increments = new Set();
     const varsSet = new Set();
 
-    function scan(block, nestedLoops) {
+    function scan(block, nested) {
         for (const instr of block) {
             varsSet.add(instr.var);
 
-            if (instr.type === "inc" && !nestedLoops.has(instr.var)) {
+            if (instr.type === "inc" && !nested.has(instr.var)) {
                 increments.add(instr.var);
 
             } else if (instr.type === "while") {
-                nestedLoops.add(instr.var);
-                scan(instr.body, nestedLoops);
+                nested.add(instr.var);
+                scan(instr.body, nested);
+                nested.delete(instr.var);
             }
         }
     }
 
-    scan(program, new Set());
+    scan(prog, new Set());
 
     for (const varIndex of varsSet) {
         if (!increments.has(varIndex)) {

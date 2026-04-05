@@ -14,9 +14,6 @@ function unparseInstr(instr) {
         const isBodyEmpty = !instr.body || instr.body.length === 0;
         const bosyStr = isBodyEmpty ? "" : `${unparse(instr.body)}`;
         return `while ${getVarName()} > 0 {${bosyStr}}`
-
-    } else {
-        throw new Error(`Unknown instruction: ${instr}`);
     }
 }
 

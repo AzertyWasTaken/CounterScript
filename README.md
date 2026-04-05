@@ -1,112 +1,223 @@
-## Description
+# About
 
-**CounterScript** is an esolang created in March 2026 by Azerty (me).  
-It has an unbounded number of variables that can store any nonnegative integer.
+The goal of this project is to prove the first values of the Busy Beaver function for CounterScript.
 
-Each program has 3 instructions:
-- Increment *var* by 1
-- If *var* is above 0 then decrement *var* by 1 end
-- While *var* is above 0 do *function* end
+# CounterScript
 
-Counters are set to 0 by default.  
-The length of the program is the number of instructions it contains.
+CounterScript is a model of computation created in March 2026 by Azerty.  
+It uses a minimal instruction set designed around incrementing, conditional decrementing, and looping.  
+The language has an unlimited number of variables (called counters), each storing a nonnegative integer.  
+All counters are initialized to 0.
 
-## Notation
+## Instructions
 
-| Instruction | Definition
+A CounterScript program is composed of 3 instruction types:
+
+| Instruction | Description
 | - | -
-| `A++;` | Increment *A*
-| `A--;` | Decrement *A*
-| `while A > 0 {}` | Repeat while *var* is above 0
+| `A++;` | Increment A by 1
+| `A--;` | If A is greater than 0, decrement A by 1
+| `while A {...}` | Repeat while A is greater than 0
 
-## Difficulty
+# BBCS
 
-### Hardest decidability
+The Busy Beaver function for CounterScript, denoted BBCS(n), returns the largest value a counter can store after a CounterScript program of length *n* halts.  
+The length of a program is the number of instructions it contains.
 
-A list of the hardest programs of length *n* to decide.
+## Lower Bounds
 
-- `A++;`
-- `A++; while A > 0 {}`
-- `A++; while A > 0 {A++;}`
-- `A++; while A > 0 {A--; A++;}`
-- `A++; while A > 0 {while B > 0 {A--; B--;}}`
-- `A++; while A > 0 {B--; while B > 0 {A--; B--;}}`
-- `A++; while A > 0 {B++; while B > 0 {A++; B--;} A--;}`
+The first 6 values of BBCS are proven.
 
-### BBCS(n) vs BB(n,m)
-
-| BBCS(n) | BB(n,m) | Analysis
-| - | - | -
-| BBCS(6) | BB(2,2) | Both have cyclers and translated cyclers with a nontrivial period.
-
-## How it works
-
-### Scripts
-
-| Name | Description
-| - | -
-| canHalt | Checks if some programs have nonhalting loops.
-| config | Configurations of the enumerator and results printing.
-| enumerate | Generates a list of possible length *n* programs.
-| execute | Interprets parsed CounterScript.
-| main | Runs other scripts and prints results.
-| print | Custom print function.
-| reachableLoops | Checks if all loops can be reached.
-| unparse | Converts the code into more a more readable string.
-
-### Enumeration
-
-Generator functions are used to iterate through all possible length *n* programs.  
-Recursion is used to split enumeration into multiple branches.
-
-Each program are executed once.
-Execution ends when the maximum steps count is reached to avoid getting stuck on nonhalting loops forever.  
-The steps counter increments only when a while loop condition is checked.
-
-## Holdouts reduction
-
-### Enumeration
-
-While *var* loops must always contain a dec *var* **not** followed by inc *var*.  
-Ensures that *var* can reach 0, causing the loop to halt.  
-Decides most trivial non halting program.
-
-In every string that does **not** contain any while loop, instructions must be ordered by their var name with decrements before increments.  
-If inc *var* follows dec *var*, they cancel each other.  
-Removes some programs equivalence.
-
-New variables outside of a loop must start with an increment.  
-Prevents some wasted instructions.
-
-Any *var* loop must not end with another *var* loop.  
-When a *var* loop ends, *var* equals 0, ending immediately the other *var* loop.  
-Prevents some wasted instructions.
-
-### Execution
-
-Each *var* must have an increment *var* outside of a *var* loop.  
-Prevents unreachable loops and unused instructions.  
-Prevents some wasted instructions.
-
-Programs must end with a while loop of length above 3.  
-Increments, decrements and smaller loops at the end do **not** increase the value.  
-It removes wasted instructions.
+| BBCS(n) | Value | Champion | Notes
+| - | - | - | -
+| 1 | 1 | `A++;` |
+| 2 | 2 | `A++; A++;` |
+| 3 | 3 | `A++; A++; A++;` |
+| 4 | 4 | `A++; A++; A++; A++;` |
+| 5 | 5 | `A++; A++; A++; A++; A++;` |
+| 6 | 6 | `A++; A++; A++; A++; A++; A++;` |
+| 7 | 7 | `A++; A++; A++; A++; A++; A++; A++;` |
+| 8 | 9 | `A++; A++; A++; while A > 0 {A--; B++; B++; B++;}` |
+| 9 | 12 | `A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++;}` |
+| 10 | 16 | `A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++;}` |
+| 11 | 20 | `A++; A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++;}` |
+| 12 | 25 | `A++; A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++; B++;}` |
 
 ## Holdouts
+
+| BBCS(n) | Count
+| - | -
+| 7 | 2
+| 8 | 87
+| 9 | 1668
+| 10 | 25772
 
 ### BBCS(7)
 
 ```
-A++; A++; B++; while A > 0 {while B > 0 {A--; B--;}}
-A++; B++; B++; while B > 0 {while A > 0 {A--; B--;}}
-A++; B++; while A > 0 {A++; while B > 0 {B--;} A--;}
 A++; B++; while A > 0 {A++; while B > 0 {A--; B--;}}
-A++; B++; while A > 0 {B--; while B > 0 {A--; B--;}}
-A++; B++; while B > 0 {A--; while A > 0 {A--; B--;}}
-A++; B++; while B > 0 {B++; while A > 0 {A--;} B--;}
 A++; B++; while B > 0 {B++; while A > 0 {A--; B--;}}
-A++; while A > 0 {A--; B++; while B > 0 {A++; B--;}}
-A++; while A > 0 {A++; B++; while B > 0 {B--;} A--;}
-A++; while A > 0 {A++; B++; while B > 0 {A--; B--;}}
-A++; while A > 0 {B++; while B > 0 {A++; B--;} A--;}
 ```
+
+### BBCS(8)
+
+```
+A++; A++; B++; while A > 0 {A++; while B > 0 {A--; B--;}}
+A++; A++; B++; while A > 0 {C++; while B > 0 {A--; B--;}}
+A++; A++; B++; while A > 0 {while A > 0 {while B > 0 {A--; B--;}}}
+A++; A++; B++; while B > 0 {while A > 0 {while B > 0 {A--; B--;}}}
+A++; A++; while A > 0 {B++; while A > 0 {while B > 0 {A--; B--;}}}
+A++; B++; B++; while A > 0 {while B > 0 {while A > 0 {A--; B--;}}}
+A++; B++; B++; while B > 0 {B++; while A > 0 {A--; B--;}}
+A++; B++; B++; while B > 0 {C++; while A > 0 {A--; B--;}}
+A++; B++; B++; while B > 0 {while B > 0 {while A > 0 {A--; B--;}}}
+A++; B++; C++; while A > 0 {A++; while B > 0 {A--; B--;}}
+A++; B++; C++; while A > 0 {A++; while C > 0 {A--; C--;}}
+A++; B++; C++; while B > 0 {B++; while A > 0 {A--; B--;}}
+A++; B++; C++; while B > 0 {B++; while C > 0 {B--; C--;}}
+A++; B++; C++; while C > 0 {C++; while A > 0 {A--; C--;}}
+A++; B++; C++; while C > 0 {C++; while B > 0 {B--; C--;}}
+A++; B++; while A > 0 {A--; while B > 0 {while A > 0 {A--; B--;}}}
+A++; B++; while A > 0 {A++; A++; while B > 0 {A--; B--;}}
+A++; B++; while A > 0 {A++; B--; while B > 0 {A--; B--;}}
+A++; B++; while A > 0 {A++; C++; while B > 0 {A--; B--;}}
+A++; B++; while A > 0 {A++; while A > 0 {while B > 0 {A--; B--;}}}
+A++; B++; while A > 0 {A++; while B > 0 {A--; B--;} B--;}
+A++; B++; while A > 0 {A++; while B > 0 {A--; B--; B--;}}
+A++; B++; while A > 0 {A++; while B > 0 {A--; B--; C++;}}
+A++; B++; while A > 0 {A++; while B > 0 {A--; while B > 0 {B--;}}}
+A++; B++; while A > 0 {A++; while B > 0 {while B > 0 {A--; B--;}}}
+A++; B++; while A > 0 {B--; C++; while B > 0 {A--; B--;}}
+A++; B++; while A > 0 {B--; while A > 0 {while B > 0 {A--; B--;}}}
+A++; B++; while A > 0 {B++; while B > 0 {while A > 0 {A--; B--;}}}
+A++; B++; while A > 0 {while A > 0 {A++; while B > 0 {A--; B--;}}}
+A++; B++; while A > 0 {while A > 0 {B--; while B > 0 {A--; B--;}}}
+A++; B++; while A > 0 {while B > 0 {A--; while A > 0 {A--; B--;}}}
+A++; B++; while A > 0 {while B > 0 {B++; while A > 0 {A--; B--;}}}
+A++; B++; while B > 0 {A--; B++; while A > 0 {A--; B--;}}
+A++; B++; while B > 0 {A--; C++; while A > 0 {A--; B--;}}
+A++; B++; while B > 0 {A--; while B > 0 {while A > 0 {A--; B--;}}}
+A++; B++; while B > 0 {A++; while A > 0 {while B > 0 {A--; B--;}}}
+A++; B++; while B > 0 {B--; while A > 0 {while B > 0 {A--; B--;}}}
+A++; B++; while B > 0 {B++; B++; while A > 0 {A--; B--;}}
+A++; B++; while B > 0 {B++; C++; while A > 0 {A--; B--;}}
+A++; B++; while B > 0 {B++; while A > 0 {A--; B--;} A--;}
+A++; B++; while B > 0 {B++; while A > 0 {A--; A--; B--;}}
+A++; B++; while B > 0 {B++; while A > 0 {A--; B--; C++;}}
+A++; B++; while B > 0 {B++; while A > 0 {B--; while A > 0 {A--;}}}
+A++; B++; while B > 0 {B++; while A > 0 {while A > 0 {A--; B--;}}}
+A++; B++; while B > 0 {B++; while B > 0 {while A > 0 {A--; B--;}}}
+A++; B++; while B > 0 {while A > 0 {A++; while B > 0 {A--; B--;}}}
+A++; B++; while B > 0 {while A > 0 {B--; while B > 0 {A--; B--;}}}
+A++; B++; while B > 0 {while B > 0 {A--; while A > 0 {A--; B--;}}}
+A++; B++; while B > 0 {while B > 0 {B++; while A > 0 {A--; B--;}}}
+A++; while A > 0 {A--; B++; B++; while B > 0 {A++; B--;}}
+A++; while A > 0 {A--; B++; C++; while B > 0 {A++; B--;}}
+A++; while A > 0 {A--; B++; C++; while C > 0 {A++; C--;}}
+A++; while A > 0 {A--; B++; while B > 0 {A++; B--;} B++;}
+A++; while A > 0 {A--; B++; while B > 0 {A++; A++; B--;}}
+A++; while A > 0 {A--; B++; while B > 0 {A++; B--; C++;}}
+A++; while A > 0 {A--; B++; while B > 0 {while A > 0 {A--; B--;}}}
+A++; while A > 0 {A++; A++; B++; while B > 0 {A--; B--;}}
+A++; while A > 0 {A++; A++; while B > 0 {A--; B--;} B++;}
+A++; while A > 0 {A++; B--; while B > 0 {A--; B--;} B++;}
+A++; while A > 0 {A++; B++; C++; while B > 0 {A--; B--;}}
+A++; while A > 0 {A++; B++; C++; while C > 0 {A--; C--;}}
+A++; while A > 0 {A++; B++; while B > 0 {A++; B--;} A--;}
+A++; while A > 0 {A++; B++; while B > 0 {A--; B--; C++;}}
+A++; while A > 0 {A++; B++; while C > 0 {A--; C--;} C++;}
+A++; while A > 0 {A++; while A > 0 {while B > 0 {A--; B--;}} B++;}
+A++; while A > 0 {A++; while B > 0 {A++; B--;} A--; B++;}
+A++; while A > 0 {A++; while B > 0 {A--; B--; C++;} B++;}
+A++; while A > 0 {B--; C++; while B > 0 {A--; B--;} B++;}
+A++; while A > 0 {B++; B++; while B > 0 {A++; B--;} A--;}
+A++; while A > 0 {B++; B++; while B > 0 {while A > 0 {A--; B--;}}}
+A++; while A > 0 {B++; C--; while C > 0 {A--; C--;} C++;}
+A++; while A > 0 {B++; C++; while B > 0 {A++; B--;} A--;}
+A++; while A > 0 {B++; C++; while C > 0 {A++; C--;} A--;}
+A++; while A > 0 {B++; while A > 0 {while C > 0 {A--; C--;}} C++;}
+A++; while A > 0 {B++; while A > 0 {A++; while B > 0 {A--; B--;}}}
+A++; while A > 0 {B++; while B > 0 {A++; B--;} A--; B++;}
+A++; while A > 0 {B++; while B > 0 {A++; A++; B--;} A--;}
+A++; while A > 0 {B++; while B > 0 {A++; B--; C++;} A--;}
+A++; while A > 0 {B++; while B > 0 {A--; while A > 0 {A--; B--;}}}
+A++; while A > 0 {B++; while B > 0 {B++; while A > 0 {A--; B--;}}}
+A++; while A > 0 {while A > 0 {A++; while B > 0 {A--; B--;}} B++;}
+A++; while A > 0 {while A > 0 {B++; while C > 0 {A--; C--;}} C++;}
+A++; while A > 0 {while A > 0 {A++; while B > 0 {A--; B--;} B++;}}
+A++; while A > 0 {while A > 0 {B--; while B > 0 {A--; B--;} B++;}}
+A++; while A > 0 {while B > 0 {while A > 0 {A--; B--;}} B++; B++;}
+A++; while A > 0 {while B > 0 {A--; while A > 0 {A--; B--;}} B++;}
+A++; while A > 0 {while B > 0 {B++; while A > 0 {A--; B--;}} B++;}
+```
+
+# How it works
+
+| Script | Description
+| - | -
+| main.js | Only script that should be run outside of tests. It also contains configurations.
+| search.js | Collects and logs results from other scripts.
+| enumerate.js | Gets all possible CounterScript programs of a specific length.
+| execute.js | Runs CounterScript programs.
+| unparse.js | Converts CounterScript objects to readable strings.
+| log.js | Modified version of console.log function.
+| canHalt.js | Checks if a *var* loop has dec *var*.
+| getUsedVar.js | Get the set of counters used in a program.
+| hasIncVar.js | Checks if for every *var*, the program has inc *var* outside of a *var* loop.
+| compare.js | Compare the value of every counters.
+
+## Equivalence
+
+### Ordered counter names
+
+`A++; B++; A++;` is equivalent to `A++; A++; B++;`:  
+In every loopless sequences, instruction counter names must be in ascending order.  
+enumerate.js - Add a minInstr param that forces instructions ordering and resets when a loop is generated.
+
+### Ordered while loops
+
+`A++; while A {...} B++;` is equivalent to `A++; B++; while A {...}` where `{...}` refers to any statements that does not involve *B*:  
+Every dec *var* and inc *var* must be before a while loop if *var* appears in its body.
+enumerate.js - When a loop is generated, create a set of counters used inside its body. The next loopless sequence must contain only variables from this set.
+
+## Reduction
+
+### Ordered instructions
+
+`A++; A--; B++;` is equivalent to `B++;`:  
+Any dec *var* after inc *var* cancel each other.  
+In every loopless sequences, dec *var* must be before inc *var*.  
+enumerate.js - Make the minInstr param include decrements and increments order.
+
+### Counters declaration
+
+New variables outside of loops must start with an increment.  
+enumerate.js - Add a isInLoop param which return if the generating program is inside a loop.
+
+### Programs ending
+
+The length 4 loop `while A {A--; B++; B++;}` is the smallest loop that increases a variable nontrivially:  
+Programs must end with a loop of length > 3.  
+enumerate.js - Skip loop generation if 0 < remaining length < 4.
+
+### Counters usefulness
+
+For every *var*, the program must also contains an inc *var* somewhere.  
+search.js - Skip programs with unused counters.
+
+## Decider
+
+### Nondecreasing loops
+
+`A++; while A {A--; A++;}` never halts:  
+While *var* loops either never halts or are never used if they do not contains any dec *var* **not** followed by inc *var*.  
+enumerate.js - Set minimum loop length to 1 and skip nondecreasing loops generation.
+
+### Cycler
+
+Decide programs as nonhalting if all counter values repeat in the beginning of a loop.  
+execute.js - Save counters in the beginning of each loop then compare it with current counters at the next iteration.
+
+## Simulation
+
+N/A

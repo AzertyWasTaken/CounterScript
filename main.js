@@ -1,57 +1,15 @@
 "use strict";
-import {print} from "./print.js";
-import {config} from "./config.js";
-import {unparse} from "./unparse.js";
-import {enumerate} from "./enumerate.js";
-import {execute} from "./execute.js";
-import {hasIncForEveryVar} from "./hasIncForEveryVar.js";
-import {checkStatements} from "./checkStatements.js";
+import {search} from "./search.js";
 
-let total = 0;
-let halted = 0;
-let holdouts = 0;
+const config = {
+    maxSteps: 10,
+    progLength: 10,
+    programsCount: Infinity,
 
-let record = 0;
+    logHoldout: false,
+    logNonhalted: false,
+    logHalted: false,
+    logRecord: true,
+};
 
-function getMaxValue(variables) {
-    let max = 0;
-    for (const value in variables) {
-        max = Math.max(max, variables[value]);
-    }
-    return max;
-}
-
-for (const prog of enumerate(config.progLength)) {
-    if (!hasIncForEveryVar(prog) || !checkStatements(prog)) {continue;}
-
-    const result = execute(prog, config.maxSteps);
-
-    if (result.halted) {
-        halted++;
-
-        const maxValue = getMaxValue(result.vars);
-
-        if (maxValue > record) {
-            if (config.printRecord) {
-                print("Record:", unparse(prog));
-                print("Score:", maxValue);
-            }
-
-            record = maxValue;
-
-        } else {
-            if (config.printHalted) {print("Halted:", unparse(prog))};
-        }
-
-    } else {
-        holdouts++;
-        if (config.printNonHalted) {print("Timed out:", unparse(prog))};
-    }
-
-    total++;
-    if (total > config.programsCount) {break;}
-}
-
-print("Total: ", total);
-print("Halted: ", halted);
-print("Holdouts: ", holdouts);
+search(config);
