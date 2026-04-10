@@ -1,6 +1,7 @@
 # About
 
-The goal of this project is to prove the first values of the Busy Beaver function for CounterScript.
+The goal of this project is to prove the first values of the Busy Beaver function for CounterScript.  
+If you are interested, you can join my Discord server by pressing this link: https://discord.gg/H3FnyZwA6P
 
 # CounterScript
 
@@ -26,7 +27,7 @@ The length of a program is the number of instructions it contains.
 
 ## Lower Bounds
 
-The first 6 values of BBCS are proven.
+The first 7 values of BBCS are proven.
 
 | BBCS(n) | Value | Champion | Notes
 | - | - | - | -
@@ -42,21 +43,24 @@ The first 6 values of BBCS are proven.
 | 10 | 16 | `A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++;}` |
 | 11 | 20 | `A++; A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++;}` |
 | 12 | 25 | `A++; A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++; B++;}` |
+| 13 | 30 | `A++; A++; A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++; B++;}` |
+| 14 | 36 | `A++; A++; A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++; B++; B++;}` |
+| 15 | 42 | `A++; A++; A++; A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++; B++; B++;}` |
+| 16 | 49 | `A++; A++; A++; A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++; B++; B++; B++;}` |
 
 ## Holdouts
 
 | BBCS(n) | Count
 | - | -
-| 7 | 2
-| 8 | 87
-| 9 | 1668
-| 10 | 25772
+| 7 | 1
+| 8 | 47
+| 9 | 617
+| 10 | 7079
 
 ### BBCS(7)
 
 ```
 A++; B++; while A > 0 {A++; while B > 0 {A--; B--;}}
-A++; B++; while B > 0 {B++; while A > 0 {A--; B--;}}
 ```
 
 ### BBCS(8)
@@ -64,53 +68,20 @@ A++; B++; while B > 0 {B++; while A > 0 {A--; B--;}}
 ```
 A++; A++; B++; while A > 0 {A++; while B > 0 {A--; B--;}}
 A++; A++; B++; while A > 0 {C++; while B > 0 {A--; B--;}}
-A++; A++; B++; while A > 0 {while A > 0 {while B > 0 {A--; B--;}}}
 A++; A++; B++; while B > 0 {while A > 0 {while B > 0 {A--; B--;}}}
-A++; A++; while A > 0 {B++; while A > 0 {while B > 0 {A--; B--;}}}
-A++; B++; B++; while A > 0 {while B > 0 {while A > 0 {A--; B--;}}}
-A++; B++; B++; while B > 0 {B++; while A > 0 {A--; B--;}}
-A++; B++; B++; while B > 0 {C++; while A > 0 {A--; B--;}}
-A++; B++; B++; while B > 0 {while B > 0 {while A > 0 {A--; B--;}}}
 A++; B++; C++; while A > 0 {A++; while B > 0 {A--; B--;}}
 A++; B++; C++; while A > 0 {A++; while C > 0 {A--; C--;}}
-A++; B++; C++; while B > 0 {B++; while A > 0 {A--; B--;}}
-A++; B++; C++; while B > 0 {B++; while C > 0 {B--; C--;}}
-A++; B++; C++; while C > 0 {C++; while A > 0 {A--; C--;}}
-A++; B++; C++; while C > 0 {C++; while B > 0 {B--; C--;}}
 A++; B++; while A > 0 {A--; while B > 0 {while A > 0 {A--; B--;}}}
 A++; B++; while A > 0 {A++; A++; while B > 0 {A--; B--;}}
 A++; B++; while A > 0 {A++; B--; while B > 0 {A--; B--;}}
 A++; B++; while A > 0 {A++; C++; while B > 0 {A--; B--;}}
-A++; B++; while A > 0 {A++; while A > 0 {while B > 0 {A--; B--;}}}
 A++; B++; while A > 0 {A++; while B > 0 {A--; B--;} B--;}
 A++; B++; while A > 0 {A++; while B > 0 {A--; B--; B--;}}
 A++; B++; while A > 0 {A++; while B > 0 {A--; B--; C++;}}
-A++; B++; while A > 0 {A++; while B > 0 {A--; while B > 0 {B--;}}}
-A++; B++; while A > 0 {A++; while B > 0 {while B > 0 {A--; B--;}}}
 A++; B++; while A > 0 {B--; C++; while B > 0 {A--; B--;}}
-A++; B++; while A > 0 {B--; while A > 0 {while B > 0 {A--; B--;}}}
 A++; B++; while A > 0 {B++; while B > 0 {while A > 0 {A--; B--;}}}
-A++; B++; while A > 0 {while A > 0 {A++; while B > 0 {A--; B--;}}}
-A++; B++; while A > 0 {while A > 0 {B--; while B > 0 {A--; B--;}}}
 A++; B++; while A > 0 {while B > 0 {A--; while A > 0 {A--; B--;}}}
 A++; B++; while A > 0 {while B > 0 {B++; while A > 0 {A--; B--;}}}
-A++; B++; while B > 0 {A--; B++; while A > 0 {A--; B--;}}
-A++; B++; while B > 0 {A--; C++; while A > 0 {A--; B--;}}
-A++; B++; while B > 0 {A--; while B > 0 {while A > 0 {A--; B--;}}}
-A++; B++; while B > 0 {A++; while A > 0 {while B > 0 {A--; B--;}}}
-A++; B++; while B > 0 {B--; while A > 0 {while B > 0 {A--; B--;}}}
-A++; B++; while B > 0 {B++; B++; while A > 0 {A--; B--;}}
-A++; B++; while B > 0 {B++; C++; while A > 0 {A--; B--;}}
-A++; B++; while B > 0 {B++; while A > 0 {A--; B--;} A--;}
-A++; B++; while B > 0 {B++; while A > 0 {A--; A--; B--;}}
-A++; B++; while B > 0 {B++; while A > 0 {A--; B--; C++;}}
-A++; B++; while B > 0 {B++; while A > 0 {B--; while A > 0 {A--;}}}
-A++; B++; while B > 0 {B++; while A > 0 {while A > 0 {A--; B--;}}}
-A++; B++; while B > 0 {B++; while B > 0 {while A > 0 {A--; B--;}}}
-A++; B++; while B > 0 {while A > 0 {A++; while B > 0 {A--; B--;}}}
-A++; B++; while B > 0 {while A > 0 {B--; while B > 0 {A--; B--;}}}
-A++; B++; while B > 0 {while B > 0 {A--; while A > 0 {A--; B--;}}}
-A++; B++; while B > 0 {while B > 0 {B++; while A > 0 {A--; B--;}}}
 A++; while A > 0 {A--; B++; B++; while B > 0 {A++; B--;}}
 A++; while A > 0 {A--; B++; C++; while B > 0 {A++; B--;}}
 A++; while A > 0 {A--; B++; C++; while C > 0 {A++; C--;}}
@@ -126,7 +97,6 @@ A++; while A > 0 {A++; B++; C++; while C > 0 {A--; C--;}}
 A++; while A > 0 {A++; B++; while B > 0 {A++; B--;} A--;}
 A++; while A > 0 {A++; B++; while B > 0 {A--; B--; C++;}}
 A++; while A > 0 {A++; B++; while C > 0 {A--; C--;} C++;}
-A++; while A > 0 {A++; while A > 0 {while B > 0 {A--; B--;}} B++;}
 A++; while A > 0 {A++; while B > 0 {A++; B--;} A--; B++;}
 A++; while A > 0 {A++; while B > 0 {A--; B--; C++;} B++;}
 A++; while A > 0 {B--; C++; while B > 0 {A--; B--;} B++;}
@@ -135,17 +105,11 @@ A++; while A > 0 {B++; B++; while B > 0 {while A > 0 {A--; B--;}}}
 A++; while A > 0 {B++; C--; while C > 0 {A--; C--;} C++;}
 A++; while A > 0 {B++; C++; while B > 0 {A++; B--;} A--;}
 A++; while A > 0 {B++; C++; while C > 0 {A++; C--;} A--;}
-A++; while A > 0 {B++; while A > 0 {while C > 0 {A--; C--;}} C++;}
-A++; while A > 0 {B++; while A > 0 {A++; while B > 0 {A--; B--;}}}
 A++; while A > 0 {B++; while B > 0 {A++; B--;} A--; B++;}
 A++; while A > 0 {B++; while B > 0 {A++; A++; B--;} A--;}
 A++; while A > 0 {B++; while B > 0 {A++; B--; C++;} A--;}
 A++; while A > 0 {B++; while B > 0 {A--; while A > 0 {A--; B--;}}}
 A++; while A > 0 {B++; while B > 0 {B++; while A > 0 {A--; B--;}}}
-A++; while A > 0 {while A > 0 {A++; while B > 0 {A--; B--;}} B++;}
-A++; while A > 0 {while A > 0 {B++; while C > 0 {A--; C--;}} C++;}
-A++; while A > 0 {while A > 0 {A++; while B > 0 {A--; B--;} B++;}}
-A++; while A > 0 {while A > 0 {B--; while B > 0 {A--; B--;} B++;}}
 A++; while A > 0 {while B > 0 {while A > 0 {A--; B--;}} B++; B++;}
 A++; while A > 0 {while B > 0 {A--; while A > 0 {A--; B--;}} B++;}
 A++; while A > 0 {while B > 0 {B++; while A > 0 {A--; B--;}} B++;}
@@ -180,6 +144,15 @@ enumerate.js - Add a minInstr param that forces instructions ordering and resets
 Every dec *var* and inc *var* must be before a while loop if *var* appears in its body.
 enumerate.js - When a loop is generated, create a set of counters used inside its body. The next loopless sequence must contain only variables from this set.
 
+### Tree enumeration
+
+enumerate.js - Execute and store programs during enumeration.
+
+### Ordered counter values
+
+`A++; B++; while B {A++; B--;}` is equivalent to `A++; B++; while A {A--; B++;}`:  
+If *var* has the same value as *var'*, the next instruction must not be *var'*.
+
 ## Reduction
 
 ### Ordered instructions
@@ -200,10 +173,16 @@ The length 4 loop `while A {A--; B++; B++;}` is the smallest loop that increases
 Programs must end with a loop of length > 3.  
 enumerate.js - Skip loop generation if 0 < remaining length < 4.
 
-### Counters usefulness
+### Useless counters
 
-For every *var*, the program must also contains an inc *var* somewhere.  
+For every *var*, the program must also contains an inc *var* somewhere inside or before its root loop.  
 search.js - Skip programs with unused counters.
+
+### Useless loops
+
+`A++; while A {while A {A--;}}` is equivalent to `A++; while A {A--;}`:  
+If a *var* whle loop has a *var* while loop inside, it must be followed by an inc *var* inside another loop.  
+enumerate.js - When a loop is generated, verify if it satisfies these conditions.
 
 ## Decider
 

@@ -6,7 +6,9 @@ export function getUsedVars(prog) {
         usedVars.add(instr.var);
 
         if (instr.type === "while") {
-            usedVars = usedVars.union(getUsedVars(instr.body));
+            for (const v of getUsedVars(instr.body)) {
+                usedVars.add(v);
+            }
         }
     }
 

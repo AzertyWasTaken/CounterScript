@@ -1,9 +1,7 @@
 "use strict";
 import {log} from "./log.js";
 import {enumerate} from "./enumerate.js";
-import {execute} from "./execute.js";
 import {unparse} from "./unparse.js";
-import {hasIncVar} from "./hasIncVar.js";
 
 let total = 0;
 let halted = 0;
@@ -13,10 +11,8 @@ let holdouts = 0;
 let record = 0;
 
 export function search(config) {
-    for (const prog of enumerate(config.progLength)) {
-        if (!hasIncVar(prog)) {continue;}
-
-        const result = execute(prog, config.maxSteps);
+    for (const result of enumerate(config.progLength)) {
+        const prog = result.prog;
 
         if (result.halted === true) {
             halted++;
