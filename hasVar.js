@@ -1,5 +1,5 @@
 "use strict";
-export function hasIncVar(prog) {
+export function hasVar(prog, type) {
     const increments = new Set();
     const varsSet = new Set();
 
@@ -7,10 +7,11 @@ export function hasIncVar(prog) {
         for (const instr of block) {
             varsSet.add(instr.var);
 
-            if (instr.type === "inc" && !nested.has(instr.var)) {
+            if (instr.type === type && !nested.has(instr.var)) {
                 increments.add(instr.var);
+            }
 
-            } else if (instr.type === "while") {
+            if (instr.type === "while") {
                 nested.add(instr.var);
                 scan(instr.body, nested);
                 nested.delete(instr.var);

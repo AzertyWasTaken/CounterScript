@@ -3,7 +3,7 @@ import {search} from "./search.js";
 
 const config = {
     maxSteps: 10,
-    progLength: 7,
+    progLength: 10,
     programsCount: Infinity,
 
     logHoldout: false,

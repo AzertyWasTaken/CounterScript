@@ -3,7 +3,7 @@ import {hasDec} from "./canHalt.js";
 import {getUsedVars} from "./getUsedVars.js";
 import {isLoopUseful} from "./isLoopUseful.js";
 import {execute, getVar} from "./execute.js";
-import {hasIncVar} from "./hasIncVar.js";
+import {hasVar} from "./hasVar.js";
 
 function copy(obj, prop) {
     return {...obj, ...prop};
@@ -78,7 +78,7 @@ function* enumerateWhileLoops(length, param) {
 
                 param.prefix.push(instr);
 
-                if (!param.isInLoop && !hasIncVar(param.prefix)) {
+                if (!param.isInLoop && !hasVar(param.prefix, "inc")) {
                     param.prefix.pop();
                     continue;
                 }
@@ -93,6 +93,11 @@ function* enumerateWhileLoops(length, param) {
                         yield* enumerate(tailLength, copy(param, {usedVars: maxUsedVars, minInstr: 0, allowedVars: usedVarsSet, vars, steps}));
 
                     } else {
+                        if (!param.isInLoop && !hasVar(param.prefix, "while")) {
+                            param.prefix.pop();
+                            continue;
+                        }
+
                         yield {prog: param.prefix, halted, vars, steps};
                     }
                 }

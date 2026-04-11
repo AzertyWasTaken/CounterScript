@@ -53,9 +53,9 @@ The first 7 values of BBCS are proven.
 | BBCS(n) | Count
 | - | -
 | 7 | 1
-| 8 | 47
-| 9 | 617
-| 10 | 7079
+| 8 | 16
+| 9 | 124
+| 10 | 992
 
 ### BBCS(7)
 
@@ -67,52 +67,21 @@ A++; B++; while A > 0 {A++; while B > 0 {A--; B--;}}
 
 ```
 A++; A++; B++; while A > 0 {A++; while B > 0 {A--; B--;}}
-A++; A++; B++; while A > 0 {C++; while B > 0 {A--; B--;}}
-A++; A++; B++; while B > 0 {while A > 0 {while B > 0 {A--; B--;}}}
-A++; B++; C++; while A > 0 {A++; while B > 0 {A--; B--;}}
-A++; B++; C++; while A > 0 {A++; while C > 0 {A--; C--;}}
-A++; B++; while A > 0 {A--; while B > 0 {while A > 0 {A--; B--;}}}
 A++; B++; while A > 0 {A++; A++; while B > 0 {A--; B--;}}
 A++; B++; while A > 0 {A++; B--; while B > 0 {A--; B--;}}
-A++; B++; while A > 0 {A++; C++; while B > 0 {A--; B--;}}
 A++; B++; while A > 0 {A++; while B > 0 {A--; B--;} B--;}
 A++; B++; while A > 0 {A++; while B > 0 {A--; B--; B--;}}
-A++; B++; while A > 0 {A++; while B > 0 {A--; B--; C++;}}
-A++; B++; while A > 0 {B--; C++; while B > 0 {A--; B--;}}
-A++; B++; while A > 0 {B++; while B > 0 {while A > 0 {A--; B--;}}}
-A++; B++; while A > 0 {while B > 0 {A--; while A > 0 {A--; B--;}}}
-A++; B++; while A > 0 {while B > 0 {B++; while A > 0 {A--; B--;}}}
 A++; while A > 0 {A--; B++; B++; while B > 0 {A++; B--;}}
-A++; while A > 0 {A--; B++; C++; while B > 0 {A++; B--;}}
-A++; while A > 0 {A--; B++; C++; while C > 0 {A++; C--;}}
 A++; while A > 0 {A--; B++; while B > 0 {A++; B--;} B++;}
 A++; while A > 0 {A--; B++; while B > 0 {A++; A++; B--;}}
-A++; while A > 0 {A--; B++; while B > 0 {A++; B--; C++;}}
-A++; while A > 0 {A--; B++; while B > 0 {while A > 0 {A--; B--;}}}
 A++; while A > 0 {A++; A++; B++; while B > 0 {A--; B--;}}
 A++; while A > 0 {A++; A++; while B > 0 {A--; B--;} B++;}
 A++; while A > 0 {A++; B--; while B > 0 {A--; B--;} B++;}
-A++; while A > 0 {A++; B++; C++; while B > 0 {A--; B--;}}
-A++; while A > 0 {A++; B++; C++; while C > 0 {A--; C--;}}
 A++; while A > 0 {A++; B++; while B > 0 {A++; B--;} A--;}
-A++; while A > 0 {A++; B++; while B > 0 {A--; B--; C++;}}
-A++; while A > 0 {A++; B++; while C > 0 {A--; C--;} C++;}
 A++; while A > 0 {A++; while B > 0 {A++; B--;} A--; B++;}
-A++; while A > 0 {A++; while B > 0 {A--; B--; C++;} B++;}
-A++; while A > 0 {B--; C++; while B > 0 {A--; B--;} B++;}
 A++; while A > 0 {B++; B++; while B > 0 {A++; B--;} A--;}
-A++; while A > 0 {B++; B++; while B > 0 {while A > 0 {A--; B--;}}}
-A++; while A > 0 {B++; C--; while C > 0 {A--; C--;} C++;}
-A++; while A > 0 {B++; C++; while B > 0 {A++; B--;} A--;}
-A++; while A > 0 {B++; C++; while C > 0 {A++; C--;} A--;}
 A++; while A > 0 {B++; while B > 0 {A++; B--;} A--; B++;}
 A++; while A > 0 {B++; while B > 0 {A++; A++; B--;} A--;}
-A++; while A > 0 {B++; while B > 0 {A++; B--; C++;} A--;}
-A++; while A > 0 {B++; while B > 0 {A--; while A > 0 {A--; B--;}}}
-A++; while A > 0 {B++; while B > 0 {B++; while A > 0 {A--; B--;}}}
-A++; while A > 0 {while B > 0 {while A > 0 {A--; B--;}} B++; B++;}
-A++; while A > 0 {while B > 0 {A--; while A > 0 {A--; B--;}} B++;}
-A++; while A > 0 {while B > 0 {B++; while A > 0 {A--; B--;}} B++;}
 ```
 
 # How it works
@@ -181,8 +150,14 @@ search.js - Skip programs with unused counters.
 ### Useless loops
 
 `A++; while A {while A {A--;}}` is equivalent to `A++; while A {A--;}`:  
-If a *var* whle loop has a *var* while loop inside, it must be followed by an inc *var* inside another loop.  
+`A++; B++; while A > 0 {while B > 0 {while A > 0 {A--; B--;}}}` is equivalent to `A++; B++; while A > 0 {A--; B--;}}`:  
+If a *var* whle loop has a *var* while loop inside nested, it must be followed by an inc *var* inside another loop.  
 enumerate.js - When a loop is generated, verify if it satisfies these conditions.
+
+### Useless counters
+
+For every *var*, the program must also contains a while *var*.  
+An exception var may be added for busy beavers.
 
 ## Decider
 
