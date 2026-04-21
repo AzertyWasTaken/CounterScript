@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CounterScript interpreter</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="icon" type="image/x-icon" href="./favicon.png">
+</head>
+
+<body>
+    <h1>CounterScript interpreter</h1>
+
+    <p>CounterScript is a minimal model of computation.</p>
+    <p>It has an unlimited number of variables (called counters), each storing a nonnegative integer.</p>
+    <p>All counters are initialized to 0.</p>
+
+    <table class="instructions">
+    <tr><th>Instruction</th><th>Description</th></tr>
+    <tr><td>A++;</td><td>Increment A by 1</td></tr>
+    <tr><td>A--;</td><td>If A is greater than 0, decrement A by 1</td></tr>
+    <tr><td>while A {...}</td><td>Repeat while A is greater than 0</td></tr>
+    </table>
+
+    <p>Example: <code>A++; while A {A--; B++;}</code></p>
+
+    <textarea id="code-editor" placeholder="Write your program here!"></textarea>
+
+    <div>
+    <!-- <button id="btn-reset">Reset</button> -->
+    <!-- <button id="btn-step">Step</button> -->
+    <button id="btn-run">Run</button>
+    </div>
+
+    <p class="status" id="status"></p>
+
+    <h2>Counters</h2>
+
+    <table class="counters" id="output">
+        <tr id="vars-name"></tr>
+        <tr id="vars-value"></tr>
+    </table>
+
+    <script type="module" src="./website.js"></script>
+</body>
+</html>

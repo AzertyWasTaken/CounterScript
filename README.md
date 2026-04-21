@@ -1,16 +1,33 @@
-# About
+# BBCS enumerator & decider
 
-The goal of this project is to prove the first values of the Busy Beaver function for CounterScript.  
-If you are interested, you can join my Discord server by pressing this link: https://discord.gg/H3FnyZwA6P
+![Status](https://img.shields.io/badge/status-research-blue)
+[![Maintenance](https://img.shields.io/badge/maintained%3F-yes-green.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/commit-activity)
+[![GitHub license](https://badgen.net/github/license/Naereen/Strapdown.js)](https://github.com/Naereen/StrapDown.js/blob/master/LICENSE)
 
-# CounterScript
+## 🚀 Getting Started
+
+This project studies the Busy Beaver function for CounterScript, a minimal computational model.  
+
+The goals are multiple and includes:  
+
+- **Prove values of BBCS(n)** — a problem closely related to some of the hardest known questions in computability theory.
+- **Find BBCS(n) champions** — programs that run for a very long time.
+- **Find cryptids** — programs that are mathematically hard to decide.
+
+## 🧠 CounterScript
 
 CounterScript is a model of computation created in March 2026 by Azerty.  
 It uses a minimal instruction set designed around incrementing, conditional decrementing, and looping.  
 The language has an unlimited number of variables (called counters), each storing a nonnegative integer.  
-All counters are initialized to 0.
+All counters are initialized to 0.  
 
-## Instructions
+### Example
+
+This program sets B to 6 by multiplying 2 by 3.  
+
+`A++; A++; while A {A--; B++; B++; B++;}`  
+
+### Instructions
 
 A CounterScript program is composed of 3 instruction types:
 
@@ -20,158 +37,165 @@ A CounterScript program is composed of 3 instruction types:
 | `A--;` | If A is greater than 0, decrement A by 1
 | `while A {...}` | Repeat while A is greater than 0
 
-# BBCS
+## 📈 BBCS results
 
-The Busy Beaver function for CounterScript, denoted BBCS(n), returns the largest value a counter can store after a CounterScript program of length *n* halts.  
-The length of a program is the number of instructions it contains.
+The Busy Beaver function for CounterScript, denoted **BBCS(n)**, returns the largest value a counter can store after a CounterScript program of length *n* halts.  
+The length of a program is the number of instructions it contains.  
 
-## Lower Bounds
+### Lower Bounds
 
-The first 7 values of BBCS are proven.
+The following values of BBCS(n) are **proven exact** up to n = 7, and **lower bounds** beyond:  
 
 | BBCS(n) | Value | Champion | Notes
 | - | - | - | -
-| 1 | 1 | `A++;` |
-| 2 | 2 | `A++; A++;` |
-| 3 | 3 | `A++; A++; A++;` |
-| 4 | 4 | `A++; A++; A++; A++;` |
-| 5 | 5 | `A++; A++; A++; A++; A++;` |
-| 6 | 6 | `A++; A++; A++; A++; A++; A++;` |
-| 7 | 7 | `A++; A++; A++; A++; A++; A++; A++;` |
-| 8 | 9 | `A++; A++; A++; while A > 0 {A--; B++; B++; B++;}` |
-| 9 | 12 | `A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++;}` |
-| 10 | 16 | `A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++;}` |
-| 11 | 20 | `A++; A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++;}` |
-| 12 | 25 | `A++; A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++; B++;}` |
-| 13 | 30 | `A++; A++; A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++; B++;}` |
-| 14 | 36 | `A++; A++; A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++; B++; B++;}` |
-| 15 | 42 | `A++; A++; A++; A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++; B++; B++;}` |
-| 16 | 49 | `A++; A++; A++; A++; A++; A++; A++; while A > 0 {A--; B++; B++; B++; B++; B++; B++; B++;}` |
+| 1 | 1 | `A++;` | -
+| 2 | 2 | `A++; A++;` | -
+| 3 | 3 | `A++; A++; A++;` | -
+| 4 | 4 | `A++; A++; A++; A++;` | -
+| 5 | 5 | `A++; A++; A++; A++; A++;` | -
+| 6 | 6 | `A++; A++; A++; A++; A++; A++;` | -
+| 7 | 7 | `A++; A++; A++; A++; A++; A++; A++;` | -
+| 8 | 9 | `A++; A++; A++; while A {A--; B++; B++; B++;}` | Multiply 3 by 3
+| 9 | 12 | `A++; A++; A++; A++; while A {A--; B++; B++; B++;}` | -
+| 10 | 16 | `A++; A++; A++; A++; while A {A--; B++; B++; B++; B++;}` | -
+| 11 | 20 | `A++; A++; A++; A++; A++; while A {A--; B++; B++; B++; B++;}` | -
+| 12 | 25 | `A++; A++; A++; A++; A++; while A {A--; B++; B++; B++; B++; B++;}` | -
+| 13 | 30 | `A++; A++; A++; A++; A++; A++; while A {A--; B++; B++; B++; B++; B++;}` | -
+| 14 | 36 | `A++; A++; A++; A++; A++; A++; while A {A--; B++; B++; B++; B++; B++; B++;}` | -
+| 15 | 42 | `A++; A++; A++; A++; A++; A++; A++; while A {A--; B++; B++; B++; B++; B++; B++;}` | -
+| 16 | 49 | `A++; A++; A++; A++; A++; A++; A++; while A {A--; B++; B++; B++; B++; B++; B++; B++;}` | -
 
-## Holdouts
+### Holdouts
 
-| BBCS(n) | Count
+An holdout is an undecided program — we do not know yet if it halts or not.  
+
+| BBCS(n) | Holdouts
 | - | -
-| 7 | 1
-| 8 | 16
-| 9 | 124
-| 10 | 992
+| 8 | 8
+| 9 | 71
+| 10 | 425
 
-### BBCS(7)
+Check Holdouts.md to find the list of current holdouts for smaller values.  
 
-```
-A++; B++; while A > 0 {A++; while B > 0 {A--; B--;}}
-```
+### Difficulty
 
-### BBCS(8)
+| BBCS(n) | Analysis
+| - | -
+| 1 | Every programs halt in a single step.
+| 2 | Has nonhalting empty loops.
+| 3 | Has nonempty but nondecreasing loops.
+| 4 | Has `while #` with `#--` and `#++` that cancel each other.
+| 5 | Has `while #` with the `#--` inside an unreachable loop.
+| 6 | Similar to the previous value but with translated cyclers.
+| 7 | Requires filtering unreachable loops after the program started.
+| 8 | Has translated cyclers with loops executing equivalence and nontrivial champions. Difficulty is comparable to **BB(2)**.
 
-```
-A++; A++; B++; while A > 0 {A++; while B > 0 {A--; B--;}}
-A++; B++; while A > 0 {A++; A++; while B > 0 {A--; B--;}}
-A++; B++; while A > 0 {A++; B--; while B > 0 {A--; B--;}}
-A++; B++; while A > 0 {A++; while B > 0 {A--; B--;} B--;}
-A++; B++; while A > 0 {A++; while B > 0 {A--; B--; B--;}}
-A++; while A > 0 {A--; B++; B++; while B > 0 {A++; B--;}}
-A++; while A > 0 {A--; B++; while B > 0 {A++; B--;} B++;}
-A++; while A > 0 {A--; B++; while B > 0 {A++; A++; B--;}}
-A++; while A > 0 {A++; A++; B++; while B > 0 {A--; B--;}}
-A++; while A > 0 {A++; A++; while B > 0 {A--; B--;} B++;}
-A++; while A > 0 {A++; B--; while B > 0 {A--; B--;} B++;}
-A++; while A > 0 {A++; B++; while B > 0 {A++; B--;} A--;}
-A++; while A > 0 {A++; while B > 0 {A++; B--;} A--; B++;}
-A++; while A > 0 {B++; B++; while B > 0 {A++; B--;} A--;}
-A++; while A > 0 {B++; while B > 0 {A++; B--;} A--; B++;}
-A++; while A > 0 {B++; while B > 0 {A++; A++; B--;} A--;}
-```
+### BBCS vs BB
 
-# How it works
+Unlike Turing Machines, smaller CounterScript programs are much less chaotic and holdouts size reflects better their complexity.  
+CounterScript is also easier to accelerate and analyze.  
+
+## ⚙️ Project structure
 
 | Script | Description
 | - | -
-| main.js | Only script that should be run outside of tests. It also contains configurations.
-| search.js | Collects and logs results from other scripts.
-| enumerate.js | Gets all possible CounterScript programs of a specific length.
-| execute.js | Runs CounterScript programs.
-| unparse.js | Converts CounterScript objects to readable strings.
+| website.js | Manage the UI of the CounterScript interpreter website.
+| tester.js | Tests new function to check if they work like intended.
 | log.js | Modified version of console.log function.
-| canHalt.js | Checks if a *var* loop has dec *var*.
-| getUsedVar.js | Get the set of counters used in a program.
-| hasIncVar.js | Checks if for every *var*, the program has inc *var* outside of a *var* loop.
-| compare.js | Compare the value of every counters.
+| main.js | The script that should be run to search programs.
+| enumerate.js | Enumerate CounterScript programs up to length *n*.
+| execute.js | Execute CounterScript programs.
+| parse.js | Converts CounterScript code to a string or a plain object.
+| getProgData.js | Collects data from programs, like the set of used vars.
 
-## Equivalence
+## 🔬 Search & Optimization Techniques
 
-### Ordered counter names
+A list of techniques currently applied to reduce the search space and decide programs.  
 
-`A++; B++; A++;` is equivalent to `A++; A++; B++;`:  
-In every loopless sequences, instruction counter names must be in ascending order.  
-enumerate.js - Add a minInstr param that forces instructions ordering and resets when a loop is generated.
+### Equivalence
 
-### Ordered while loops
+#### Max vars id
 
-`A++; while A {...} B++;` is equivalent to `A++; B++; while A {...}` where `{...}` refers to any statements that does not involve *B*:  
-Every dec *var* and inc *var* must be before a while loop if *var* appears in its body.
-enumerate.js - When a loop is generated, create a set of counters used inside its body. The next loopless sequence must contain only variables from this set.
+Remove `A++; while A {B++;} D++;` to `A++; while A {B++;} C++;` equivalence.  
+Each new var id must be the smallest used one.  
 
-### Tree enumeration
+#### Ordered vars id
 
-enumerate.js - Execute and store programs during enumeration.
+Remove `A++; B++; A++;` to `A++; A++; B++;` equivalence.  
+In every loopless sequences, instr vars id must be in ascending order.  
 
-### Ordered counter values
+Remove `A++; while A {A--; B++;} C++;` to `A++; B++; while A {A--; C++;}` equivalence.  
+Every `#--` and `#++` must **not** succeed a while loop if `#` appears in its body.  
 
-`A++; B++; while B {A++; B--;}` is equivalent to `A++; B++; while A {A--; B++;}`:  
-If *var* has the same value as *var'*, the next instruction must not be *var'*.
+#### Tree Normal Form
 
-## Reduction
+Remove `A++; while A {A++;} A--;` to `A++; while A {A++;}` equivalence.  
+Run each program during enumeration outside of loops and stop generating further if the program does **not** halt.  
 
-### Ordered instructions
+#### Ordered vars value
 
-`A++; A--; B++;` is equivalent to `B++;`:  
-Any dec *var* after inc *var* cancel each other.  
-In every loopless sequences, dec *var* must be before inc *var*.  
-enumerate.js - Make the minInstr param include decrements and increments order.
+Remove `A++; B++; while B {A++; B--;}` to `A++; B++; while A {A--; B++;}` equivalence.  
+Before adding a `#` instruction outside of a loop, its value must **not** be equal to the value of the previous `#` id.  
 
-### Counters declaration
+### Reduction
 
-New variables outside of loops must start with an increment.  
-enumerate.js - Add a isInLoop param which return if the generating program is inside a loop.
+#### Ordered instructions
 
-### Programs ending
+Remove `A++; A--; B++;` to `B++;` equivalence.  
+In every loopless sequences, `#--` must precede `#++`.  
 
-The length 4 loop `while A {A--; B++; B++;}` is the smallest loop that increases a variable nontrivially:  
-Programs must end with a loop of length > 3.  
-enumerate.js - Skip loop generation if 0 < remaining length < 4.
+#### Vars usefulness
 
-### Useless counters
+Remove `A++; while A {A++; while B {A--; B--;}}` to `A++; while A {A++;}` equivalence.  
+For each `#`, the program must also contain an `#++` and an while `#` inside or before its root loop.  
+An exception can be made for halting programs with a single `#` without any while `#` to improve their score.  
+Example: `A++; A++; A++; while A {A--; B++; B++; B++;}`  
 
-For every *var*, the program must also contains an inc *var* somewhere inside or before its root loop.  
-search.js - Skip programs with unused counters.
+#### Vars declaration
 
-### Useless loops
+Remove `A++; B--; while A {A--; B++;}`to `A++; while A {A--; B++;}` equivalence.  
+New vars outside of loops must start with an inc.  
 
-`A++; while A {while A {A--;}}` is equivalent to `A++; while A {A--;}`:  
-`A++; B++; while A > 0 {while B > 0 {while A > 0 {A--; B--;}}}` is equivalent to `A++; B++; while A > 0 {A--; B--;}}`:  
-If a *var* whle loop has a *var* while loop inside nested, it must be followed by an inc *var* inside another loop.  
-enumerate.js - When a loop is generated, verify if it satisfies these conditions.
+#### Loops usefulness
 
-### Useless counters
+Remove `A++; while A {A++; while A {A--; B++;} B++;}` to `A++; while A {A++; B++;}` equivalence.  
+Every `while #` inside a `while #` must precede an `#++` inside a *var'* loop.  
 
-For every *var*, the program must also contains a while *var*.  
-An exception var may be added for busy beavers.
+Remove `A++; while A {A++; while B {while A {A--; B++;}} B++;}` to `A++; while A {A++; B++;}` equivalence.  
+Every "useless for `#`" loops inside a `while #` must precede an `#++` inside a *var'* loop.  
 
-## Decider
+### Decider
 
-### Nondecreasing loops
+A decider is a rule that proves a program does not halt.  
 
-`A++; while A {A--; A++;}` never halts:  
-While *var* loops either never halts or are never used if they do not contains any dec *var* **not** followed by inc *var*.  
-enumerate.js - Set minimum loop length to 1 and skip nondecreasing loops generation.
+#### Loops structure
 
-### Cycler
+Decide `A++; while A {}` as nonhalter.  
+Each loops must be nonempty.  
 
-Decide programs as nonhalting if all counter values repeat in the beginning of a loop.  
-execute.js - Save counters in the beginning of each loop then compare it with current counters at the next iteration.
+Decide `A++; while A {B++;}` as nonhalter.  
+Each `while #` must have a `#--`.  
 
-## Simulation
+Decide `A++; while A {A--; A++;}` as nonhalter.  
+A `while #` contains a canceling decrement if every occurrence of `#--` is followed by `#++` before the loop end.  
 
-N/A
+Decide `A++; while A {A--; B++; while B {A++; B--;} B++;}` as nonhalter.  
+Each `while #` must not be preceded by `#++` if it ends with a loop that always increases `#`.  
+
+#### Cyclers
+
+Decide `A++; while A {while A {A--; B++;} while B {A++; B--;}}` as nonhalter.  
+Decide programs as nonhalting if every counters keep the same value the next loop iteration.  
+
+#### Unreachable loops
+
+Decide `A++; B++; while A {A++; while B {A--; B--;}}` as nonhalter.  
+Filter out loops that became unreachable then apply *Halting loops* decider again.  
+
+### Simulation
+
+N/A  
+
+## 🤝 Contributing
+
+If you are interested, you can join my Discord server: <https://discord.gg/H3FnyZwA6P>  

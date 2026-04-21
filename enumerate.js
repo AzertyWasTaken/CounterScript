@@ -1,122 +1,91 @@
 ﻿"use strict";
-import {hasDec} from "./canHalt.js";
-import {getUsedVars} from "./getUsedVars.js";
-import {isLoopUseful} from "./isLoopUseful.js";
-import {execute, getVar} from "./execute.js";
-import {hasVar} from "./hasVar.js";
+import {canLoopHalt, isLoopNonhalting, hasActiveVarForEach, getUsedVars, isLoopUseful} from "./getProgData.js";
+import {run, getVar} from "./execute.js";
 
-function copy(obj, prop) {
-    return {...obj, ...prop};
+function compareVars(vars, id) {
+    return id > 0 && getVar(vars, id) === getVar(vars, id - 1)
 }
 
-function decodeInstruction(instrIndex) {
-    return {
-        type: instrIndex % 2 === 0 ? "dec" : "inc",
-        var: Math.floor(instrIndex / 2),
-    };
-}
+export function* genInstructions(length, program, vars, steps, maxVarId, minInstrId, isInLoop, allowedVars) {
+    for (let instrId = minInstrId; instrId < (maxVarId + 1) * 2; instrId++) {
+        const instr = {
+            type: instrId % 2 === 0 ? "dec" : "inc",
+            var: Math.floor(instrId / 2)
+        };
 
-function compareVars(vars, index) {
-    return index > 0 && getVar(vars, index) === getVar(vars, index - 1);
-}
+        // Skip not allowed vars
+        if (
+            !isInLoop && (
+                instr.type === "dec" && instr.var + 1 > maxVarId ||
+                compareVars(vars, instr.var)
+            ) || allowedVars && !allowedVars.has(instr.var)
+        ) {continue;}
 
-function* enumerateInstructions(length, param) {
-    const maxInstrIndex = (param.usedVars + 1) * 2;
+        const nextMaxVarId = Math.max(instr.var + 1, maxVarId);
 
-    for (let instrIndex = param.minInstr; instrIndex < maxInstrIndex; instrIndex++) {
-        const instr = decodeInstruction(instrIndex);
+        // Execute instruction
+        const [halted, newVars, newSteps] = isInLoop ?
+        [true, vars] : run([instr], 100, true, {...vars}, steps);
 
-        if (param.allowedVars && !param.allowedVars.has(instr.var)) {
-            continue;
-        }
-
-        const nextUsedVars = Math.max(param.usedVars, instr.var + 1);
-        if (!param.isInLoop && (nextUsedVars !== param.usedVars && instr.type === "dec" || compareVars(param.vars, instr.var))) {
-            continue;
-        }
-
-        if (param.isInLoop) {
-            param.prefix.push(instr);
-            yield* enumerate(length - 1, copy(param, {usedVars: nextUsedVars, minInstr: instrIndex}));
-            param.prefix.pop();
-
-        } else {
-            const {vars, steps} = execute([instr], 10, {...param.vars}, param.steps);
-
-            param.prefix.push(instr);
-            yield* enumerate(length - 1, copy(param, {usedVars: nextUsedVars, minInstr: instrIndex, vars, steps}));
-            param.prefix.pop();
-        }
+        // Add the operation
+        program.push(instr);
+        yield* enumerate(length - 1, program, newVars, newSteps, nextMaxVarId, instrId, isInLoop, allowedVars);
+        program.pop();
     }
 }
 
-function* enumerateWhileLoops(length, param) {
-    for (let varIndex = 0; varIndex < param.usedVars + 1; varIndex++) {
-        const nextUsedVars = Math.max(param.usedVars, varIndex + 1);
+export function* genWhileLoops(length, program, vars, steps, maxVarId, isInLoop) {
+    for (let varId = 0; varId <= maxVarId; varId++) {
+        // Skip not allowed vars
+        if (!isInLoop && (varId + 1 > maxVarId || compareVars(vars, varId))) {continue;}
 
-        if (!param.isInLoop && (nextUsedVars !== param.usedVars || compareVars(param.vars, varIndex))) {
-            continue;
-        }
+        const nextMaxVarId = Math.max(varId + 1, maxVarId);
 
-        for (let bodyLen = 1; bodyLen < length; bodyLen++) {
-            const tailLength = length - bodyLen - 1;
-            if (!param.isInLoop && tailLength > 0 && tailLength < 4) {
-                continue;
-            }
+        for (let bodyLength = 1; bodyLength < length; bodyLength++) {
+            const tailLength = length - bodyLength - 1;
 
-            for (const data of enumerate(bodyLen, {prefix: [], usedVars: nextUsedVars, minInstr: 0, isInLoop: true, allowedVars: null})) {
+            // Enumerate all possible bodies for the while loop
+            for (
+                const [body, bodyHalted, bodyVars, bodySteps, bodyMaxVarId]
+                of enumerate(bodyLength, [], {}, steps, nextMaxVarId, 0, true, null)
+            ) {
+                // Skip not allowed bodies
                 if (
-                    !hasDec(data.prog, varIndex) ||
-                    !isLoopUseful(data.prog, varIndex)
-                ) {
-                    continue;
-                }
+                    !canLoopHalt(body, varId)
+                    || isLoopNonhalting(body, varId)
+                    || !isLoopUseful(body, varId)
+                ) {continue;}
 
-                const instr = {type: "while", var: varIndex, body: data.prog};
-                const usedVarsSet = getUsedVars(data.prog);
-                const maxUsedVars = Math.max(nextUsedVars, Math.max(...usedVarsSet) + 1);
+                const instr = {type: "while", var: varId, body};
 
-                param.prefix.push(instr);
+                // Execute instruction
+                const [halted, newVars, newSteps] = isInLoop ?
+                [true, vars] : run([instr], 100, true, {...vars}, steps);
 
-                if (!param.isInLoop && !hasVar(param.prefix, "inc")) {
-                    param.prefix.pop();
-                    continue;
-                }
+                program.push(instr);
+                // Filter out programs that have inactive vars (always stay at 0)
+                if (isInLoop || hasActiveVarForEach(program)) {
+                    if (halted === true) {
+                        const tailMaxVarId = Math.max(bodyMaxVarId, maxVarId);
+                        const usedVarsInBody = getUsedVars(body);
+                        yield* enumerate(tailLength, program, newVars, newSteps, tailMaxVarId, 0, isInLoop, usedVarsInBody);
 
-                if (param.isInLoop) {
-                    yield* enumerate(tailLength, copy(param, {usedVars: maxUsedVars, minInstr: 0, allowedVars: usedVarsSet}));
-
-                } else {
-                    const {halted, vars, steps} = execute([instr], 10, {...param.vars}, param.steps);
-
-                    if (halted) {
-                        yield* enumerate(tailLength, copy(param, {usedVars: maxUsedVars, minInstr: 0, allowedVars: usedVarsSet, vars, steps}));
-
-                    } else {
-                        if (!param.isInLoop && !hasVar(param.prefix, "while")) {
-                            param.prefix.pop();
-                            continue;
-                        }
-
-                        yield {prog: param.prefix, halted, vars, steps};
+                    } else if (!isInLoop && tailLength === 0) {
+                        yield [program, halted, newVars, newSteps, maxVarId];
                     }
                 }
-
-                param.prefix.pop();
+                program.pop();
             }
         }
     }
 }
 
-export function* enumerate(
-    length,
-    param = {prefix: [], usedVars: 0, minInstr: 0, isInLoop: false, allowedVars: null, vars: {}, steps : 0}
-) {
+export function* enumerate(length, program = [], vars = {}, steps = 0, maxVarId = 0, minInstrId = 0, isInLoop = false, allowedVars = null) {
     if (length <= 0) {
-        yield {prog: param.prefix, halted: true, vars: param.vars, steps: param.steps};
+        yield [program, true, vars, steps, maxVarId];
         return;
     }
 
-    yield* enumerateInstructions(length, param);
-    yield* enumerateWhileLoops(length, param);
+    yield* genInstructions(length, program, vars, steps, maxVarId, minInstrId, isInLoop, allowedVars);
+    yield* genWhileLoops(length, program, vars, steps, maxVarId, isInLoop);
 }

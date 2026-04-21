@@ -1,0 +1,92 @@
+/* Background */
+
+body {
+    font-family: Arial;
+    background: #181818;
+    text-align: left;
+    padding: 8px;
+    max-width: 960px;
+    margin: auto;
+    color: #FFFFFF;
+}
+
+/* Text */
+
+h1 {
+    text-align: center;
+    padding: 8px;
+}
+
+p {
+    line-height: 24px;
+    margin: 8px 0px;
+}
+
+code {font-size: 16px;}
+
+a {color: #FFE040;}
+
+.status {
+    font-size: 20px;
+    color: #E0E0E0;
+}
+
+hr {border: 2px solid #404040;}
+
+/* Table */
+
+table, th, td {
+    border: 1px solid #808080;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+    padding: 6px;
+    font-size: 16px;
+}
+
+table th {
+    background: #202020;
+    font-weight: bold;
+}
+
+table td {
+    background: #101010;
+    font-weight: normal;
+}
+
+.instructions td:first-child {font-family: monospace;}
+
+.counters {text-align: center;}
+
+/* Button */
+
+button {
+    background: #2080FF;
+    color: #FFFFFF;
+    box-sizing: border-box;
+    border: 0 solid #000;
+    max-width: 240px;
+    padding: 6px 10px;
+    margin: 6px 6px 6px 0px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+button:disabled {
+    background: #606060;
+    cursor: not-allowed;
+}
+
+/* Code editor */
+
+textarea {
+    width: 100%;
+    height: 200px;
+    background: #000000;
+    color: #FFFFFF;
+    font-size: 16px;
+    resize: vertical;
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
