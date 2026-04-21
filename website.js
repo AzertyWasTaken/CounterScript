@@ -3,6 +3,8 @@ import {log} from "./log.js"
 import {parse} from "./parser.js";
 import {run} from "./execute.js";
 
+const MAX_STEPS = 1000000;
+
 const el = {
     // reset: document.getElementById("btn-reset"),
     run: document.getElementById("btn-run"),
@@ -42,7 +44,7 @@ function updateVarsTable(vars, legend) {
 el.run.addEventListener("click", () => {
     const [parsed, legend] = parse(el.editor.value);
     console.log(legend)
-    const [halted, vars, steps] = run(parsed);
+    const [halted, vars, steps] = run(parsed, MAX_STEPS);
 
     el.status.innerHTML = halted ? "Halted" : "Timed out";
     updateVarsTable(vars, legend);
