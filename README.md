@@ -147,8 +147,8 @@ In every loopless sequences, `#--` must precede `#++`.
 #### Vars usefulness
 
 Remove `A++; while A {A++; while B {A--; B--;}}` to `A++; while A {A++;}` equivalence.  
-For each `#`, the program must also contain an `#++` and an while `#` inside or before its root loop.  
-An exception can be made for halting programs with a single `#` without any while `#` to improve their score.  
+For each `#`, the program must also contain an `#++` outside of a `while #` and an `while #` inside or preceding its root loop.  
+An exception can be made for halting programs with a single `#` without any `while #` to improve their score.  
 Example: `A++; A++; A++; while A {A--; B++; B++; B++;}`  
 
 #### Vars declaration
@@ -196,6 +196,6 @@ Filter out loops that became unreachable then apply *Halting loops* decider agai
 
 N/A  
 
-## 🤝 Contributing
+<!-- ## 🤝 Contributing
 
-If you are interested, you can join my Discord server: <https://discord.gg/H3FnyZwA6P>  
+If you are interested, you can join my Discord server: <https://discord.gg/H3FnyZwA6P>   -->
