@@ -18,7 +18,7 @@ const count = {
 
 let record = 0;
 
-for (const [program, halted, vars, steps, maxVarId] of enumerate(10)) {
+for (const [program, halted, vars, steps, maxVarId] of enumerate(9)) {
     if (halted !== true && !hasOpVarForEach(program, "while")) {continue;}
     const progStr = unparse(program);
 

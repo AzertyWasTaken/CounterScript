@@ -44,7 +44,7 @@ The length of a program is the number of instructions it contains.
 
 ### Lower Bounds
 
-The following values of BBCS(n) are **proven exact** up to n = 7, and **lower bounds** beyond:  
+The following values of BBCS(n) are **proven exact** up to n = 9, and **lower bounds** beyond:  
 
 | BBCS(n) | Value | Champion | Notes
 | - | - | - | -
@@ -71,9 +71,8 @@ An holdout is an undecided program — we do not know yet if it halts or not.
 
 | BBCS(n) | Holdouts
 | - | -
-| 8 | 8
-| 9 | 71
-| 10 | 425
+| 9 | 4
+| 10 | 43
 
 Check Holdouts.md to find the list of current holdouts for smaller values.  
 
@@ -187,10 +186,13 @@ Each `while #` must not be preceded by `#++` if it ends with a loop that always 
 Decide `A++; while A {while A {A--; B++;} while B {A++; B--;}}` as nonhalter.  
 Decide programs as nonhalting if every counters keep the same value the next loop iteration.  
 
+Decide `A++; while A {A++; A++; B++; while B {A--; B--;}}` as nonhalter.  
+When comparing counters at end of a `while #` iteration, ignore every `#_2` that do not have a `while #_2` but check if `#` does not decrease.
+
 #### Unreachable loops
 
 Decide `A++; B++; while A {A++; while B {A--; B--;}}` as nonhalter.  
-Filter out loops that became unreachable then apply *Halting loops* decider again.  
+Filter out parts of a loop body that became unreachable then apply *Halting loops* decider again.  
 
 ### Simulation
 

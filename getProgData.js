@@ -107,13 +107,20 @@ export function canLoopHalt(program, targetVar) {
     return false;
 }
 
-// Filter out while loops that are unnecessary based on variable state
-export function filterOutWhiles(program, usedIncVars, currVars) {
-    return program.filter((instr) =>
-        instr.type !== "while" ||
-        currVars[instr.var] ||
-        usedIncVars.has(instr.var)
-    );
+// Filter out instructions on var contained in varSet
+export function filterOutVars(program, varIdSet) {
+    for (let i = program.length - 1; i >= 0; i--) {
+        const instr = program[i];
+
+        if (varIdSet.has(instr.var)) {
+            program.splice(i, 1);
+        }
+        else if (instr.type === "while") {
+            filterOutVars(instr.body, varIdSet);
+        }
+    }
+
+    return program;
 }
 
 // Check if a loopVar while loop on body is actually useful
@@ -134,7 +141,7 @@ export function isLoopUseful(body, loopVar) {
     return true;
 }
 
-// Check if all used vars can be greater than 0
+// An used vars is active if it can increment when equal to 0
 export function hasActiveVarForEach(program) {
     const activeVars = new Set();
     const usedVars = new Set();
@@ -155,4 +162,26 @@ export function hasActiveVarForEach(program) {
     scan(program, new Set());
 
     return usedVars.isSubsetOf(activeVars);
+}
+
+export function getInactiveVars(program) {
+    const activeVars = new Set();
+    const usedVars = new Set();
+
+    function scan(block, ignore) {
+        for (const instr of block) {
+            usedVars.add(instr.var);
+
+            if (instr.type === "inc") {
+                if (!ignore.has(instr.var)) {activeVars.add(instr.var);}
+            }
+            else if (instr.type === "while") {
+                scan(instr.body, ignore.union(new Set([instr.var])));
+            }
+        }
+    }
+
+    scan(program, new Set());
+
+    return usedVars.difference(activeVars);
 }

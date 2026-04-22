@@ -1,35 +1,71 @@
 "use strict";
-import {getUsedVars, filterOutWhiles, canLoopHalt, isLoopNonhalting} from "./getProgData.js";
+import {log} from "./log.js";
+import {
+    getInactiveVars, filterOutVars, canLoopHalt, isLoopNonhalting,
+    getUsedVars
+} from "./getProgData.js";
 
-function compareObj(a, b) {
-    const [ka, kb] = [Object.keys(a), Object.keys(b)];
-    return ka.length === kb.length &&
-    ka.every((key) => a[key] === b[key]);
+// Pure functions for variable manipulation
+export function getVar(vars, id) {
+    return vars[id] ?? 0;
 }
 
-export function getVar(vars, id) {return vars[id] ?? 0;}
+function compareVars(prev, curr, varsSet, loopVarId) {
+    return Array.from(varsSet).every((id) => getVar(prev, id) === getVar(curr, id))
+    && getVar(curr, loopVarId) >= getVar(prev, loopVarId);
+}
 
-function decideLoopStructure(instr, usedIncVars, currVars) {
-    const filtered = filterOutWhiles(instr.body, usedIncVars, currVars);
-    return !canLoopHalt(filtered, instr.var)
-    || isLoopNonhalting(filtered, instr.var);
+function incrementVar(vars, id) {
+    vars[id] = getVar(vars, id) + 1;
+}
+
+function decrementVar(vars, id) {
+    if (getVar(vars, id) <= 1) {delete vars[id];}
+    else {vars[id] = getVar(vars, id) - 1;}
+}
+
+// Process zero variables in a loop body
+function processZeroVars(copyLoop, inactiveVars, vars) {
+    let newCopyLoop = copyLoop;
+
+    // Get a set of vars recently set to 0
+    const zeroVars = new Set();
+    inactiveVars.forEach((varId) => {
+        // log(varId)
+        if (!vars[varId]) {zeroVars.add(varId);}
+    });
+
+    const update = zeroVars.size > 0;
+
+    // Filter for each vars recently set to 0
+    if (update) {
+        newCopyLoop = filterOutVars(structuredClone(newCopyLoop), zeroVars);
+        zeroVars.forEach((varId) => {inactiveVars.delete(varId);});
+    }
+
+    return [newCopyLoop, update];
 }
 
 export function run(program, maxSteps, deciders = false, vars = {}, steps = 0) {
     function execute(block) {
         for (const instr of block) {
             if (instr.type === "inc") {
-                vars[instr.var] = getVar(vars, instr.var) + 1;
+                incrementVar(vars, instr.var);
+            }
+            else if (instr.type === "dec") {
+                decrementVar(vars, instr.var);
+            }
+            else if (instr.type === "while") {
+                if (getVar(vars, instr.var) === 0) {continue;}
 
-            } else if (instr.type === "dec") {
-                vars[instr.var] = Math.max(getVar(vars, instr.var) - 1, 0);
-                if (vars[instr.var] === 0) {delete vars[instr.var];}
+                const usedWhileVars = getUsedVars(instr.body, "while");
 
-            } else if (instr.type === "while") {
-                const usedIncVars = getUsedVars(instr.body, "inc");
+                const inactiveVars = getInactiveVars(instr.body);
+                inactiveVars.delete(instr.var);
+
+                let copyLoop = instr.body;
 
                 while (getVar(vars, instr.var) > 0) {
-                    // Store current counters
                     const lastVars = {...vars};
 
                     // Execute the loop body
@@ -39,17 +75,29 @@ export function run(program, maxSteps, deciders = false, vars = {}, steps = 0) {
                     if (!halted) {return halted;}
                     if (steps >= maxSteps) {return null;}
 
-                    // Decide cyclers and some translated cyclers
+                    const [newCopyLoop, update] =
+                    processZeroVars(copyLoop, inactiveVars, vars);
+                    copyLoop = newCopyLoop;
+
                     if (deciders) {
-                        const isNonhalting = compareObj(vars, lastVars)
-                        || decideLoopStructure(instr, usedIncVars, vars);
-                        if (isNonhalting) {return false;}
+                        // Compare current and previous counters
+                        if (compareVars(lastVars, vars, usedWhileVars, instr.var)) {
+                            return false;
+                        }
+
+                        // Check loop body structure
+                        if (update) {
+                            if (
+                                !canLoopHalt(copyLoop, instr.var)
+                                || isLoopNonhalting(copyLoop, instr.var)
+                            ) {return false;}
+                        }
                     }
 
                     steps++;
                 }
-
-            } else {
+            }
+            else {
                 throw new Error(`Unknown instruction: ${instr.type}`);
             }
         }

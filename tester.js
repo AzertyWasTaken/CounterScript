@@ -5,8 +5,8 @@ import {run} from "./execute.js";
 import {enumerate} from "./enumerate.js";
 import {
     canLoopHalt, isLoopNonhalting, hasOpVarForEach, getUsedVars,
-    filterOutWhiles, isLoopUseful, hasOpVar, doLoopPosVar,
-    hasActiveVarForEach
+    filterOutVars, isLoopUseful, hasOpVar, doLoopPosVar,
+    hasActiveVarForEach, getInactiveVars
 } from "./getProgData.js";
 
 function test(func, program, ...arg) {
@@ -45,14 +45,21 @@ function testEnum(length) {
 
 // test(hasActiveVarForEach, "A++; while A {A--; while B {A++; B++; C++;}}");
 // test(hasActiveVarForEach, "A++; while A {A--; B++; while B {B--; C++;}}");
+// test(getInactiveVars, "A++; while A {A--; while B {B++;} C++; D--;}");
 
-// test(filterOutWhiles, "A++; while B {A--; B--;}", new Set([0]), {0: 1});
-// test(filterOutWhiles, "A--; B--;", new Set(), {0: 1});
+// test(filterOutVars, "A--; B--; C++;", new Set([1]));
+// test(filterOutVars, "A++; while A {A--; B--; while C {C--;}}", new Set([1]));
+// test(filterOutVars, "A++; while B {A--; B--; while C {C--;}}", new Set([0,2]));
 
+test(run, "A++; while A {A--; A++;}", 10, false);
 test(run, "A++; while A {A--; B++;}", 10, true);
 test(run, "A++; while A {A++;}", 10, true);
 test(run, "A++; while A {A--; A++;}", 10, true);
-test(run, "A++; while A {A++;}", 10, false);
+test(run, "A++; A++; B++; while A {while B {A--; B--;} C++;}", 10, true);
+test(run, "A++; while A {A--; B++; while B {A++; A++; B--;}}", 10, true);
+test(run, "A++; while A {A++; A++; B++; while B {A--; B--;}}", 10, true);
+test(run, "A++; while A {A++; B++; while B {A--; B--;}}", 10, true);
+test(run, "A++; B++; while A {A++; while B {A--; B--; B--;}}", 10, true);
 
 // test(hasOpVarForEach, "A++; while A {B++; while B {A--;}}", "inc");
 // test(hasOpVarForEach, "A++; while A {B--; while B {A--;}}", "inc");
