@@ -70,6 +70,7 @@ export function run(program, maxSteps, deciders = false, vars = {}, steps = 0) {
 
                     // Execute the loop body
                     const halted = execute(instr.body);
+                    if (getVar(vars, instr.var) === 0) {continue;}
 
                     // Check execution status
                     if (!halted) {return halted;}
