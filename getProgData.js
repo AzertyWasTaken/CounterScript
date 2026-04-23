@@ -1,4 +1,6 @@
 "use strict";
+import {log} from "./log.js";
+
 // Core recursive search helpers
 export function hasOpVar(program, targetVar, op) {
     for (const instr of program) {
@@ -71,25 +73,28 @@ export function doLoopPosVar(program, targetVar) {
 }
 
 // Check if a while loop is non-halting (specific pattern detection)
-export function isLoopNonhalting(program, targetVar) {
+export function isLoopNonhalting(program, targetVar, loopVar = targetVar) {
     for (let i = program.length - 1; i >= 1; i--) {
         const instr = program[i];
 
-        if (instr.type === "while") {
+        if (instr.type === "inc") {
+            if (instr.var === targetVar) return true;
+        }
+        else if (instr.type === "dec") {
+            if (instr.var === targetVar) return false;
+        }
+        else if (instr.type === "while") {
             if (instr.var === targetVar) {
                 return false;
             }
             else {
                 return doLoopPosVar(instr.body, targetVar)
-                && doLoopPosVar(program.slice(0, i), instr.var);
+                && isLoopNonhalting(program.slice(0, i), instr.var, loopVar);
             }
-        }
-        else if (instr.type === "dec") {
-            if (instr.var === targetVar) {return false;}
         }
     }
 
-    return false;
+    return targetVar === loopVar;
 }
 
 // Check if a while loop is halting (specific pattern detection)

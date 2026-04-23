@@ -1,7 +1,10 @@
 ﻿"use strict";
-import {canLoopHalt, isLoopNonhalting, hasActiveVarForEach, getUsedVars, isLoopUseful} from "./getProgData.js";
-import {run, getVar} from "./execute.js";
 import {log} from "./log.js";
+import {run, getVar} from "./execute.js";
+import {
+    canLoopHalt, isLoopNonhalting, hasActiveVarForEach, getUsedVars,
+    isLoopUseful
+} from "./getProgData.js";
 
 function compareVars(vars, id) {
     return id > 0 && getVar(vars, id) === getVar(vars, id - 1)

@@ -10,9 +10,9 @@ This project studies the Busy Beaver function for CounterScript, a minimal compu
 
 The goals are multiple and includes:  
 
-- **Prove values of BBCS(n)** — a problem closely related to some of the hardest known questions in computability theory.
-- **Find BBCS(n) champions** — programs that run for a very long time.
-- **Find cryptids** — programs that are mathematically hard to decide.
+- **Searching for champions** — programs that run for a very long time
+- **Finding cryptids** — programs that are mathematically hard to decide
+- **Proving the behavior of programs** — decide if a program either halt or not
 
 ## 🧠 CounterScript
 
@@ -44,7 +44,7 @@ The length of a program is the number of instructions it contains.
 
 ### Lower Bounds
 
-The following values of BBCS(n) are **proven exact** up to n = 9, and **lower bounds** beyond:  
+The following values of BBCS(n) are **proven exact** up to **n = 10**, and **lower bounds** beyond:  
 
 | BBCS(n) | Value | Champion | Notes
 | - | - | - | -
@@ -71,8 +71,7 @@ An holdout is an undecided program — we do not know yet if it halts or not.
 
 | BBCS(n) | Holdouts
 | - | -
-| 9 | 4
-| 10 | 43
+| 10 | 5
 
 Check Holdouts.md to find the list of current holdouts for smaller values.  
 
@@ -88,6 +87,8 @@ Check Holdouts.md to find the list of current holdouts for smaller values.
 | 6 | Similar to the previous value but with translated cyclers.
 | 7 | Requires filtering unreachable loops after the program started.
 | 8 | Has translated cyclers with loops executing equivalence and nontrivial champions. Difficulty is comparable to **BB(2)**.
+| 9 | Has bouncers — values that repeatedly bounce from 0 to an increasing value.
+| 10 | Similar to the previous value but with translated cyclers.
 
 ### BBCS vs BB
 
@@ -178,8 +179,9 @@ Each `while #` must have a `#--`.
 Decide `A++; while A {A--; A++;}` as nonhalter.  
 A `while #` contains a canceling decrement if every occurrence of `#--` is followed by `#++` before the loop end.  
 
-Decide `A++; while A {A--; B++; while B {A++; B--;} B++;}` as nonhalter.  
-Each `while #` must not be preceded by `#++` if it ends with a loop that always increases `#`.  
+Decide `A++; while A {A++; while A {A--; B++;} while B {A++; B--;}}` as nonhalter.  
+~~Each `while #` must not be preceded by `#++` if it ends with a loop that always increases `#`.~~  
+Find cycles of self transferring counters.  
 
 #### Cyclers
 
