@@ -19,7 +19,7 @@ const count = {
 let record = 0;
 
 for (const [program, halted, vars, steps, maxVarId] of enumerate(11)) {
-    if (halted !== true && !hasOpVarForEach(program, "while")) {continue;}
+    if (halted !== true && !hasOpVarForEach(program, "while")) continue;
     const progStr = unparse(program);
 
     if (halted === true) {
@@ -28,19 +28,19 @@ for (const [program, halted, vars, steps, maxVarId] of enumerate(11)) {
         if (score > record) {
             record = score;
 
-            if (LOG_CHAMPION) {log("Champion:", progStr, "Score:", record);}
+            if (LOG_CHAMPION) log("Champion:", progStr, "Score:", record);
 
         } else {
-            if (LOG_HALTED) {log("Halted:", progStr);}
+            if (LOG_HALTED) log("Halted:", progStr);
             count.halted++
         }
 
     } else if (halted === false) {
-        if (LOG_NONHALTED) {log("Nonhalted:", progStr);}
+        if (LOG_NONHALTED) log("Nonhalted:", progStr);
         count.nonhalted++;
     
     } else if (halted === null) {
-        if (LOG_HOLDOUT) {log("Holdout:", progStr);}
+        if (LOG_HOLDOUT) log("Holdout:", progStr);
         count.holdout++;
     }
 

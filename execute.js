@@ -7,7 +7,6 @@ import {
 
 // Check if the counters in varsSet has changed
 function compareVars(prev, curr, varsSet) {
-    log(prev, curr, varsSet)
     return Array.from(varsSet).every((id) =>
         getVar(prev, id) === getVar(curr, id)
     );
@@ -81,13 +80,10 @@ function executeWhileLoop(instr, vars, ctx, execute) {
 
         // Execute the loop body
         const halted = execute(instr.body);
-
-        // If loop condition became false, exit normally
         if (getVar(vars, instr.var) === 0) return true;
 
         // Check execution status
         if (!halted) return halted;
-
         if (ctx.steps >= ctx.maxSteps) return null;
 
         // Optimize loop by removing irrelevant instructions

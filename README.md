@@ -71,7 +71,7 @@ An holdout is an undecided program — we do not know yet if it halts or not.
 
 | BBCS(n) | Holdouts
 | - | -
-| 10 | 5
+| 10 | 8
 
 Check Holdouts.md to find the list of current holdouts for smaller values.  
 
@@ -131,6 +131,9 @@ Every `#--` and `#++` must **not** succeed a while loop if `#` appears in its bo
 
 Remove `A++; while A {A++;} A--;` to `A++; while A {A++;}` equivalence.  
 Run each program during enumeration outside of loops and stop generating further if the program does **not** halt.  
+
+Remove `A++; while A {while A {A++;} A++;}` to `A++; while A {while A {A++;}}` equivalence.  
+Enable *Tree Normal Form* decider inside `while #` if `#` > 0.  
 
 #### Ordered vars value
 
@@ -199,6 +202,14 @@ Filter out parts of a loop body that became unreachable then apply *Halting loop
 ### Simulation
 
 N/A  
+
+## Roadmap
+
+- `[X]` Decide BBCS(9) bouncers  
+- `[ ]` Auto test loop structure decider  
+- `[ ]` Full TNF enumerator that ignores unreachable loops  
+- `[ ]` Fix and improve translated cycler decider for BBCS(10+)  
+- `[ ]` Improve bouncers decider for BBCS(11+)  
 
 <!-- ## 🤝 Contributing
 

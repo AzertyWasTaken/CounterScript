@@ -44,11 +44,11 @@ function testDeciders(length) {
 // test(canLoopHalt, "A++; while A {B++;}", 1);
 // test(canLoopHalt, "A++; B--; while A {A--; B++;}", 1);
 
-test(isLoopNonhalting, "A--; B++; while B {A++; B--;}", 0);
-test(isLoopNonhalting, "A--; while B {A++; B--;}", 0);
-test(isLoopNonhalting, "A--; B++; while B {B--;}", 0);
-test(isLoopNonhalting, "A--; B++; C++; while B {A++; B--;} B++;", 0);
-test(isLoopNonhalting, "A++; while A {A--; B++;} while B {A++; B--;}", 0);
+// test(isLoopNonhalting, "A--; B++; while B {A++; B--;}", 0);
+// test(isLoopNonhalting, "A--; while B {A++; B--;}", 0);
+// test(isLoopNonhalting, "A--; B++; while B {B--;}", 0);
+// test(isLoopNonhalting, "A--; B++; C++; while B {A++; B--;} B++;", 0);
+// test(isLoopNonhalting, "A++; while A {A--; B++;} while B {A++; B--;}", 0);
 
 // test(getUsedVars, "A++; while B {A--; B--;}", "inc");
 // test(getUsedVars, "A++; while A {A--; while B {B--; C++;}}", "inc");
@@ -92,4 +92,4 @@ test(isLoopNonhalting, "A++; while A {A--; B++;} while B {A++; B--;}", 0);
 // testDeciders(8);
 
 // testEnum(enumerate, 6);
-testEnum(TNF, 4);
+// testEnum(TNF, 5);

@@ -4,15 +4,11 @@ import {log} from "./log.js";
 // Core recursive search helpers
 export function hasOpVar(program, targetVar, op) {
     for (const instr of program) {
-        if (
-            instr.type === op &&
-            instr.var === targetVar
-        ) {return true;}
+        if (instr.type === op && instr.var === targetVar)
+            return true;
 
-        if (
-            instr.type === "while" &&
-            hasOpVar(instr.body, targetVar, op)
-        ) {return true;}
+        if (instr.type === "while" && hasOpVar(instr.body, targetVar, op))
+            return true;
     }
 
     return false;
@@ -23,9 +19,11 @@ export function getUsedVars(program, op) {
 
     function scan(block) {
         for (const instr of block) {
-            if (!op || instr.type === op) {usedVars.add(instr.var);}
+            if (!op || instr.type === op)
+                usedVars.add(instr.var);
 
-            if (instr.type === "while") {scan(instr.body);}
+            if (instr.type === "while")
+                scan(instr.body);
         }
     }
 
@@ -42,9 +40,11 @@ export function hasOpVarForEach(program, op) {
         for (const instr of block) {
             usedVars.add(instr.var);
 
-            if (instr.type === op) {opVars.add(instr.var);}
+            if (instr.type === op)
+                opVars.add(instr.var);
 
-            if (instr.type === "while") {scan(instr.body);}
+            if (instr.type === "while")
+                scan(instr.body);
         }
     }
 
@@ -59,13 +59,16 @@ export function doLoopPosVar(program, targetVar) {
         const instr = program[i];
 
         if (instr.type === "inc") {
-            if (instr.var === targetVar) {return true;}
+            if (instr.var === targetVar)
+                return true;
         }
         else if (instr.type === "dec") {
-            if (instr.var === targetVar) {return false;}
+            if (instr.var === targetVar)
+                return false;
         }
         else if (instr.type === "while") {
-            if (hasOpVar(instr.body, targetVar, "dec")) {return false;}
+            if (hasOpVar(instr.body, targetVar, "dec"))
+                return false;
         }
     }
 
@@ -74,7 +77,7 @@ export function doLoopPosVar(program, targetVar) {
 
 // Check if a while loop is non-halting (specific pattern detection)
 export function isLoopNonhalting(program, targetVar, loopVar = targetVar) {
-    for (let i = program.length - 1; i >= 1; i--) {
+    for (let i = program.length - 1; i >= 0; i--) {
         const instr = program[i];
 
         if (instr.type === "inc") {
@@ -84,13 +87,11 @@ export function isLoopNonhalting(program, targetVar, loopVar = targetVar) {
             if (instr.var === targetVar) return false;
         }
         else if (instr.type === "while") {
-            if (instr.var === targetVar) {
-                return false;
-            }
-            else {
+            if (instr.var === targetVar) return false;
+
+            else
                 return doLoopPosVar(instr.body, targetVar)
                 && isLoopNonhalting(program.slice(0, i), instr.var, loopVar);
-            }
         }
     }
 
@@ -102,11 +103,12 @@ export function canLoopHalt(program, targetVar) {
     for (let i = program.length - 1; i >= 0; i--) {
         const instr = program[i];
 
-        if (instr.var === targetVar) {return instr.type !== "inc";}
+        if (instr.var === targetVar)
+            return instr.type !== "inc";
 
-        if (instr.type === "while") {
-            if (canLoopHalt(instr.body, targetVar)) {return true;}
-        }
+        if (instr.type === "while")
+            if (canLoopHalt(instr.body, targetVar))
+                return true;
     }
 
     return false;
@@ -139,7 +141,7 @@ export function isLoopUseful(body, loopVar) {
                 !isLoopUseful(instr.body, loopVar)
             ) {return false;}
 
-            if (hasOpVar(instr.body, loopVar, "inc")) {return true;}
+            if (hasOpVar(instr.body, loopVar, "inc")) return true;
         }
     }
 
@@ -156,7 +158,8 @@ export function hasActiveVarForEach(program) {
             usedVars.add(instr.var);
 
             if (instr.type === "inc") {
-                if (!ignore.has(instr.var)) {activeVars.add(instr.var);}
+                if (!ignore.has(instr.var))
+                    activeVars.add(instr.var);
             }
             else if (instr.type === "while") {
                 scan(instr.body, ignore.union(new Set([instr.var])));
@@ -177,12 +180,12 @@ export function getInactiveVars(program) {
         for (const instr of block) {
             usedVars.add(instr.var);
 
-            if (instr.type === "inc") {
-                if (!ignore.has(instr.var)) {activeVars.add(instr.var);}
-            }
-            else if (instr.type === "while") {
+            if (instr.type === "inc")
+                if (!ignore.has(instr.var))
+                    activeVars.add(instr.var);
+
+            else if (instr.type === "while")
                 scan(instr.body, ignore.union(new Set([instr.var])));
-            }
         }
     }
 
