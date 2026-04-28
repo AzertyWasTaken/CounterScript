@@ -71,7 +71,7 @@ An holdout is an undecided program — we do not know yet if it halts or not.
 
 | BBCS(n) | Holdouts
 | - | -
-| 10 | 8
+| 11 | To be enumerated
 
 Check Holdouts.md to find the list of current holdouts for smaller values.  
 
@@ -83,12 +83,12 @@ Check Holdouts.md to find the list of current holdouts for smaller values.
 | 2 | Has nonhalting empty loops.
 | 3 | Has nonempty but nondecreasing loops.
 | 4 | Has `while #` with `#--` and `#++` that cancel each other.
-| 5 | Has `while #` with the `#--` inside an unreachable loop.
-| 6 | Similar to the previous value but with translated cyclers.
-| 7 | Requires filtering unreachable loops after the program started.
-| 8 | Has translated cyclers with loops executing equivalence and nontrivial champions. Difficulty is comparable to **BB(2)**.
+| 5 | Has `while #` but the `#--` is inside an unreachable loop.
+| 6 | -
+| 7 | Has translated cyclers with preperiod.
+| 8 | Has nontrivial champions. Difficulty is comparable to **BB(2)**.
 | 9 | Has bouncers — values that repeatedly bounce from 0 to an increasing value.
-| 10 | Similar to the previous value but with translated cyclers.
+| 10 | -
 
 ### BBCS vs BB
 
@@ -159,13 +159,13 @@ Example: `A++; A++; A++; while A {A--; B++; B++; B++;}`
 Remove `A++; B--; while A {A--; B++;}`to `A++; while A {A--; B++;}` equivalence.  
 New vars outside of loops must start with an inc.  
 
-#### Loops usefulness
+#### Loops repeating multiple times
 
-Remove `A++; while A {A++; while A {A--; B++;} B++;}` to `A++; while A {A++; B++;}` equivalence.  
-Every `while #` inside a `while #` must precede an `#++` inside a *var'* loop.  
+Remove `A++; while A {A++; while A {A--; B++;} B++;}` to `A++; A++; while A {A--; B++;} B++;` equivalence.  
+Every `while #` within root `while #` must precede an `#++` inside a `while #_2`.  
 
-Remove `A++; while A {A++; while B {while A {A--; B++;}} B++;}` to `A++; while A {A++; B++;}` equivalence.  
-Every "useless for `#`" loops inside a `while #` must precede an `#++` inside a *var'* loop.  
+Remove `A++; while A {while A {A--; B++;}}` to `A++; while A {A--; B++;}` equivalence.  
+Each `while #` must have at least a non `while #` instr.  
 
 ### Decider
 
@@ -174,17 +174,16 @@ A decider is a rule that proves a program does not halt.
 #### Loops structure
 
 Decide `A++; while A {}` as nonhalter.  
-Each loops must be nonempty.  
+Each loop must be nonempty.  
 
 Decide `A++; while A {B++;}` as nonhalter.  
 Each `while #` must have a `#--`.  
 
 Decide `A++; while A {A--; A++;}` as nonhalter.  
-A `while #` contains a canceling decrement if every occurrence of `#--` is followed by `#++` before the loop end.  
+Inside each `while #`, every occurrence of `#--` must be followed by `#++` before the loop end.  
 
 Decide `A++; while A {A++; while A {A--; B++;} while B {A++; B--;}}` as nonhalter.  
-~~Each `while #` must not be preceded by `#++` if it ends with a loop that always increases `#`.~~  
-Find cycles of self transferring counters.  
+For each `while #_2` within `while #`, if `#` is greater than 0 when `while #_2` ends, check if `#_2` is greater than 0.
 
 #### Cyclers
 
@@ -192,7 +191,7 @@ Decide `A++; while A {while A {A--; B++;} while B {A++; B--;}}` as nonhalter.
 Decide programs as nonhalting if every counters keep the same value the next loop iteration.  
 
 Decide `A++; while A {A++; A++; B++; while B {A--; B--;}}` as nonhalter.  
-When comparing counters at end of a `while #` iteration, ignore every `#_2` that do not have a `while #_2` but check if `#` does not decrease.
+If a counter did not reach 0 but is not less than its previous value, it counts like a cycler.  
 
 #### Unreachable loops
 
@@ -205,11 +204,14 @@ N/A
 
 ## Roadmap
 
-- `[X]` Decide BBCS(9) bouncers  
-- `[ ]` Auto test loop structure decider  
-- `[ ]` Full TNF enumerator that ignores unreachable loops  
-- `[ ]` Fix and improve translated cycler decider for BBCS(10+)  
-- `[ ]` Improve bouncers decider for BBCS(11+)  
+- `[X]` Decide BBCS(9) bouncers
+- `[X]` Fix and improve loop structure decider
+- `[X]` Fix nonrepeating loops pruning
+- `[X]` Fix programs with nonhalting nested loops not classified as holdouts
+- `[X]` Improve translated cyclers decider
+- `[ ]` Full TNF enumerator (ignores unreachable loops)
+- `[ ]` Avoid multiple `while #` in a row
+- `[ ]` Decide more bouncers (for BBCS(11+))
 
 <!-- ## 🤝 Contributing
 

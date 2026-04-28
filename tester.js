@@ -4,11 +4,10 @@ import {parse, unparse} from "./parser.js";
 import {run} from "./execute.js";
 import {enumerate} from "./enumerate.js";
 import {
-    canLoopHalt, isLoopNonhalting, hasOpVarForEach, getUsedVars,
-    filterOutVars, isLoopUseful, hasOpVar, doLoopPosVar,
-    hasActiveVarForEach, getInactiveVars
+    isLoopNonhalting, hasOpVarForEach, getUsedVars, filterOutVars,
+    canRepeatTwice, hasOpVar, hasActiveVarForEach, getInactiveVars
 } from "./getProgData.js";
-import {enumerate as TNF} from "./enumerateTNF.js";
+// import {enumerate as TNF} from "./enumerateTNF.js";
 
 function test(func, program, ...arg) {
     log(func(parse(program)[0], ...arg));
@@ -39,16 +38,16 @@ function testDeciders(length) {
 // test((i) => i, "A++; while A {A--; B++; while B {B--; C++;}}");
 // test((i) => i, "A++; while A {while A {A--; B++;} while B {A++; B--;}}");
 
-// test(canLoopHalt, "A++; while A {B--;}", 1);
-// test(canLoopHalt, "A++; B--; B++;", 1);
-// test(canLoopHalt, "A++; while A {B++;}", 1);
-// test(canLoopHalt, "A++; B--; while A {A--; B++;}", 1);
-
+// test(isLoopNonhalting, "A++; while A {B--;}", 1);
+// test(isLoopNonhalting, "A++; B--; B++;", 1);
+// test(isLoopNonhalting, "A++; while A {B++;}", 1);
+// test(isLoopNonhalting, "A++; B--; while A {A--; B++;}", 1);
 // test(isLoopNonhalting, "A--; B++; while B {A++; B--;}", 0);
 // test(isLoopNonhalting, "A--; while B {A++; B--;}", 0);
 // test(isLoopNonhalting, "A--; B++; while B {B--;}", 0);
 // test(isLoopNonhalting, "A--; B++; C++; while B {A++; B--;} B++;", 0);
 // test(isLoopNonhalting, "A++; while A {A--; B++;} while B {A++; B--;}", 0);
+// test(isLoopNonhalting, "A--; B--; while B {A++;} B++;", 0);
 
 // test(getUsedVars, "A++; while B {A--; B--;}", "inc");
 // test(getUsedVars, "A++; while A {A--; while B {B--; C++;}}", "inc");
@@ -63,25 +62,26 @@ function testDeciders(length) {
 // test(filterOutVars, "A++; while A {A--; B--; while C {C--;}}", new Set([1]));
 // test(filterOutVars, "A++; while B {A--; B--; while C {C--;}}", new Set([0,2]));
 
-// test(run, "A++; while A {A--; A++;}", 10, false);
-// test(run, "A++; while A {A--; B++;}", 10, true);
-// test(run, "A++; while A {A++;}", 10, true);
-// test(run, "A++; while A {A--; A++;}", 10, true);
-// test(run, "A++; A++; B++; while A {while B {A--; B--;} C++;}", 10, true);
-// test(run, "A++; while A {A--; B++; while B {A++; A++; B--;}}", 10, true);
-// test(run, "A++; while A {A++; A++; B++; while B {A--; B--;}}", 10, true);
-// test(run, "A++; while A {A++; B++; while B {A--; B--;}}", 10, true);
-// test(run, "A++; B++; while A {A++; while B {A--; B--; B--;}}", 10, true);
-// test(run, "A++; while A {B--; C++; while B {A--; while C {B--; C--;}} B++;}", 10, true);
+test(run, "A++; while A {A--; A++;}", 10, false);
+test(run, "A++; while A {A--; B++;}", 10, true);
+test(run, "A++; while A {A++;}", 10, true);
+test(run, "A++; while A {A--; A++;}", 10, true);
+test(run, "A++; A++; B++; while A {while B {A--; B--;} C++;}", 10, true);
+test(run, "A++; while A {A--; B++; while B {A++; A++; B--;}}", 10, true);
+test(run, "A++; while A {A++; A++; B++; while B {A--; B--;}}", 10, true);
+test(run, "A++; while A {A++; B++; while B {A--; B--;}}", 10, true);
+test(run, "A++; B++; while A {A++; while B {A--; B--; B--;}}", 10, true);
+test(run, "A++; while A {B--; C++; while B {A--; while C {B--; C--;}} B++;}", 10, true);
+test(run, "A++; while A {while A {A--; B++;} while B {A++; A++; B--;}}", 10, true);
 
 // test(hasOpVarForEach, "A++; while A {B++; while B {A--;}}", "inc");
 // test(hasOpVarForEach, "A++; while A {B--; while B {A--;}}", "inc");
 // test(hasOpVarForEach, "A++; while A {B++; while B {A++;}}", "dec");
 // test(hasOpVarForEach, "A++; while A {B++; while B {A++;}}", "while");
 
-// test(isLoopUseful, "A++; while A {A--; B++;}", 0);
-// test(isLoopUseful, "while B {while A {A--; B++;}} B++;", 0);
-// test(isLoopUseful, "while A {A--; B++;} while B {A++; B--;}", 0);
+// test(canRepeatTwice, "A++; while A {A--; B++;}", 0);
+// test(canRepeatTwice, "A++; while B {while A {A--; B++;}} B++;", 0);
+// test(canRepeatTwice, "while A {A--; B++;} while B {A++; B--;}", 0);
 
 // test(hasOpVar, "A++; while A {A--; B++;}", 1, "inc");
 // test(hasOpVar, "A++; while A {A--; B++;}", 1, "dec");

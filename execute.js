@@ -1,136 +1,132 @@
 "use strict";
 import {log} from "./log.js";
 import {
-    getInactiveVars, filterOutVars, canLoopHalt, isLoopNonhalting,
-    getUsedVars
+    getInactiveVars, filterOutVars, isLoopNonhalting, getUsedVars
 } from "./getProgData.js";
 
-// Check if the counters in varsSet has changed
-function compareVars(prev, curr, varsSet) {
-    return Array.from(varsSet).every((id) =>
-        getVar(prev, id) === getVar(curr, id)
-    );
-}
+// Variable utilities
+// ================================================================
 
-// Process zero variables in a loop body
-function processZeroVars(data, vars) {
-    // Get a set of vars recently set to 0
-    const zeroVars = new Set();
-    data.inactiveVars.forEach((varId) => {
-        if (!vars[varId]) zeroVars.add(varId);
-    });
-
-    const update = zeroVars.size > 0;
-
-    // Filter for each vars recently set to 0
-    if (update) {
-        data.copyLoop = filterOutVars(structuredClone(data.copyLoop), zeroVars);
-        zeroVars.forEach((varId) => data.inactiveVars.delete(varId));
-    }
-
-    return update;
-}
-
-function isNonhalting(data, lastVars, vars, instr, update) {
-    // Compare current and previous counters
-    if (
-        compareVars(lastVars, vars, data.usedWhileVars)
-        && getVar(vars, instr.var) >= getVar(lastVars, instr.var)
-    ) return true;
-
-    // Check loop body structure after optimization
-    if (update) {
-        if (
-            !canLoopHalt(data.copyLoop, instr.var) ||
-            isLoopNonhalting(data.copyLoop, instr.var)
-        ) return true;
-    }
-}
-
-// Pure functions for variable manipulation
 export function getVar(vars, id) {
     return vars[id] ?? 0;
 }
 
-export function incrementVar(vars, id) {
+export function incVar(vars, id) {
     vars[id] = getVar(vars, id) + 1;
 }
 
-export function decrementVar(vars, id) {
-    if (getVar(vars, id) <= 1) {delete vars[id];}
-    else {vars[id] = getVar(vars, id) - 1;}
+export function decVar(vars, id) {
+    vars[id] = Math.max(getVar(vars, id) - 1, 0);
 }
 
-function executeWhileLoop(instr, vars, ctx, execute) {
-    // Skip if loop condition is false
-    if (getVar(vars, instr.var) === 0) return true;
+export function isVarPos(vars, id) {
+    return vars[id] > 0;
+}
 
-    // Get optimization data for this loop
-    const data = {
-        usedWhileVars: getUsedVars(instr.body, "while"),
-        inactiveVars: getInactiveVars(instr.body),
-        copyLoop: instr.body,
-    }
+function assignSet(a, b) {
+    b.forEach((i) => a.add(i));
+}
 
-    data.inactiveVars.delete(instr.var);
+// Deciders
+// ================================================================
 
-    // Execute loop iterations
-    while (getVar(vars, instr.var) > 0) {
-        const lastVars = {...vars};
+function isTransCycler(prevVars, currVars, newlyZeroVars) {
+    const maxLength = Math.max(prevVars.length, currVars.length);
 
-        // Execute the loop body
-        const halted = execute(instr.body);
-        if (getVar(vars, instr.var) === 0) return true;
+    for (let i = 0; i < maxLength; i++) {
+        const prevVal = getVar(prevVars, i);
+        const currVal = getVar(currVars, i);
 
-        // Check execution status
-        if (!halted) return halted;
-        if (ctx.steps >= ctx.maxSteps) return null;
+        if (newlyZeroVars.has(i))
+            // Variables that became zero must be equal
+            if (prevVal !== currVal) return false;
 
-        // Optimize loop by removing irrelevant instructions
-        const update = processZeroVars(data, vars);
-
-        // Cycle detection (only if enabled)
-        if (
-            ctx.deciders
-            && isNonhalting(data, lastVars, vars, instr, update)
-        ) return false;
-
-        ctx.steps++;
+        else
+            // Other variables must not decrease
+            if (prevVal > currVal) return false;
     }
 
     return true;
 }
 
-export function run(program, maxSteps, deciders = false, vars = {}, steps = 0) {
-    // Create execution context
-    const ctx = {
-        steps: steps,
-        maxSteps: maxSteps,
-        deciders: deciders
-    };
+function isNonhalting(prevVars, currVars, instr, newlyZeroVars) {
+    // Loop variable must not decrease (additional safety check)
+    if (
+        isTransCycler(prevVars, currVars, newlyZeroVars)
+        && getVar(currVars, instr.var) >= getVar(prevVars, instr.var)
+    ) return true;
+}
 
-    function execute(block) {
-        for (const instr of block) {
-            if (instr.type === "inc") {
-                incrementVar(vars, instr.var);
-            }
-            else if (instr.type === "dec") {
-                decrementVar(vars, instr.var);
-            }
-            else if (instr.type === "while") {
-                const result = executeWhileLoop(instr, vars, ctx, execute);
+// Block Execution
+// ================================================================
 
-                if (result !== true) return result;
-            }
-            else {
-                throw new Error(`Unknown instruction: ${instr.type}`);
-            }
-        }
+function runWhileLoop(instr, vars, ctx, zeroVars) {
+    // Skip if loop condition is false
+    if (!isVarPos(vars, instr.var)) return true;
 
-        return true;
+    // Execute loop iterations
+    do {
+        const newlyZeroVars = new Set();
+        const prevVars = [...vars];
+
+        // Execute the loop body
+        const halted = runBlock(instr.body, vars, ctx, newlyZeroVars);
+        assignSet(zeroVars, newlyZeroVars);
+        if (!isVarPos(vars, instr.var)) return true;
+
+        // Check execution status
+        if (!halted) return halted;
+        if (ctx.steps >= ctx.maxSteps) return null;
+
+        // Cycle detection (only if enabled)
+        if (ctx.deciders)
+            if (isNonhalting(prevVars, vars, instr, newlyZeroVars))
+                return false;
+
+        ctx.steps++;
+    }
+    while (isVarPos(vars, instr.var))
+
+    return true;
+}
+
+function runInstr(instr, vars, ctx, newlyZeroVars) {
+    if (instr.type === "while")
+        return runWhileLoop(instr, vars, ctx, newlyZeroVars);
+
+    if (instr.type === "inc")
+        incVar(vars, instr.var);
+
+    else if (instr.type === "dec")
+        decVar(vars, instr.var);
+
+    else throw new Error(`Unknown instruction: ${instr.type}`);
+
+    if (!isVarPos(vars, instr.var))
+        newlyZeroVars.add(instr.var);
+
+    return true;
+}
+
+function runBlock(block, vars, ctx, newlyZeroVars = new Set()) {
+    for (const instr of block) {
+        const halted = runInstr(instr, vars, ctx, newlyZeroVars);
+        if (halted !== true)
+            return halted;
     }
 
-    const halted = execute(program);
+    return true;
+}
+
+export function run(program, maxSteps, deciders = false, vars = [], steps = 0) {
+    // Create execution context (should not clone during recursion)
+    const ctx = {
+        deciders: deciders,
+        maxSteps: maxSteps,
+        steps: steps
+    };
+
+    const halted = runBlock(program, vars, ctx);
 
     return [halted, vars];
 }
