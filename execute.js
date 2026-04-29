@@ -4,7 +4,7 @@ import {
     getInactiveVars, filterOutVars, isLoopNonhalting, getUsedVars
 } from "./getProgData.js";
 
-// Variable utilities
+// Helpers
 // ================================================================
 
 export function getVar(vars, id) {
