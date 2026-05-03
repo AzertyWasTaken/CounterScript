@@ -14,7 +14,7 @@ The goals are multiple and includes:
 - **Finding cryptids** — programs that are mathematically hard to decide
 - **Proving the behavior of programs** — decide if a program either halt or not
 
-## 🧠 CounterScript
+## 🔢 CounterScript
 
 CounterScript is a model of computation created in March 2026 by Azerty.  
 It uses a minimal instruction set designed around incrementing, conditional decrementing, and looping.  
@@ -202,7 +202,7 @@ Filter out parts of a loop body that became unreachable then apply *Halting loop
 
 N/A  
 
-## Roadmap
+## 🎯 Roadmap
 
 - `[X]` Decide BBCS(9) bouncers
 - `[X]` Fix and improve loop structure decider
