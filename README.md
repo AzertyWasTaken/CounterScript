@@ -209,7 +209,9 @@ N/A
 - `[X]` Fix nonrepeating loops pruning
 - `[X]` Fix programs with nonhalting nested loops not classified as holdouts
 - `[X]` Improve translated cyclers decider
+- `[ ]` Replace execute recursion by explicit call stacks
 - `[ ]` Full TNF enumerator (ignores unreachable loops)
+- `[ ]` Optimize full TNF enumerator (no more fixed loops body length)
 - `[ ]` Avoid multiple `while #` in a row
 - `[ ]` Decide more bouncers (for BBCS(11+))
 
