@@ -1,6 +1,6 @@
 ﻿"use strict";
 import {log} from "./log.js";
-import {run, incVar, decVar, getVar, isVarPos} from "./execute.js";
+import {run, getVar, incVar, decVar, isVarPos} from "./execute.js";
 import {
     isLoopNonhalting, hasActiveVarForEach, getUsedVars, canRepeatTwice,
     isLoopNested
@@ -67,8 +67,8 @@ export function* genInstructions(len, ctx) {
 
         // Add the operation
         ctx.prog.push(instr);
-        yield* generate(len - 1, {
-            prog: ctx.prog, root: ctx.root, vars: newVars, steps: ctx.steps,
+        yield* enumerate(len - 1, {
+            prog: ctx.prog, vars: newVars, steps: ctx.steps,
             maxVar: nextMaxVar, minInstr: instrId, allowed: ctx.allowed,
             inLoop: ctx.inLoop, tnf: ctx.tnf
         });
@@ -85,17 +85,18 @@ export function* genWhileLoops(len, ctx) {
         if (skipLoopVar(ctx, varId)) continue;
 
         const nextMaxVar = Math.max(varId + 1, ctx.maxVar);
+        const isLoopVarPos = isVarPos(ctx.vars, varId);
 
         for (let bodyLength = 1; bodyLength < len; bodyLength++) {
             const tailLength = len - bodyLength - 1;
 
             // Enumerate all possible bodies for the while loop
             for (
-                const [body, , bodyVars, bodySteps, bodyMaxVar]
-                of generate(bodyLength, {
-                    prog: [], root: ctx.root, vars: ctx.vars, steps: ctx.steps,
+                const [body, bodyHalted, bodyVars, bodySteps, bodyMaxVar]
+                of enumerate(bodyLength, {
+                    prog: [], vars: ctx.vars, steps: ctx.steps,
                     maxVar: nextMaxVar, minInstr: 0, allowed: null,
-                    inLoop: true, tnf: isVarPos(ctx.vars, varId)
+                    inLoop: true, tnf: isLoopVarPos
                 })
             ) {
                 // Skip not allowed bodies
@@ -104,9 +105,9 @@ export function* genWhileLoops(len, ctx) {
                 const instr = {type: "while", var: varId, body};
 
                 // Execute instruction
-                const [halted, newVars, newSteps] = ctx.tnf
+                const [halted, newVars, newSteps] = ctx.tnf && bodyHalted === true
                 ? run([instr], 100, true, [...bodyVars], bodySteps)
-                : [true, bodyVars, bodySteps];
+                : [bodyHalted, bodyVars, bodySteps];
 
                 ctx.prog.push(instr);
 
@@ -116,14 +117,14 @@ export function* genWhileLoops(len, ctx) {
                         const tailMaxVar = Math.max(bodyMaxVar, ctx.maxVar);
                         const usedVarsInBody = getUsedVars(body);
 
-                        yield* generate(tailLength, {
-                            prog: ctx.prog, root: ctx.root, vars: newVars, steps: newSteps,
+                        yield* enumerate(tailLength, {
+                            prog: ctx.prog, vars: newVars, steps: newSteps,
                             maxVar: tailMaxVar, minInstr: 0, allowed: usedVarsInBody,
                             inLoop: ctx.inLoop, tnf: ctx.tnf
                         });
 
                     } else if (tailLength === 0)
-                        yield [ctx.root, halted, newVars, newSteps, ctx.maxVar];
+                        yield [ctx.prog, halted, newVars, newSteps, ctx.maxVar];
 
                 ctx.prog.pop();
             }
@@ -134,7 +135,11 @@ export function* genWhileLoops(len, ctx) {
 // Main functions
 // ================================================================
 
-export function* generate(len, ctx) {
+export function* enumerate(len, ctx = {
+    prog: [], vars: [], steps: 0,
+    maxVar: 0, minInstr: 0, allowed: null,
+    inLoop: false, tnf: true
+}) {
     if (len <= 0) {
         yield [ctx.prog, true, ctx.vars, ctx.steps, ctx.maxVar];
         return;
@@ -142,14 +147,4 @@ export function* generate(len, ctx) {
 
     yield* genInstructions(len, ctx);
     yield* genWhileLoops(len, ctx);
-}
-
-export function* enumerate(len) {
-    const prog = [];
-
-    yield* generate(len, {
-        prog: prog, root: prog, vars: [], steps: 0,
-        maxVar: 0, minInstr: 0, allowed: null,
-        inLoop: false, tnf: true
-    });
 }
