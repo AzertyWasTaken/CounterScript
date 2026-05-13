@@ -15,7 +15,7 @@ export function parse(program) {
     let nextVarId = 0;
 
     function skipWhitespace() {
-        while (/\s/.test(program[i])) {i++;}
+        while (/\s/.test(program[i])) i++;
     }
 
     function getVarId(varName) {
@@ -29,18 +29,18 @@ export function parse(program) {
     function parseVar() {
         skipWhitespace();
         const match = /^[A-Za-z_]\w*/.exec(program.slice(i));
-        if (!match) {
+        if (!match)
             throw new Error(`Expected variable at position ${i}`);
-        }
+
         i += match[0].length;
         return getVarId(match[0]);
     }
 
     function expect(str) {
         skipWhitespace();
-        if (!program.startsWith(str, i)) {
+        if (!program.startsWith(str, i))
             throw new Error(`Expected "${str}" at position ${i}`);
-        }
+
         i += str.length;
     }
 
@@ -56,7 +56,7 @@ export function parse(program) {
             const body = [];
             while (true) {
                 skipWhitespace();
-                if (program[i] === "}") {break;}
+                if (program[i] === "}") break;
                 body.push(parseInstruction());
             }
 
@@ -85,7 +85,7 @@ export function parse(program) {
     function parseProgram() {
         while (i < program.length) {
             skipWhitespace();
-            if (i >= program.length) {break;}
+            if (i >= program.length) break;
             instructions.push(parseInstruction());
         }
     }
@@ -102,15 +102,14 @@ export function unparse(program) {
 
         if (instr.type === "inc") {
             return `${varName}++;`
-
-        } else if (instr.type === "dec") {
+        }
+        else if (instr.type === "dec") {
             return `${varName}--;`
-
-        } else if (instr.type === "while") {
+        }
+        else if (instr.type === "while") {
             const isBodyEmpty = !instr.body || instr.body.length === 0;
             const bosyStr = isBodyEmpty ? "" : `${unparse(instr.body)}`;
             return `while ${varName} {${bosyStr}}`
         }
-
     }).join(" ");
 }

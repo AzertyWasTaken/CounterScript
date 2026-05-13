@@ -2,7 +2,7 @@
 import {log} from "./log.js";
 import {enumerate} from "./enumerate.js";
 import {unparse} from "./parser.js";
-import {hasOpVarForEach} from "./getProgData.js";
+import {hasUndefinedLoop, areEachVarUseful} from "./getProgData.js";
 
 const LOG_CHAMPION = true;
 const LOG_HALTED = false;
@@ -18,8 +18,14 @@ const count = {
 
 let record = 0;
 
+function skipProgram(program, halted) {
+    return hasUndefinedLoop(program)
+    || halted !== true && !areEachVarUseful(program)
+}
+
 for (const [program, halted, vars, steps, maxVarId] of enumerate(9)) {
-    if (halted !== true && !hasOpVarForEach(program, "while")) continue;
+    if (skipProgram(program, halted)) continue;
+
     const progStr = unparse(program);
 
     if (halted === true) {
@@ -28,7 +34,7 @@ for (const [program, halted, vars, steps, maxVarId] of enumerate(9)) {
         if (score > record) {
             record = score;
 
-            if (LOG_CHAMPION) log("Champion:", progStr, "Score:", record);
+            if (LOG_CHAMPION) log("Champion:", progStr, "Score:", score);
 
         } else {
             if (LOG_HALTED) log("Halted:", progStr);

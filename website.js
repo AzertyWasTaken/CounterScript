@@ -3,7 +3,7 @@ import {log} from "./log.js"
 import {parse} from "./parser.js";
 import {run} from "./execute.js";
 
-const MAX_STEPS = 1000000;
+const MAX_STEPS = 10000;
 
 const el = {
     // reset: document.getElementById("btn-reset"),

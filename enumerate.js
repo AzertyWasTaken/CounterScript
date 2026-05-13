@@ -1,10 +1,8 @@
 ﻿"use strict";
 import {log} from "./log.js";
-import {run, getVar, incVar, decVar, isVarPos} from "./execute.js";
-import {
-    isLoopNonhalting, hasActiveVarForEach, getUsedVars, canRepeatTwice,
-    isLoopNested
-} from "./getProgData.js";
+import {execute, exeOp, getVar, isVarPos, getPosVars, cloneStack} from "./execute.js";
+import {isLoopNonhalting} from "./isLoopNonhalting.js";
+import {canRepeatTwice, isLoopNested} from "./getProgData.js";
 
 // Helpers
 // ================================================================
@@ -20,11 +18,11 @@ function skipInstr(ctx, instr) {
         || compareVars(ctx.vars, instr.var)
     )
     // Check equivalence with loops order
-    || ctx.allowed && !ctx.allowed.has(instr.var);
+    // || ctx.allowed && !ctx.allowed.has(instr.var);
 }
 
 function skipLoopBody(ctx, body, varId) {
-    return isLoopNonhalting(body, varId)
+    return isLoopNonhalting(body, varId) === 1
     || !ctx.inLoop && !canRepeatTwice(body, varId)
     || isLoopNested(body, varId);
 }
@@ -34,16 +32,6 @@ function skipLoopVar(ctx, varId) {
         varId + 1 > ctx.maxVar
         || compareVars(ctx.vars, varId)
     );
-}
-
-function runInstr(vars, instr) {
-    if (instr.type === "inc")
-        incVar(vars, instr.var);
-
-    else if (instr.type === "dec")
-        decVar(vars, instr.var);
-
-    return vars;
 }
 
 // Core instructions
@@ -61,17 +49,16 @@ export function* genInstructions(len, ctx) {
         const nextMaxVar = Math.max(instr.var + 1, ctx.maxVar);
 
         // Execute instruction
-        const newVars = ctx.tnf
-        ? runInstr([...ctx.vars], instr)
-        : ctx.vars;
+        const newVars = exeOp([...ctx.vars], instr);
 
-        // Add the operation
         ctx.prog.push(instr);
+
         yield* enumerate(len - 1, {
             prog: ctx.prog, vars: newVars, steps: ctx.steps,
-            maxVar: nextMaxVar, minInstr: instrId, allowed: ctx.allowed,
-            inLoop: ctx.inLoop, tnf: ctx.tnf
+            maxVar: nextMaxVar, minInstr: instrId,
+            inLoop: ctx.inLoop,
         });
+
         ctx.prog.pop();
     }
 }
@@ -80,54 +67,88 @@ export function* genInstructions(len, ctx) {
 // ================================================================
 
 export function* genWhileLoops(len, ctx) {
-    for (let varId = 0; varId <= ctx.maxVar; varId++) {
-        // Skip not allowed vars
+    for (let varId = 0; varId < (ctx.maxVar + 1); varId++) {
         if (skipLoopVar(ctx, varId)) continue;
 
         const nextMaxVar = Math.max(varId + 1, ctx.maxVar);
-        const isLoopVarPos = isVarPos(ctx.vars, varId);
+
+        // Add while loops of various body lengths
+        const instr = {type: "while", var: varId, body: undefined};
+
+        ctx.prog.push(instr);
 
         for (let bodyLength = 1; bodyLength < len; bodyLength++) {
-            const tailLength = len - bodyLength - 1;
+            instr.len = bodyLength;
 
-            // Enumerate all possible bodies for the while loop
-            for (
-                const [body, bodyHalted, bodyVars, bodySteps, bodyMaxVar]
-                of enumerate(bodyLength, {
-                    prog: [], vars: ctx.vars, steps: ctx.steps,
-                    maxVar: nextMaxVar, minInstr: 0, allowed: null,
-                    inLoop: true, tnf: isLoopVarPos
-                })
-            ) {
-                // Skip not allowed bodies
-                if (skipLoopBody(ctx, body, varId)) continue;
+            if (isVarPos(ctx.vars, varId))
+                yield* genLoopBody(instr, [], len - bodyLength - 1, {
+                    prog: ctx.prog, vars: ctx.vars, steps: ctx.steps,
+                    maxVar: nextMaxVar,
+                    inLoop: ctx.inLoop,
+                });
+            else
+                yield* enumerate(len - bodyLength - 1, {
+                    prog: ctx.prog, vars: ctx.vars, steps: ctx.steps,
+                    maxVar: nextMaxVar, minInstr: 0,
+                    inLoop: ctx.inLoop,
+                });
+        }
 
-                const instr = {type: "while", var: varId, body};
+        ctx.prog.pop();
+    }
+}
 
-                // Execute instruction
-                const [halted, newVars, newSteps] = ctx.tnf && bodyHalted === true
-                ? run([instr], 100, true, [...bodyVars], bodySteps)
-                : [bodyHalted, bodyVars, bodySteps];
+function* genLoopBody(instr, stack, len, ctx) {
+    for (
+        const [body, bodyHalted, bodyVars, bodySteps, bodyMaxVarId]
+        of enumerate(instr.len, {
+            prog: [], vars: ctx.vars, steps: ctx.steps,
+            maxVar: ctx.maxVar, minInstr: 0,
+            inLoop: true,
+        })
+    ) {
+        if (skipLoopBody(ctx, body, instr.var)) continue;
 
-                ctx.prog.push(instr);
+        const tailMaxVarId = Math.max(bodyMaxVarId, ctx.maxVar);
+        instr.body = body;
 
-                // Filter out programs that have inactive vars (always stay at 0)
-                if (ctx.inLoop || hasActiveVarForEach(ctx.prog))
-                    if (halted === true) {
-                        const tailMaxVar = Math.max(bodyMaxVar, ctx.maxVar);
-                        const usedVarsInBody = getUsedVars(body);
+        function appStack() {
+            const newStack = cloneStack(stack);
+            newStack.push({
+                block: body,
+                pc: 0,
+                loopVar: instr.var,
+                posVars: getPosVars(bodyVars),
+                prevVars: [...bodyVars]
+            });
+            return newStack;
+        }
 
-                        yield* enumerate(tailLength, {
-                            prog: ctx.prog, vars: newVars, steps: newSteps,
-                            maxVar: tailMaxVar, minInstr: 0, allowed: usedVarsInBody,
-                            inLoop: ctx.inLoop, tnf: ctx.tnf
-                        });
+        // Execute instruction
+        const [halted, state] = bodyHalted === true && isVarPos(bodyVars, instr.var)
+        ? execute({maxSteps: 100, deciders: true}, {vars: [...bodyVars], steps: bodySteps, stack: appStack()})
+        : [bodyHalted, {vars: bodyVars, steps: bodySteps, stack: stack}];
 
-                    } else if (tailLength === 0)
-                        yield [ctx.prog, halted, newVars, newSteps, ctx.maxVar];
+        if (halted === true) {
+            yield* enumerate(len, {
+                prog: ctx.prog, vars: state.vars, steps: state.steps,
+                maxVar: tailMaxVarId, minInstr: 0,
+                inLoop: ctx.inLoop,
+            });
+        }
+        else if (halted === undefined) {
+            const frame = state.stack.at(-1);
+            const loopInstr = frame.block[frame.pc];
 
-                ctx.prog.pop();
-            }
+            yield* genLoopBody(loopInstr, state.stack, len, {
+                prog: ctx.prog, vars: state.vars, steps: state.steps,
+                maxVar: tailMaxVarId,
+                inLoop: ctx.inLoop,
+            });
+            loopInstr.body = undefined;
+        }
+        else if (len <= 0) {
+            yield [ctx.prog, halted, state.vars, state.steps, ctx.maxVar];
         }
     }
 }
@@ -137,8 +158,8 @@ export function* genWhileLoops(len, ctx) {
 
 export function* enumerate(len, ctx = {
     prog: [], vars: [], steps: 0,
-    maxVar: 0, minInstr: 0, allowed: null,
-    inLoop: false, tnf: true
+    maxVar: 0, minInstr: 0,
+    inLoop: false,
 }) {
     if (len <= 0) {
         yield [ctx.prog, true, ctx.vars, ctx.steps, ctx.maxVar];

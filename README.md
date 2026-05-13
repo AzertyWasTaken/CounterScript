@@ -1,14 +1,15 @@
-# BBCS enumerator & decider
+# About
 
-![Status](https://img.shields.io/badge/status-research-blue)
-[![Maintenance](https://img.shields.io/badge/maintained%3F-yes-green.svg)](https://GitHub.com/Naereen/StrapDown.js/graphs/commit-activity)
-[![GitHub license](https://badgen.net/github/license/Naereen/Strapdown.js)](https://github.com/Naereen/StrapDown.js/blob/master/LICENSE)
+![Status](https://img.shields.io/badge/Status-Active-informational)
+![Research](https://img.shields.io/badge/Type-Busy_Beaver-informational)
+![Language](https://img.shields.io/badge/Language-JavaScript-purple)
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2)](https://discord.gg/H3FnyZwA6P)
 
 ## 🚀 Getting Started
 
 This project studies the Busy Beaver function for CounterScript, a minimal computational model.  
 
-The goals are multiple and includes:  
+The goals are multiple and include:  
 
 - **Searching for champions** — programs that run for a very long time
 - **Finding cryptids** — programs that are mathematically hard to decide
@@ -16,16 +17,15 @@ The goals are multiple and includes:
 
 ## 🔢 CounterScript
 
-CounterScript is a model of computation created in March 2026 by Azerty.  
-It uses a minimal instruction set designed around incrementing, conditional decrementing, and looping.  
-The language has an unlimited number of variables (called counters), each storing a nonnegative integer.  
-All counters are initialized to 0.  
+CounterScript is a minimal model of computation created in March 2026 by Azerty.
+It shares many similarities with Minsky's machines, Brainfuck and Fractran.
+CounterScript is Turing-Complete (e.g. it can simulate a Turing machine).
 
-### Example
+### Counters
 
-This program sets B to 6 by multiplying 2 by 3.  
-
-`A++; A++; while A {A--; B++; B++; B++;}`  
+- CounterScript is a model of computation that uses a minimal instructions set.
+- A CounterScript program operates on a finite but unbounded set of counters: A, B, C, ...
+- All counters are initialized to 0.  
 
 ### Instructions
 
@@ -33,11 +33,26 @@ A CounterScript program is composed of 3 instruction types:
 
 | Instruction | Description
 | - | -
-| `A++;` | Increment A by 1
-| `A--;` | If A is greater than 0, decrement A by 1
-| `while A {...}` | Repeat while A is greater than 0
+| `#++;` | Increment `#` by 1
+| `#--;` | Decrement `#` by 1 if `#` > 0
+| `while # {...}` | Execute body while `#` > 0
 
-## 📈 BBCS results
+`#`, `#_2`, `#_3`, ... are used to represent any counter.
+
+### Example
+
+``` text
+`A++; A++; while A {A--; B++; B++; B++;}`
+```
+
+- When the program starts, `A` = 0 and `B` = 0 because all counters are initialized to 0
+- After `A++; A++;` executes, `A` = 2 and `B` = 0
+- After the 1st loop iteration, `A` = 1 and `B` = 3
+- After the 2nd loop iteration, `A` = 0 and `B` = 6
+- The loop ends because `A` = 0
+- The program ends with `A` = 0 and `B` = 6
+
+## 📈 BBCS Results
 
 The Busy Beaver function for CounterScript, denoted **BBCS(n)**, returns the largest value a counter can store after a CounterScript program of length *n* halts.  
 The length of a program is the number of instructions it contains.  
@@ -77,25 +92,28 @@ Check Holdouts.md to find the list of current holdouts for smaller values.
 
 ### Difficulty
 
+**Note:** the function `BB(n)` refers to the original Busy Beaver function — with Turing machines.
+
 | BBCS(n) | Analysis
 | - | -
 | 1 | Every programs halt in a single step.
 | 2 | Has nonhalting empty loops.
-| 3 | Has nonempty but nondecreasing loops.
-| 4 | Has `while #` with `#--` and `#++` that cancel each other.
-| 5 | Has `while #` but the `#--` is inside an unreachable loop.
+| 3 | Has translated cyclers — infinitely increasing counters.
+| 4 | Has cyclers with `#--` and `#++` cancelling each other.
+| 5 | Has `while #` but the only `#--` is inside an unreachable loop.
 | 6 | -
-| 7 | Has translated cyclers with preperiod.
-| 8 | Has nontrivial champions. Difficulty is comparable to **BB(2)**.
+| 7 | Has nontrivial translated cyclers with preperiod.
+| 8 | Has nontrivial champions. Difficulty is comparable to `BB(2)`.
 | 9 | Has bouncers — values that repeatedly bounce from 0 to an increasing value.
 | 10 | -
+| 11 | ⚠️ Not all holdouts has been analyzed.
 
-### BBCS vs BB
+### BBCS VS BB
 
 Unlike Turing Machines, smaller CounterScript programs are much less chaotic and holdouts size reflects better their complexity.  
 CounterScript is also easier to accelerate and analyze.  
 
-## ⚙️ Project structure
+## ⚙️ Project Structure
 
 | Script | Description
 | - | -
@@ -103,42 +121,47 @@ CounterScript is also easier to accelerate and analyze.
 | tester.js | Tests new function to check if they work like intended.
 | log.js | Modified version of console.log function.
 | main.js | The script that should be run to search programs.
-| enumerate.js | Enumerate CounterScript programs up to length *n*.
+| enumerate.js | Enumerate CounterScript programs up to length `n`.
 | execute.js | Execute CounterScript programs.
 | parse.js | Converts CounterScript code to a string or a plain object.
 | getProgData.js | Collects data from programs, like the set of used vars.
+| isLoopNonhalting.js | Decide some nonhalting loops by checking their structure.
 
 ## 🔬 Search & Optimization Techniques
 
 A list of techniques currently applied to reduce the search space and decide programs.  
 
+---
+
 ### Equivalence
 
-#### Max vars id
+#### Max counters id
 
 Remove `A++; while A {B++;} D++;` to `A++; while A {B++;} C++;` equivalence.  
-Each new var id must be the smallest used one.  
+Each new counters id must be the smallest used one.  
 
-#### Ordered vars id
+#### Ordered counters id
 
 Remove `A++; B++; A++;` to `A++; A++; B++;` equivalence.  
-In every loopless sequences, instr vars id must be in ascending order.  
+In every loopless sequences, instr counters id must be in ascending order.  
 
-Remove `A++; while A {A--; B++;} C++;` to `A++; B++; while A {A--; C++;}` equivalence.  
-Every `#--` and `#++` must **not** succeed a while loop if `#` appears in its body.  
+<!-- Remove `A++; while A {A--; B++;} C++;` to `A++; B++; while A {A--; C++;}` equivalence.  
+Every `#--` and `#++` must **not** succeed a while loop if it has `#`.   -->
 
 #### Tree Normal Form
 
 Remove `A++; while A {A++;} A--;` to `A++; while A {A++;}` equivalence.  
-Run each program during enumeration outside of loops and stop generating further if the program does **not** halt.  
+Run each program during enumeration and stop generating further if the program does **not** halt.  
 
-Remove `A++; while A {while A {A++;} A++;}` to `A++; while A {while A {A++;}}` equivalence.  
-Enable *Tree Normal Form* decider inside `while #` if `#` > 0.  
+Remove `A++; while A {while B {A++; B--;} A++;}` to `A++; while A {while B {} A++;}` equivalence.  
+Wait for a loop to run to generate its body.  
 
 #### Ordered vars value
 
 Remove `A++; B++; while B {A++; B--;}` to `A++; B++; while A {A--; B++;}` equivalence.  
-Before adding a `#` instruction outside of a loop, its value must **not** be equal to the value of the previous `#` id.  
+When adding a `#` instruction outside of a loop, its value must **not** be equal to the value of the previous counter.  
+
+---
 
 ### Reduction
 
@@ -167,6 +190,8 @@ Every `while #` within root `while #` must precede an `#++` inside a `while #_2`
 Remove `A++; while A {while A {A--; B++;}}` to `A++; while A {A--; B++;}` equivalence.  
 Each `while #` must have at least a non `while #` instr.  
 
+---
+
 ### Decider
 
 A decider is a rule that proves a program does not halt.  
@@ -183,7 +208,7 @@ Decide `A++; while A {A--; A++;}` as nonhalter.
 Inside each `while #`, every occurrence of `#--` must be followed by `#++` before the loop end.  
 
 Decide `A++; while A {A++; while A {A--; B++;} while B {A++; B--;}}` as nonhalter.  
-For each `while #_2` within `while #`, if `#` is greater than 0 when `while #_2` ends, check if `#_2` is greater than 0.
+For each `while #_2` within `while #`, if `#` is greater than 0 when `while #_2` ends, check if `#_2` is greater than 0.  
 
 #### Cyclers
 
@@ -193,28 +218,13 @@ Decide programs as nonhalting if every counters keep the same value the next loo
 Decide `A++; while A {A++; A++; B++; while B {A--; B--;}}` as nonhalter.  
 If a counter did not reach 0 but is not less than its previous value, it counts like a cycler.  
 
-#### Unreachable loops
+<!-- #### Unreachable loops
 
 Decide `A++; B++; while A {A++; while B {A--; B--;}}` as nonhalter.  
-Filter out parts of a loop body that became unreachable then apply *Halting loops* decider again.  
+Filter out parts of a loop body that became unreachable then apply *Halting loops* decider again.   -->
 
-### Simulation
+---
 
-N/A  
+### Accelerated Simulation
 
-## 🎯 Roadmap
-
-- `[X]` Decide BBCS(9) bouncers
-- `[X]` Fix and improve loop structure decider
-- `[X]` Fix nonrepeating loops pruning
-- `[X]` Fix programs with nonhalting nested loops not classified as holdouts
-- `[X]` Improve translated cyclers decider
-- `[ ]` Replace execute recursion by explicit call stacks
-- `[ ]` Full TNF enumerator (ignores unreachable loops)
-- `[ ]` Optimize full TNF enumerator (no more fixed loops body length)
-- `[ ]` Avoid multiple `while #` in a row
-- `[ ]` Decide more bouncers (for BBCS(11+))
-
-<!-- ## 🤝 Contributing
-
-If you are interested, you can join my Discord server: <https://discord.gg/H3FnyZwA6P>   -->
+N/A
