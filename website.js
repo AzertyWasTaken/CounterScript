@@ -13,24 +13,26 @@ const el = {
     editor: document.getElementById("code-editor"),
     status: document.getElementById("status"),
     output: document.getElementById("output"),
-    vars_name: document.getElementById("vars-name"),
-    vars_value: document.getElementById("vars-value"),
+    output_name: document.getElementById("output-name"),
+    output_value: document.getElementById("output-value"),
+    output_caption: document.getElementById("output-caption"),
 }
 
 let vars, program;
 
 function updateVarsTable(vars, legend) {
-    el.vars_name.textContent = "";
-    el.vars_value.textContent = "";
+    el.output_name.textContent = "";
+    el.output_value.textContent = "";
+    el.output_caption.textContent = "Counters";
 
     for (const [key, value] of Object.entries(vars)) {
         const nameCell = document.createElement("th");
         nameCell.textContent = legend[key];
-        el.vars_name.appendChild(nameCell);
+        el.output_name.appendChild(nameCell);
 
         const valueCell = document.createElement("td");
         valueCell.textContent = value;
-        el.vars_value.appendChild(valueCell);
+        el.output_value.appendChild(valueCell);
     }
 }
 
@@ -43,11 +45,10 @@ function updateVarsTable(vars, legend) {
 
 el.run.addEventListener("click", () => {
     const [parsed, legend] = parse(el.editor.value);
-    console.log(legend)
-    const [halted, vars, steps] = run(parsed, MAX_STEPS);
+    const [halted, ctx] = run(parsed, {maxSteps: MAX_STEPS, deciders: false});
 
     el.status.innerHTML = halted ? "Halted" : "Timed out";
-    updateVarsTable(vars, legend);
+    updateVarsTable(ctx.vars, legend);
 });
 
 // el.step.addEventListener("click", () => {});
