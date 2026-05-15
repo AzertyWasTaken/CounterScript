@@ -4,7 +4,7 @@ import {log} from "./log.js";
 // Core recursive search helpers
 // ================================================================
 
-// Check if targetVar can increase when program executes
+// Check if `targetVar` can increase when `program` executes
 export function canVarInc(program, targetVar) {
     for (const instr of program) {
         if (instr.type === "inc") {
@@ -20,8 +20,8 @@ export function canVarInc(program, targetVar) {
     return false;
 }
 
-// Check if for each var in program, program has while var
-// Assume that program does not have any undefined loop
+// Check if for each `var` in `program`, it also has `while var`
+// Assume that `program` does not have any undefined loop
 export function areEachVarUseful(program) {
     const vars = new Set();
     const whiles = new Set();
@@ -57,6 +57,7 @@ export function hasUndefinedLoop(program) {
 // ================================================================
 
 // Check if a loop can repeat again after the first iteration
+// Alt: check if targetVar can be positive when body ends
 export function canRepeatTwice(body, targetVar) {
     for (let i = body.length - 1; i >= 0; i--) {
         const instr = body[i];

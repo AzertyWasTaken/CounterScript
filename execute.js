@@ -35,16 +35,15 @@ function assignSet(a, b) {
 // Clone every keys of each stack items except block
 export function cloneStack(stack) {
     const clone = [];
-
-    for (const item of clone)
+    for (const item of stack) {
         clone.push({
             block: item.block,
             pc: item.pc,
-            loopVar: item.var,
+            loopVar: item.loopVar,
             posVars: new Set(item.posVars),
             prevVars: [...item.prevVars],
         });
-
+    }
     return clone;
 }
 

@@ -8,13 +8,34 @@ This file is a shared task-board. When editing, only:
 - Do NOT delete headings or existing bullet ideas
 <!-- AGENT-SAFE END -->
 
+## Reference (for tests)
+
+Length 9 (bugged):
+
+- Total: 42371
+- Halted: 41948
+- Nonhalted: 420
+- Holdout: 0
+
 ## Enumeration
 
-- [ ] Enumerate BBCS(11)
-- [ ] Create champions leaderboard (to find other long halting programs)
+- [ ] Make `enumerate.js` more debuggable
+- [ ] Fix TNF enumeration bug (BBCS(11) holdouts are not detected)
+  - Example: `A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}`
+  - `isLoopNonhalting` checked
+  - `execute.js` checked
+  - Program does not have undefined loop
+  - `skipProgram` checked
+  - `ctx.minInstr` checked
+  - `canRepeatTwice` checked
 - [ ] Avoid multiple `while #` in a row
-  - [ ] Add to `README.md`
-- [ ] Add ordered counters and while loops pruning rule back
+  - [ ] Add new argument *banned whiles* in enumerate.js (must be a Set)
+  - [ ] Function to remove argument if some while var appear
+  - [ ] Actually prune programs
+  - [ ] Write on `README.md`
+- [ ] Enumerate BBCS(11)
+- [ ] Add *ordered counters and while loops* pruning rule back
+- [ ] Create champions leaderboard (to find other long halting programs)
 
 ### Complete TNF enum
 
@@ -29,6 +50,7 @@ Length: 6
 
 ### E/Ideas
 
+- Split enumeration into tasks
 - Decide more bouncers
   - `A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}`
   - Solve A => A*3-1
@@ -50,4 +72,5 @@ Length: 6
 ## Prompt for AI
 
 - Improve this program to make it more readable. Use the latest JavaScript version. Avoid long variable names and short functions with many arguments. Do not hurt time performances. Do not use classes.
-- *The local shell hit a sandbox setup failure before I could even read the files, so I’m retrying with elevated access just to inspect the project and make the fix cleanly.*
+- Find potential bugs in `script.js` that change the output of `enumerate(11)`.
+<!-- The local shell hit a sandbox setup failure before I could even read the files, so I’m retrying with elevated access just to inspect the project and make the fix cleanly. -->

@@ -23,20 +23,20 @@ function skipProgram(program, halted) {
     || halted !== true && !areEachVarUseful(program)
 }
 
-for (const [program, halted, vars, steps, maxVarId] of enumerate(9)) {
-    if (skipProgram(program, halted)) continue;
+for (const [halted, ctx] of enumerate(11)) {
+    if (skipProgram(ctx.prog, halted)) continue;
 
-    const progStr = unparse(program);
+    const progStr = unparse(ctx.prog);
 
     if (halted === true) {
-        const score = Math.max(0, ...Object.values(vars));
+        const score = Math.max(0, ...Object.values(ctx.vars));
 
         if (score > record) {
             record = score;
 
             if (LOG_CHAMPION) log("Champion:", progStr, "Score:", score);
-
-        } else {
+        }
+        else {
             if (LOG_HALTED) log("Halted:", progStr);
             count.halted++
         }
@@ -44,8 +44,8 @@ for (const [program, halted, vars, steps, maxVarId] of enumerate(9)) {
     } else if (halted === false) {
         if (LOG_NONHALTED) log("Nonhalted:", progStr);
         count.nonhalted++;
-    
-    } else if (halted === null) {
+    }
+    else if (halted === null) {
         if (LOG_HOLDOUT) log("Holdout:", progStr);
         count.holdout++;
     }

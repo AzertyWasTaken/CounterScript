@@ -129,102 +129,112 @@ CounterScript is also easier to accelerate and analyze.
 
 ## 🔬 Search & Optimization Techniques
 
-A list of techniques currently applied to reduce the search space and decide programs.  
+The techniques below are used during enumeration to **reduce the search space** and to **early-reject** candidates that provably do not halt.
 
 ---
 
 ### Equivalence
 
+Rules that identify **structurally different programs** (up to renaming/ordering/normal forms) that behave the same for the purpose of search.
+
 #### Max counters id
 
 Remove `A++; while A {B++;} D++;` to `A++; while A {B++;} C++;` equivalence.  
-Each new counters id must be the smallest used one.  
+Each new counters id must be the smallest used one.
 
 #### Ordered counters id
 
 Remove `A++; B++; A++;` to `A++; A++; B++;` equivalence.  
-In every loopless sequences, instr counters id must be in ascending order.  
+In every loopless sequence, instruction counters ids must be in ascending order.
 
 <!-- Remove `A++; while A {A--; B++;} C++;` to `A++; B++; while A {A--; C++;}` equivalence.  
-Every `#--` and `#++` must **not** succeed a while loop if it has `#`.   -->
+Every `#--` and `#++` must **not** succeed a while loop if it has `#`. -->
 
 #### Tree Normal Form
 
 Remove `A++; while A {A++;} A--;` to `A++; while A {A++;}` equivalence.  
-Run each program during enumeration and stop generating further if the program does **not** halt.  
+During enumeration, run the generated program and **stop generating further** if the program does **not** halt.
 
 Remove `A++; while A {while B {A++; B--;} A++;}` to `A++; while A {while B {} A++;}` equivalence.  
-Wait for a loop to run to generate its body.  
+Wait for a loop to run to generate its body.
 
 #### Ordered vars value
 
 Remove `A++; B++; while B {A++; B--;}` to `A++; B++; while A {A--; B++;}` equivalence.  
-When adding a `#` instruction outside of a loop, its value must **not** be equal to the value of the previous counter.  
+When adding a `#` instruction outside of a loop, its value must **not** be equal to the value of the previous counter.
 
 ---
 
 ### Reduction
 
+Rules that **rewrite** programs into a smaller / more canonical form (while preserving the equivalence class for search).
+
 #### Ordered instructions
 
 Remove `A++; A--; B++;` to `B++;` equivalence.  
-In every loopless sequences, `#--` must precede `#++`.  
+In every loopless sequence, `#--` must precede `#++`.
 
 #### Vars usefulness
 
 Remove `A++; while A {A++; while B {A--; B--;}}` to `A++; while A {A++;}` equivalence.  
-For each `#`, the program must also contain an `#++` outside of a `while #` and an `while #` inside or preceding its root loop.  
-An exception can be made for halting programs with a single `#` without any `while #` to improve their score.  
-Example: `A++; A++; A++; while A {A--; B++; B++; B++;}`  
+For each counter `#`, the program must also contain:
+
+- A `#++` outside of any `while #`
+- A `while #` inside or preceding its root loop
+
+Exception: a halting program with a single counter `#` and no `while #` can be allowed to improve its score.  
+Example: `A++; A++; A++; while A {A--; B++; B++; B++;}`
 
 #### Vars declaration
 
-Remove `A++; B--; while A {A--; B++;}`to `A++; while A {A--; B++;}` equivalence.  
-New vars outside of loops must start with an inc.  
+Remove `A++; B--; while A {A--; B++;}` to `A++; while A {A--; B++;}` equivalence.  
+New vars outside of loops must start with an increment (`#++`).
 
 #### Loops repeating multiple times
 
 Remove `A++; while A {A++; while A {A--; B++;} B++;}` to `A++; A++; while A {A--; B++;} B++;` equivalence.  
-Every `while #` within root `while #` must precede an `#++` inside a `while #_2`.  
+Every `while #` within the root `while #` must precede an `#++` inside a `while #_2`.
 
 Remove `A++; while A {while A {A--; B++;}}` to `A++; while A {A--; B++;}` equivalence.  
-Each `while #` must have at least a non `while #` instr.  
+Each `while #` must contain at least one non-`while #` instruction.
 
 ---
 
 ### Decider
 
-A decider is a rule that proves a program does not halt.  
+A **decider** is a rule that proves a program **does not halt**.
 
 #### Loops structure
 
-Decide `A++; while A {}` as nonhalter.  
-Each loop must be nonempty.  
+Decide `A++; while A {}` as nonhalting.  
+Each loop must be nonempty.
 
-Decide `A++; while A {B++;}` as nonhalter.  
-Each `while #` must have a `#--`.  
+Decide `A++; while A {B++;}` as nonhalting.  
+Each `while #` must have a `#--`.
 
-Decide `A++; while A {A--; A++;}` as nonhalter.  
-Inside each `while #`, every occurrence of `#--` must be followed by `#++` before the loop end.  
+Decide `A++; while A {A--; A++;}` as nonhalting.  
+Inside each `while #`, every occurrence of `#--` must be followed by `#++` before the loop ends.
 
-Decide `A++; while A {A++; while A {A--; B++;} while B {A++; B--;}}` as nonhalter.  
-For each `while #_2` within `while #`, if `#` is greater than 0 when `while #_2` ends, check if `#_2` is greater than 0.  
+Decide `A++; while A {A++; while A {A--; B++;} while B {A++; B--;}}` as nonhalting.  
+For each `while #_2` within `while #`: if `#` is greater than 0 when `while #_2` ends, then require that `#_2` is also greater than 0.
 
 #### Cyclers
 
-Decide `A++; while A {while A {A--; B++;} while B {A++; B--;}}` as nonhalter.  
-Decide programs as nonhalting if every counters keep the same value the next loop iteration.  
+Decide `A++; while A {while A {A--; B++;} while B {A++; B--;}}` as nonhalting.  
+Decide programs as nonhalting if every counter keeps the same value at the next loop iteration.
 
-Decide `A++; while A {A++; A++; B++; while B {A--; B--;}}` as nonhalter.  
-If a counter did not reach 0 but is not less than its previous value, it counts like a cycler.  
+Decide `A++; while A {A++; A++; B++; while B {A--; B--;}}` as nonhalting.  
+If a counter did not reach 0 but is not less than its previous value, it counts like a cycler.
 
 <!-- #### Unreachable loops
 
-Decide `A++; B++; while A {A++; while B {A--; B--;}}` as nonhalter.  
-Filter out parts of a loop body that became unreachable then apply *Halting loops* decider again.   -->
+Decide `A++; B++; while A {A++; while B {A--; B--;}}` as nonhalting.  
+Filter out parts of a loop body that became unreachable, then apply the *Halting loops* decider again. -->
 
 ---
 
 ### Accelerated Simulation
 
-N/A
+Rules used to **speed up** halting (or not) programs execution.
+
+Not implemented yet.
