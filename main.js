@@ -1,8 +1,7 @@
 "use strict";
 import {log} from "./log.js";
-import {enumerate} from "./enumerate.js";
+import {enumerate, skipProgram} from "./enumerate.js";
 import {unparse} from "./parser.js";
-import {hasUndefinedLoop, areEachVarUseful} from "./getProgData.js";
 
 const LOG_CHAMPION = true;
 const LOG_HALTED = false;
@@ -17,11 +16,6 @@ const count = {
 }
 
 let record = 0;
-
-function skipProgram(program, halted) {
-    return hasUndefinedLoop(program)
-    || halted !== true && !areEachVarUseful(program)
-}
 
 for (const [halted, ctx] of enumerate(11)) {
     if (skipProgram(ctx.prog, halted)) continue;
@@ -40,8 +34,8 @@ for (const [halted, ctx] of enumerate(11)) {
             if (LOG_HALTED) log("Halted:", progStr);
             count.halted++
         }
-
-    } else if (halted === false) {
+    }
+    else if (halted === false) {
         if (LOG_NONHALTED) log("Nonhalted:", progStr);
         count.nonhalted++;
     }

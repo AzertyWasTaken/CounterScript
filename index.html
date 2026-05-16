@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CounterScript interpreter</title>
+    <title>CounterScript Interpreter</title>
     <link rel="stylesheet" href="./style.css">
     <link rel="icon" type="image/x-icon" href="./favicon.png">
 </head>
 
 <body>
-    <h1>CounterScript interpreter</h1>
+    <h1>CounterScript Interpreter</h1>
 
     <p><a href="https://azertywastaken.github.io/Home/">Home page</a></p>
 
@@ -19,9 +19,9 @@
 
     <table class="instructions">
     <tr><th>Instruction</th><th>Description</th></tr>
-    <tr><td>A++;</td><td>Increment A by 1</td></tr>
-    <tr><td>A--;</td><td>If A is greater than 0, decrement A by 1</td></tr>
-    <tr><td>while A {...}</td><td>Repeat while A is greater than 0</td></tr>
+    <tr><td><code>A++;</code></td><td>Increment A by 1</td></tr>
+    <tr><td><code>A--;</code></td><td>If A is greater than 0, decrement A by 1</td></tr>
+    <tr><td><code>while A {...}</code></td><td>Repeat while A is greater than 0</td></tr>
     </table>
 
     <p>Example: <code>A++; while A {A--; B++;}</code></p>
@@ -34,13 +34,12 @@
     <button id="btn-run">Run</button>
     </div>
 
-    <p class="status" id="status"></p>
+    <p id="status" style="font-size: 20px; color: #FFFFFF;"></p>
 
-    <h2>Counters</h2>
-
-    <table class="counters" id="output">
-        <tr id="vars-name"></tr>
-        <tr id="vars-value"></tr>
+    <table style="text-align: center;" id="output">
+        <caption id="output-caption"></caption>
+        <tr id="output-name"></tr>
+        <tr id="output-value"></tr>
     </table>
 
     <script type="module" src="./website.js"></script>

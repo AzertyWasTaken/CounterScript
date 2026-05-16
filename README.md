@@ -86,7 +86,7 @@ An holdout is an undecided program — we do not know yet if it halts or not.
 
 | BBCS(n) | Holdouts
 | - | -
-| 11 | To be enumerated
+| 11 | 38
 
 Check Holdouts.md to find the list of current holdouts for smaller values.  
 
@@ -106,7 +106,7 @@ Check Holdouts.md to find the list of current holdouts for smaller values.
 | 8 | Has nontrivial champions. Difficulty is comparable to `BB(2)`.
 | 9 | Has bouncers — values that repeatedly bounce from 0 to an increasing value.
 | 10 | -
-| 11 | ⚠️ Not all holdouts has been analyzed.
+| 11 | Has
 
 ### BBCS VS BB
 

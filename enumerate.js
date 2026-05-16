@@ -1,8 +1,23 @@
-﻿"use strict";
+﻿﻿"use strict";
 import {log} from "./log.js";
+import {parse, unparse} from "./parser.js";
 import {execute, exeOp, getVar, isVarPos, getPosVars, cloneStack} from "./execute.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
-import {canRepeatTwice, isLoopNested} from "./getProgData.js";
+import {canRepeatTwice, isLoopNested, hasUndefinedLoop, areEachVarUseful} from "./getProgData.js";
+
+function compareInstr(instr, type, varId) {
+    return instr.type === type && instr.var === varId;
+}
+
+function testLog(ctx, bodyCtx, ...args) {
+    if (
+        !ctx.inLoop
+        && unparse(bodyCtx.prog) === "while A {A--; B++; B++;} while B {A++; B--;}"
+    ) {
+        log("Context:", ctx, "&", bodyCtx);
+        log(...args);
+    }
+}
 
 /**
  * CounterScript programs enumerator for the Busy Beaver style search space.
@@ -17,9 +32,16 @@ import {canRepeatTwice, isLoopNested} from "./getProgData.js";
 // Helpers
 // ================================================================
 
+// Check if programs should be printed after full execution.
+export function skipProgram(program, halted) {
+    return hasUndefinedLoop(program)
+    || halted !== true && !areEachVarUseful(program)
+}
+
 // Check if two adjacent variables are equal.
 function compareVars(vars, id) {
-    return id > 0 && getVar(vars, id) === getVar(vars, id - 1);
+    if (id <= 0) return null;
+    return getVar(vars, id) === getVar(vars, id - 1);
 }
 
 // Prune candidate non-loop instructions.
@@ -77,7 +99,6 @@ export function* genInstructions(len, ctx) {
 
         // `maxVar` tracks the highest variable index that is reachable/considered.
         const nextMaxVar = Math.max(instr.var + 1, ctx.maxVar);
-
         // Apply the instruction to the current state.
         const newVars = exeOp([...ctx.vars], instr);
 
@@ -124,22 +145,38 @@ export function* genWhileLoops(len, ctx) {
 
             // If the loop condition variable is not in the required position,
             // the while-block has no effect; just skip the loop body.
-            if (isVarPos(ctx.vars, varId))
+            if (isVarPos(ctx.vars, varId)) {
                 yield* genLoopBody(instr, [], len - bodyLength - 1, {
                     ...ctx,
                     maxVar: nextMaxVar,
                     minInstr: 0,
                 });
-            else
+            }
+            else {
                 yield* enumerate(len - bodyLength - 1, {
                     ...ctx,
                     maxVar: nextMaxVar,
                     minInstr: 0,
                 });
+            }
         }
 
         ctx.prog.pop();
     }
+}
+
+// Create a new stack frame so the interpreter can execute the loop.
+function appStack(loopVar, stack, bodyCtx) {
+    const newStack = cloneStack(stack);
+    newStack.push({
+        block: bodyCtx.prog,
+        pc: 0,
+        loopVar: loopVar,
+        // Cache positional infos used by deciders.
+        posVars: getPosVars(bodyCtx.vars),
+        prevVars: [...bodyCtx.vars]
+    });
+    return newStack;
 }
 
 /**
@@ -153,6 +190,7 @@ export function* genWhileLoops(len, ctx) {
  * - `ctx`: outer enumeration context (program/progress info)
  */
 function* genLoopBody(instr, stack, len, ctx) {
+    ctx.steps++;
     for (
         // Enumerate the loop body itself; recursion is marked as `inLoop`.
         const [bodyHalted, bodyCtx] of enumerate(instr.len, {
@@ -161,34 +199,24 @@ function* genLoopBody(instr, stack, len, ctx) {
             inLoop: true,
         })
     ) {
+        // testLog(ctx, bodyCtx, bodyHalted);
         if (skipLoopBody(ctx, bodyCtx.prog, instr.var)) continue;
 
         // Max var after concatenating loop body with the remaining tail.
         const tailMaxVarId = Math.max(bodyCtx.maxVar, ctx.maxVar);
         instr.body = bodyCtx.prog;
 
-        // Create a new stack frame so the interpreter can execute the loop.
-        function appStack() {
-            const newStack = cloneStack(stack);
-            newStack.push({
-                block: bodyCtx.prog,
-                pc: 0,
-                loopVar: instr.var,
-                // Cache positional info used by the interpreter.
-                posVars: getPosVars(bodyCtx.vars),
-                prevVars: [...bodyCtx.vars]
-            });
-            return newStack;
-        }
+        // Check if the body enumeration halted and the loop condition still holds.
+        const shouldExec = bodyHalted === true
+        && isVarPos(bodyCtx.vars, instr.var);
 
-        // If the body enumeration halted and the loop condition still holds,
-        // execute one step of the interpreter to decide whether:
+        // Execute the loop to decide whether:
         // - The program fully halts
         // - Or execution continues inside a nested loop
-        const [halted, state] = bodyHalted === true && isVarPos(bodyCtx.vars, instr.var)
+        const [halted, state] = shouldExec
         ? execute(
             {maxSteps: 100, deciders: true},
-            {vars: [...bodyCtx.vars], steps: bodyCtx.steps, stack: appStack()}
+            {vars: bodyCtx.vars, steps: bodyCtx.steps, stack: appStack(instr.var, stack, bodyCtx)}
         )
         : [bodyHalted, {vars: bodyCtx.vars, steps: bodyCtx.steps, stack: stack}];
 
@@ -217,9 +245,10 @@ function* genLoopBody(instr, stack, len, ctx) {
             // Important: clear `.body` before continuing sibling enumerations.
             loopInstr.body = undefined;
         }
-        else if (len <= 0) {
+        else {
             // Terminal case: no more instructions left; yield final program/state.
-            yield [halted, {...ctx, vars: state.vars, steps: state.steps}];
+            if (len <= 0)
+                yield [halted, {...ctx, vars: state.vars, steps: state.steps}];
         }
     }
 }

@@ -2,7 +2,7 @@
 import {log} from "./log.js";
 import {parse, unparse} from "./parser.js";
 import {run, execute} from "./execute.js";
-import {enumerate} from "./enumerate.js";
+import {enumerate, skipProgram} from "./enumerate.js";
 import {canRepeatTwice} from "./getProgData.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
 
@@ -10,11 +10,12 @@ function test(callback, program, ...arg) {
     log(callback(parse(program)[0], ...arg));
 }
 
-function testEnum(func, length) {
+function testEnum(func, length, print = false) {
     let total = 0;
 
     for (const [halted, ctx] of func(length)) {
-        log(halted, unparse(ctx.prog));
+        if (skipProgram(ctx.prog, halted)) continue;
+        if (print) log(halted, unparse(ctx.prog));
         total++;
     }
 
@@ -31,6 +32,8 @@ function testDeciders(length) {
 
     log("Test completed!")
 }
+
+// log(parse("A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}"));
 
 // log(run(
 //     [{type: "inc", var: 0}, {type: "inc", var: 0}, {type: "while", var: 0, body: [{type: "dec", var: 0}, {type: "inc", var: 1}, {type: "inc", var: 1}]}],
@@ -62,27 +65,24 @@ function testDeciders(length) {
 // test(isLoopNonhalting, "while A {A--; B++; B++;} while B {A++; B--;}", 0);
 // test(isLoopNonhalting, "while A {A--; B++; B++; B++;} while B {A++; B--;} A--;", 0);
 
-// test(run, "A++; while A {A--; A++;}", 10);
-// test(run, "A++; while A {A--; B++;}", 10, true);
-// test(run, "A++; while A {A++;}", 10, true);
-// test(run, "A++; while A {A--; A++;}", 10, true);
-// test(run, "A++; A++; B++; while A {while B {A--; B--;} C++;}", 10, true);
-// test(run, "A++; while A {A--; B++; while B {A++; A++; B--;}}", 10, true);
-// test(run, "A++; while A {A++; A++; B++; while B {A--; B--;}}", 10, true);
-// test(run, "A++; while A {A++; B++; while B {A--; B--;}}", 10, true);
-// test(run, "A++; B++; while A {A++; while B {A--; B--; B--;}}", 10, true);
-// test(run, "A++; while A {B--; C++; while B {A--; while C {B--; C--;}} B++;}", 10, true);
-// test(run, "A++; while A {while A {A--; B++;} while B {A++; A++; B--;}}", 10, true);
-// test(run, "A++; while A {A++; while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}", 100, true)
+// test(run, "A++; while A {A--; A++;}", {maxSteps: 10, deciders: false});
+// test(run, "A++; while A {A--; A++;}", {maxSteps: 10, deciders: true});
+// test(run, "A++; A++; while A {A--; B++; B++;}", {maxSteps: 10, deciders: true});
+// test(run, "A++; A++; B++; while A {while B {A--; B--;}}", {maxSteps: 10, deciders: true});
+// test(run, "A++; while A {A--; B++; while B {A++; A++; B--;}}", {maxSteps: 10, deciders: true});
+// test(run, "A++; while A {A++; B++; while B {A--; A--; B--;}}", {maxSteps: 10, deciders: true});
+// test(run, "A++; while A {while A {A--; B++; B++;} while B {A++; B--;}}", {maxSteps: 10, deciders: true});
+// test(run, "A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}", {maxSteps: 10, deciders: true})
+// test(run, "A++; A++; A++; while A {A--; B++; while B {B--; C++; C++;} while C {B++; C--;}}", {maxSteps: 100, deciders: true})
 
 // test(run, "A++; A++; A++; while A {A--; B++; B++; B++;}", {maxSteps: 10, deciders: true});
 // test(run, "A++; while A {A++; while B {A--; B--;} B++;}", {maxSteps: 100, deciders: true});
 
-test(canRepeatTwice, "A++; while A {A--; B++;}", 0);
-test(canRepeatTwice, "A++; while B {while A {A--; B++;}} B++;", 0);
-test(canRepeatTwice, "while A {A--; B++;} while B {A++; B--;}", 0);
-test(canRepeatTwice, "while A {A--; B++; B++; B++;} while B {A++; B--;} A--;", 0);
+// test(canRepeatTwice, "A++; while A {A--; B++;}", 0);
+// test(canRepeatTwice, "A++; while B {while A {A--; B++;}} B++;", 0);
+// test(canRepeatTwice, "while A {A--; B++;} while B {A++; B--;}", 0);
+// test(canRepeatTwice, "while A {A--; B++; B++; B++;} while B {A++; B--;} A--;", 0);
 
 // testDeciders(8);
 
-// testEnum(enumerate, 6);
+// testEnum(enumerate, 9);

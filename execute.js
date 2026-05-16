@@ -1,5 +1,6 @@
 "use strict";
 import {log} from "./log.js";
+import {parse, unparse} from "./parser.js";
 
 // Helpers
 // ================================================================
@@ -28,8 +29,11 @@ export function getPosVars(vars) {
     return set;
 }
 
-function assignSet(a, b) {
-    b.forEach((i) => a.add(i));
+// Mutate a to a.intersection(b)
+function intersect(a, b) {
+    a.forEach((i) => {
+        if (!b.has(i)) a.delete(i);
+    })
 }
 
 // Clone every keys of each stack items except block
@@ -69,14 +73,6 @@ function isTransCycler(currVars, prevVars, posVars) {
     return true;
 }
 
-function isNonhalting(currVars, prevVars, loopVar, posVars) {
-    // Loop variable must not decrease (additional safety check)
-    if (
-        isTransCycler(currVars, prevVars, posVars)
-        && getVar(currVars, loopVar) >= getVar(prevVars, loopVar)
-    ) return true;
-}
-
 // Iterative Execution
 // ================================================================
 
@@ -98,9 +94,10 @@ export function exeOp(vars, instr, frame = {}) {
 }
 
 export function execute(config, ctx) {
+    // log("Init:", ctx.steps, config.maxSteps);
     while (ctx.steps < config.maxSteps) {
         const frame = ctx.stack.at(-1);
-        // log(ctx.vars, frame.pc, frame.block[frame.pc]);
+        // log("State:", frame.pc, frame.block[frame.pc], ctx.vars, frame.posVars);
 
         // Check if pc have reached the end of the program
         if (frame.pc >= frame.block.length) {
@@ -113,9 +110,11 @@ export function execute(config, ctx) {
             ) {
                 // Cycle detection (only if enabled)
                 if (config.deciders)
-                    if (isNonhalting(ctx.vars, frame.prevVars, frame.loopVar, frame.posVars))
+                    if (isTransCycler(ctx.vars, frame.prevVars, frame.posVars)) {
+                        // log(unparse(frame.block), ctx.vars, frame.prevVars, frame.posVars);
                         return [false, ctx];
-
+                    }
+                
                 // Go to next iteration
                 frame.pc = 0;
                 frame.posVars = getPosVars(ctx.vars);
@@ -129,8 +128,9 @@ export function execute(config, ctx) {
 
                 const prevFrame = ctx.stack.at(-1);
                 prevFrame.pc++;
+
                 if (prevFrame.posVars)
-                    assignSet(prevFrame.posVars, frame.posVars);
+                    intersect(prevFrame.posVars, frame.posVars);
             }
 
             continue;

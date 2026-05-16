@@ -19,23 +19,19 @@ Length 9 (bugged):
 
 ## Enumeration
 
-- [ ] Make `enumerate.js` more debuggable
-- [ ] Fix TNF enumeration bug (BBCS(11) holdouts are not detected)
-  - Example: `A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}`
-  - `isLoopNonhalting` checked
-  - `execute.js` checked
-  - Program does not have undefined loop
-  - `skipProgram` checked
-  - `ctx.minInstr` checked
-  - `canRepeatTwice` checked
+- [x] Enumerate BBCS(11)
 - [ ] Avoid multiple `while #` in a row
   - [ ] Add new argument *banned whiles* in enumerate.js (must be a Set)
   - [ ] Function to remove argument if some while var appear
   - [ ] Actually prune programs
   - [ ] Write on `README.md`
-- [ ] Enumerate BBCS(11)
 - [ ] Add *ordered counters and while loops* pruning rule back
 - [ ] Create champions leaderboard (to find other long halting programs)
+- [ ] Decide more bouncers
+  - `A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}`
+  - Can solve A => A*3-1
+  - Use equations solving system
+- [ ] Label loops to avoid recalculating
 
 ### Complete TNF enum
 
@@ -51,12 +47,10 @@ Length: 6
 ### E/Ideas
 
 - Split enumeration into tasks
-- Decide more bouncers
-  - `A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}`
-  - Solve A => A*3-1
-  - Use equations solving system
+- Programs simplification decider
+  - Use custom instructions like `A=+B` or `C=0`
+  - Should decide most BBCS(11) nonhalting programs
 - Decide multiperiod cyclers
-- Label loops to avoid recalculating
 
 ## Website
 

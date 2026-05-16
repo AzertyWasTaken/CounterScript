@@ -1,19 +1,14 @@
 "use strict";
+import {log} from "./log.js";
 /**
  * Heuristic/non-formal check used by the Busy Beaver enumerator.
  *
  * Returns:
- *   1: targetVar is provably/heuristically never 0 within this region.
- *   0: targetVar sign/effect is neutral for reaching 0 (safe to keep).
- *   -1: targetVar can reach 0.
- *   null: an inner while-loop has `body === undefined` (unknown).
- *
- * @param {Array<object>|undefined} program
- * @param {number} targetVar
- * @param {number} [loopVar=targetVar]
- * @returns {1|0|-1|null}
+ * - 1: targetVar is provably/heuristically never 0 within this region.
+ * - 0: targetVar sign/effect is neutral for reaching 0 (safe to keep).
+ * - -1: targetVar can reach 0.
+ * - null: an inner while-loop has `body === undefined` (unknown).
  */
-
 export function isLoopNonhalting(program, targetVar, loopVar = targetVar) {
     if (!program) return null;
 
