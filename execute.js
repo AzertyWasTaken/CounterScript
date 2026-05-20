@@ -93,6 +93,7 @@ export function exeOp(vars, instr, frame = {}) {
     return vars;
 }
 
+// Execution mutates `ctx`
 export function execute(config, ctx) {
     // log("Init:", ctx.steps, config.maxSteps);
     while (ctx.steps < config.maxSteps) {

@@ -8,6 +8,8 @@ const LOG_HALTED = false;
 const LOG_NONHALTED = false;
 const LOG_HOLDOUT = true;
 
+const MAX_LENGTH = 11;
+
 const count = {
     total: 0,
     halted: 0,
@@ -17,10 +19,12 @@ const count = {
 
 let record = 0;
 
-for (const [halted, ctx] of enumerate(11)) {
-    if (skipProgram(ctx.prog, halted)) continue;
+for (const [halted, ctx] of enumerate(MAX_LENGTH)) {
+    // log(unparse(ctx.prog));
+    if (skipProgram(ctx, halted)) continue;
 
     const progStr = unparse(ctx.prog);
+    // log(ctx);
 
     if (halted === true) {
         const score = Math.max(0, ...Object.values(ctx.vars));
