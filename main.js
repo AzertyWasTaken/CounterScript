@@ -8,7 +8,7 @@ const LOG_HALTED = false;
 const LOG_NONHALTED = false;
 const LOG_HOLDOUT = true;
 
-const MAX_LENGTH = 11;
+const MAX_LENGTH = 9;
 
 const count = {
     total: 0,
@@ -21,7 +21,7 @@ let record = 0;
 
 for (const [halted, ctx] of enumerate(MAX_LENGTH)) {
     // log(unparse(ctx.prog));
-    if (skipProgram(ctx, halted)) continue;
+    if (skipProgram(MAX_LENGTH, ctx, halted)) continue;
 
     const progStr = unparse(ctx.prog);
     // log(ctx);

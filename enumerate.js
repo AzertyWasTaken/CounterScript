@@ -32,8 +32,9 @@ function testLog(parsed, ctx, bodyCtx, ...args) {
 // ================================================================
 
 // Check if programs should be printed after full execution.
-export function skipProgram(ctx, halted) {
-    return hasUndefinedLoop(ctx.prog)
+export function skipProgram(MAX_LENGTH, ctx, halted) {
+    return ctx.progLen !== MAX_LENGTH
+    || hasUndefinedLoop(ctx.prog)
     || halted !== true && !areEachVarUseful(ctx.prog)
 }
 
