@@ -1,6 +1,7 @@
 "use strict";
 import {log} from "./log.js";
 import {enumerate, skipProgram} from "./enumerate.js";
+// import {enumerate, skipProgram} from "./enumerate_preOptLoopLen.js";
 import {unparse} from "./parser.js";
 
 const LOG_CHAMPION = true;
@@ -36,8 +37,8 @@ for (const [halted, ctx] of enumerate(MAX_LENGTH)) {
         }
         else {
             if (LOG_HALTED) log("Halted:", progStr);
-            count.halted++
         }
+        count.halted++
     }
     else if (halted === false) {
         if (LOG_NONHALTED) log("Nonhalted:", progStr);

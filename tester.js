@@ -2,24 +2,34 @@
 import {log} from "./log.js";
 import {parse, unparse} from "./parser.js";
 import {run, execute} from "./execute.js";
-import {enumerate, skipProgram} from "./enumerate.js";
-import {canRepeatTwice} from "./getProgData.js";
+import {enumerate} from "./enumerate.js";
+import {enumerate as enumerate_prev} from "./enumerate_preOptLoopLen.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
 
 function test(callback, program, ...arg) {
     log(callback(parse(program)[0], ...arg));
 }
 
-function testEnum(func, length, print = false) {
+function testEnum(callback, length, print, ctx) {
     let total = 0;
+    const progSet = new Set();
 
-    for (const [halted, ctx] of func(length)) {
-        if (skipProgram(ctx.prog, halted)) continue;
-        if (print) log(halted, unparse(ctx.prog));
+    for (const [halted, resCtx] of callback(length, ctx)) {
+        if (print) log(halted, unparse(resCtx.prog));
+        progSet.add(unparse(resCtx.prog));
         total++;
     }
 
     log("Total:", total);
+    return progSet;
+}
+
+function compareEnum(enum1, enum2, length) {
+    const set1 = testEnum(enum1, length, false);
+    const set2 = testEnum(enum2, length, false);
+    const result = set1.difference(set2);
+
+    result.forEach(element => log(element));
 }
 
 function testDeciders(length) {
@@ -78,11 +88,8 @@ function testDeciders(length) {
 // test(run, "A++; A++; A++; while A {A--; B++; B++; B++;}", {maxSteps: 10, deciders: true});
 // test(run, "A++; while A {A++; while B {A--; B--;} B++;}", {maxSteps: 100, deciders: true});
 
-// test(canRepeatTwice, "A++; while A {A--; B++;}", 0);
-// test(canRepeatTwice, "A++; while B {while A {A--; B++;}} B++;", 0);
-// test(canRepeatTwice, "while A {A--; B++;} while B {A++; B--;}", 0);
-// test(canRepeatTwice, "while A {A--; B++; B++; B++;} while B {A++; B--;} A--;", 0);
-
 // testDeciders(8);
 
-// testEnum(enumerate, 9);
+// testEnum(enumerate, 2, true, {prog: [], vars: [1], steps: 1, progLen: 0, maxVar: 1, minInstr: 0, inLoop: true});
+
+// compareEnum(enumerate_prev, enumerate, 4);

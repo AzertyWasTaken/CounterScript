@@ -82,13 +82,13 @@ The following values of BBCS(n) are **proven exact** up to **n = 10**, and **low
 
 ### Holdouts
 
-An holdout is an undecided program — we do not know yet if it halts or not.  
+An holdout is an undecided program — we do not know yet if it halts or not.
 
 | BBCS(n) | Holdouts
 | - | -
-| 11 | 38
+| 11 | 39
 
-Check Holdouts.md to find the list of current holdouts for smaller values.  
+Check Holdouts.md to find the list of current holdouts for smaller values.
 
 ### Difficulty
 
@@ -106,7 +106,7 @@ Check Holdouts.md to find the list of current holdouts for smaller values.
 | 8 | Has nontrivial champions. Difficulty is comparable to `BB(2)`.
 | 9 | Has bouncers — values that repeatedly bounce from 0 to an increasing value.
 | 10 | -
-| 11 | Has
+| 11 | Has more complex bouncers (e.g. an-b or triangular-like) and 2-period cyclers.
 
 ### BBCS VS BB
 
@@ -183,20 +183,22 @@ For each counter `#`, the program must also contain:
 - A `while #` inside or preceding its root loop
 
 Exception: a halting program with a single counter `#` and no `while #` can be allowed to improve its score.  
-Example: `A++; A++; A++; while A {A--; B++; B++; B++;}`
+Example: `A++; A++; A++; while A {A--; B++; B++; B++;}`  
 
 #### Vars declaration
 
 Remove `A++; B--; while A {A--; B++;}` to `A++; while A {A--; B++;}` equivalence.  
-New vars outside of loops must start with an increment (`#++`).
+New vars outside of loops must start with an increment (`#++`).  
+
+#### Loops usefulness
+
+Remove `A++; while A {while A {A--; B++;}}` to `A++; while A {A--; B++;}` equivalence.  
+Any loop must not be on the form of `while # {while # {...}}`.  
 
 #### Loops repeating multiple times
 
 Remove `A++; while A {A++; while A {A--; B++;} B++;}` to `A++; A++; while A {A--; B++;} B++;` equivalence.  
-Every `while #` within the root `while #` must precede an `#++` inside a `while #_2`.
-
-Remove `A++; while A {while A {A--; B++;}}` to `A++; while A {A--; B++;}` equivalence.  
-Each `while #` must contain at least one non-`while #` instruction.
+Every root loops must repeat at least twice.  
 
 ---
 

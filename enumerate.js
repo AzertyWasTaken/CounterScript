@@ -3,7 +3,7 @@ import {log} from "./log.js";
 import {parse, unparse} from "./parser.js";
 import {execute, exeOp, getVar, isVarPos, getPosVars, cloneStack} from "./execute.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
-import {canRepeatTwice, isLoopNested, hasUndefinedLoop, areEachVarUseful} from "./getProgData.js";
+import {isLoopNested, hasUndefinedLoop, areEachVarUseful} from "./getProgData.js";
 
 function compareInstr(instr, type, varId) {
     return instr.type === type && instr.var === varId;
@@ -32,9 +32,8 @@ function testLog(parsed, ctx, bodyCtx, ...args) {
 // ================================================================
 
 // Check if programs should be printed after full execution.
-export function skipProgram(MAX_LENGTH, ctx, halted) {
-    return ctx.progLen !== MAX_LENGTH
-    || hasUndefinedLoop(ctx.prog)
+export function skipProgram(maxLen, ctx, halted) {
+    return ctx.progLen !== maxLen
     || halted !== true && !areEachVarUseful(ctx.prog)
 }
 
@@ -60,11 +59,11 @@ function skipInstr(ctx, instr) {
 // Bodies are enumerated independently, then stitched into the program.
 function skipLoopBody(ctx, body, varId) {
     // Nonhalting loop bodies
-    return isLoopNonhalting(body, varId) === 1
+    return isLoopNonhalting(body.prog, varId) === 1
     // Cannot repeat twice (only enforced outside loops)
-    || !ctx.inLoop && !canRepeatTwice(body, varId)
+    || !ctx.inLoop && !isVarPos(body.vars, varId)
     // Nested in a way that would duplicate behavior
-    || isLoopNested(body, varId);
+    || isLoopNested(body.prog, varId);
 }
 
 // Prune candidate loop-variable choices for a "while" instruction.
@@ -164,6 +163,7 @@ export function* genWhileLoops(len, ctx) {
 // Create a new stack frame so the interpreter can execute the loop.
 function appStack(loopVar, stack, bodyCtx) {
     const newStack = cloneStack(stack);
+
     newStack.push({
         block: bodyCtx.prog,
         pc: 0,
@@ -172,6 +172,7 @@ function appStack(loopVar, stack, bodyCtx) {
         posVars: getPosVars(bodyCtx.vars),
         prevVars: [...bodyCtx.vars]
     });
+
     return newStack;
 }
 
@@ -216,14 +217,16 @@ function* genLoopBody(instr, stack, len, ctx) {
             inLoop: true,
         })
     ) {
-        if (skipLoopBody(ctx, bodyCtx.prog, instr.var)) continue;
+        if (skipLoopBody(ctx, bodyCtx, instr.var)) continue;
+    
+        const [halted, state] = exeLoop(bodyHalted, bodyCtx, instr.var, stack);
         instr.body = bodyCtx.prog;
 
-        // Execute the loop.
-        const [halted, state] = exeLoop(bodyHalted, bodyCtx, instr.var, stack);
+        // Ignore loops that have unused loops.
+        if (halted !== undefined && !ctx.inLoop && hasUndefinedLoop(ctx.prog)) continue;
 
         // testLog(
-        //     "A++; while A {A++; B++; while B {A--; B--;}}",
+        //     "A++; while A {while A {A++;}}",
         //     ctx, bodyCtx, bodyHalted, instr.var, halted, state
         // );
 
@@ -253,7 +256,7 @@ function* genLoopBody(instr, stack, len, ctx) {
         }
         else {
             // Terminal case: no more instructions left; yield final program/state.
-            if (!ctx.inLoop) yield [halted, nextCtx];
+            yield [halted, nextCtx];
         }
     }
 }
@@ -274,9 +277,13 @@ export function* enumerate(len, ctx = {
 }) {
     // `ctx` must not mutate when enumerating loop bodies.
     if (ctx.progLen > 0) yield [true, ctx];
-    if (ctx.progLen >= len) return;
 
-    // Start with either a simple instruction or a while-loop.
-    yield* genInstructions(len, ctx);
-    if (ctx.progLen + 2 <= len) yield* genWhileLoops(len, ctx);
+    // Append a simple instruction.
+    if (ctx.progLen + 1 <= len) {
+        yield* genInstructions(len, ctx);
+
+        // Append a while loop.
+        if (ctx.progLen + 2 <= len)
+            yield* genWhileLoops(len, ctx);
+    }
 }

@@ -10,16 +10,20 @@ This file is a shared task-board. When editing, only:
 
 ## Reference (for tests)
 
-Length 9 (bugged):
+Length 9:
 
-- Total: 42371
-- Halted: 41948
-- Nonhalted: 420
+- Total: 5640
+- Halted: 5210
+- Nonhalted: 430
 - Holdout: 0
 
 ## Enumeration
 
 - [x] Enumerate BBCS(11)
+- [x] Optimise enumerator (remove strict loop length)
+- [x] Enumerate comparator in `tester.js`
+- [x] Break down `enumerate.js` functions
+- [x] Fix and improve root loops ending equivalence
 - [ ] Avoid multiple `while #` in a row
   - [ ] Add new argument *banned whiles* in enumerate.js (must be a Set)
   - [ ] Function to remove argument if some while var appear
@@ -33,17 +37,6 @@ Length 9 (bugged):
   - Use equations solving system
 - [ ] Label loops to avoid recalculating
 
-### Complete TNF enum
-
-none => TNF => nestTNF => [fullTNF] => optTNF  
-
-Length: 6
-
-- Total: 9852
-- New total: 9253
-- New total 2: 5949
-- With pruning: 2282
-
 ### E/Ideas
 
 - Split enumeration into tasks
@@ -52,13 +45,15 @@ Length: 6
   - Should decide most BBCS(11) nonhalting programs
 - Decide multiperiod cyclers
 
-## Website
+## Repo & Website
 
-### Show errors
+- [ ] Update `README.js` techniques list
+- [ ] Show error messages
+- [ ] Add comments
+- [ ] Text editor line number
 
 ### W/Ideas
 
-- Add comments
 - Show steps count
 - Display compiled program
 - Step by step execution
@@ -67,4 +62,5 @@ Length: 6
 
 - Improve this program to make it more readable. Use the latest JavaScript version. Avoid long variable names and short functions with many arguments. Do not hurt time performances. Do not use classes.
 - Find potential bugs in `script.js` that change the output of `enumerate(11)`.
+- Find why `D:\VSC\BusyBeaver\enumerate.js` do not enumerate `A++; A++; B++; while B {while A {while B {A--; B--;}}}`
 <!-- The local shell hit a sandbox setup failure before I could even read the files, so I’m retrying with elevated access just to inspect the project and make the fix cleanly. -->

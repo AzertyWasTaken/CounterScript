@@ -96,7 +96,13 @@ export function parse(program) {
 
 const VAR_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
+function isObject(val) {
+    return typeof val !== "object" || val === null;
+}
+
 export function unparse(program) {
+    if (isObject(program)) return "N/A";
+
     return program.map((instr) => {
         const varName = VAR_NAMES[instr.var];
 

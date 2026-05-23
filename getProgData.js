@@ -56,24 +56,6 @@ export function hasUndefinedLoop(program) {
 // Loop structure deciders
 // ================================================================
 
-// Check if a loop can repeat again after the first iteration
-// Alt: check if targetVar can be positive when body ends
-export function canRepeatTwice(body, targetVar) {
-    for (let i = body.length - 1; i >= 0; i--) {
-        const instr = body[i];
-
-        if (instr.type === "while") {
-            if (instr.var === targetVar) return false;
-
-            if (!instr.body) return null;
-
-            if (canVarInc(instr.body, targetVar)) return true;
-        }
-    }
-
-    return true;
-}
-
 // Check if a loop is unecessary nested
 export function isLoopNested(body, targetVar) {
     if (!body) return null;
