@@ -24,6 +24,7 @@ Length 9:
 - [x] Enumerate comparator in `tester.js`
 - [x] Break down `enumerate.js` functions
 - [x] Fix and improve root loops ending equivalence
+- [ ] `isLoopNonHalting` auto test
 - [ ] Avoid multiple `while #` in a row
   - [ ] Add new argument *banned whiles* in enumerate.js (must be a Set)
   - [ ] Function to remove argument if some while var appear
@@ -47,10 +48,13 @@ Length 9:
 
 ## Repo & Website
 
-- [ ] Update `README.js` techniques list
-- [ ] Show error messages
-- [ ] Add comments
-- [ ] Text editor line number
+- [x] Update `README.js` techniques list
+- [x] Show error messages
+- [x] Add comments
+- [x] Text editor line numbers
+- [x] Display compiled program
+- [ ] Auto programs coloring
+- [ ] Color selected line
 
 ### W/Ideas
 

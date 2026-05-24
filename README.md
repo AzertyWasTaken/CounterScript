@@ -106,7 +106,7 @@ Check Holdouts.md to find the list of current holdouts for smaller values.
 | 8 | Has nontrivial champions. Difficulty is comparable to `BB(2)`.
 | 9 | Has bouncers — values that repeatedly bounce from 0 to an increasing value.
 | 10 | -
-| 11 | Has more complex bouncers (e.g. an-b or triangular-like) and 2-period cyclers.
+| 11 | Has 2-period cyclers and more complex bouncers — subtracting after a multiplication, triangular sequence growing.
 
 ### BBCS VS BB
 

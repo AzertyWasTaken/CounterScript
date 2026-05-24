@@ -3,7 +3,7 @@ import {log} from "./log.js";
 import {parse, unparse} from "./parser.js";
 import {run, execute} from "./execute.js";
 import {enumerate} from "./enumerate.js";
-import {enumerate as enumerate_prev} from "./enumerate_preOptLoopLen.js";
+// import {enumerate as enumerate_prev} from "./enumerate_preOptLoopLen.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
 
 function test(callback, program, ...arg) {
@@ -37,7 +37,7 @@ function testDeciders(length) {
         if (halted !== false) continue;
 
         const [testHalted, vars, steps] = run(program, {maxSteps: 100, deciders: true});
-        if (testHalted === true) {log(unparse(program), vars);}
+        if (testHalted === true) log(unparse(program), vars);
     }
 
     log("Test completed!")
@@ -88,7 +88,7 @@ function testDeciders(length) {
 // test(run, "A++; A++; A++; while A {A--; B++; B++; B++;}", {maxSteps: 10, deciders: true});
 // test(run, "A++; while A {A++; while B {A--; B--;} B++;}", {maxSteps: 100, deciders: true});
 
-// testDeciders(8);
+// testDeciders(9);
 
 // testEnum(enumerate, 2, true, {prog: [], vars: [1], steps: 1, progLen: 0, maxVar: 1, minInstr: 0, inLoop: true});
 

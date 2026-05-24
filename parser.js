@@ -1,4 +1,7 @@
 "use strict";
+// Parse
+// ================================================================
+
 function swapKeyValue(obj){
     let result = {};
     for(const key in obj){
@@ -15,7 +18,21 @@ export function parse(program) {
     let nextVarId = 0;
 
     function skipWhitespace() {
-        while (/\s/.test(program[i])) i++;
+        while (true) {
+            // Comments start with "\\" and go until end-of-line
+            if (program.startsWith("\\\\", i)) {
+                i += 2;
+                while (i < program.length && program[i] !== "\n" && program[i] !== "\r") i++;
+                continue;
+            }
+
+            if (/\s/.test(program[i])) {
+                i++;
+                continue;
+            }
+
+            break;
+        }
     }
 
     function getVarId(varName) {
@@ -93,6 +110,9 @@ export function parse(program) {
     parseProgram();
     return [instructions, swapKeyValue(varsId)];
 }
+
+// Unparse
+// ================================================================
 
 const VAR_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 

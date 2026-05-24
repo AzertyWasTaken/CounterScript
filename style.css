@@ -13,14 +13,29 @@ body {
 
 .row {
     display: flex;
+    flex-wrap: wrap;
     flex-direction: row;
     align-items: center;
-    gap: 6px;
     margin: 10px 0;
 }
 
 hr {
     border: 2px solid #404040;
+}
+
+.header {
+    padding-bottom: 6px;
+    margin: 8px 0;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+}
+
+.block {
+    background: #101010;
+    padding: 2px 2px;
+    margin: 0;
+    border-radius: 8px;
 }
 
 /* Text */
@@ -77,7 +92,7 @@ a:active {
 /* ================================================================ */
 
 caption {
-    font-size: 20px;
+    font-size: 16px;
     margin: 8px 0px;
 }
 
@@ -87,6 +102,7 @@ table, th, td {
     margin-bottom: 12px;
     padding: 6px;
     font-size: 16px;
+    min-width: 24px;
 }
 
 table th {
@@ -109,11 +125,15 @@ button {
     border: 0 solid #000;
     max-width: 240px;
     padding: 6px 10px;
-    margin: 6px 6px 6px 0px;
+    margin: 4px 6px 4px 0px;
     font-size: 16px;
     border-radius: 4px;
     cursor: pointer;
     white-space: nowrap;
+}
+
+button:hover {
+    background: #1070F0;
 }
 
 button:active {
@@ -128,6 +148,50 @@ button:disabled {
 /* Text area */
 /* ================================================================ */
 
+.line-gutter {
+    /* JS sets height/min-height to match the textarea so resizing stays aligned */
+    /* width: 32px; */
+    display: block;
+    flex: 0 0 auto;
+
+    /* textarea uses 12px padding; we need same top offset */
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 0;
+    padding-right: 0;
+
+    box-sizing: border-box;
+
+    /* Allow scrollTop to work */
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    font-family: monospace;
+    font-size: 16px;
+    line-height: 20px;
+
+    color: #C0C0C0;
+
+    /* Prevent text selection while scrolling */
+    user-select: none;
+    overflow: hidden;
+}
+
+.line-number {
+    display: block;
+    height: 20px;
+    font-size: 16px;
+    line-height: 20px;
+    color: #C0C0C0;
+}
+
+.editor-wrap {
+    margin: 8px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
 textarea {
     width: 100%;
     height: 200px;
@@ -135,10 +199,12 @@ textarea {
     background: #000000;
     color: #FFFFFF;
     border: 1px solid #606060;
-    padding: 12px;
+    padding: 4px 8px;
     font-family: monospace;
     font-size: 16px;
     box-sizing: border-box;
     resize: vertical;
     border-radius: 4px;
+    line-height: 20px;
+    scrollbar-color: #FFFFFF #404040;
 }

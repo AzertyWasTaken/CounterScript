@@ -11,7 +11,10 @@
 <body>
     <h1>CounterScript Interpreter</h1>
 
-    <p><a href="https://azertywastaken.github.io/Home/">Home page</a></p>
+    <div class="header">
+        <a href="https://azertywastaken.github.io/Home">Home</a>
+        <a href="https://github.com/AzertyWasTaken/CounterScript/blob/main/README.md">README</a>
+    </div>
 
     <p>CounterScript is a minimal model of computation.</p>
     <p>It has an unlimited number of variables (called counters), each storing a nonnegative integer.</p>
@@ -25,8 +28,12 @@
     </table>
 
     <p>Example: <code>A++; while A {A--; B++;}</code></p>
+    <p>Comments must start with 2 backslashes (e.g. <code>\\ Comment</code>)</p>
 
-    <textarea id="code-editor" placeholder="Write your program here!"></textarea>
+    <div class="editor-wrap">
+        <div class="line-gutter" id="line-gutter" aria-hidden="true"></div>
+        <textarea id="code-editor" placeholder="Write your program here!"></textarea>
+    </div>
 
     <div>
     <!-- <button id="btn-reset">Reset</button> -->
@@ -34,6 +41,7 @@
     <button id="btn-run">Run</button>
     </div>
 
+    <p id="compiled"></p>
     <p id="status" style="font-size: 20px; color: #FFFFFF;"></p>
 
     <table style="text-align: center;" id="output">
