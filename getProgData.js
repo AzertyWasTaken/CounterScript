@@ -61,6 +61,5 @@ export function isLoopNested(body, targetVar) {
     if (!body) return null;
 
     return body.length === 1
-    && body[0].type === "while"
-    && body[0].var === targetVar;
+    && body[0].type === "while";
 }
