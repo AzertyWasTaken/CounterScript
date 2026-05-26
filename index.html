@@ -21,10 +21,10 @@
     <p>All counters are initialized to 0.</p>
 
     <table class="instructions">
-    <tr><th>Instruction</th><th>Description</th></tr>
-    <tr><td><code>A++;</code></td><td>Increment A by 1</td></tr>
-    <tr><td><code>A--;</code></td><td>If A is greater than 0, decrement A by 1</td></tr>
-    <tr><td><code>while A {...}</code></td><td>Repeat while A is greater than 0</td></tr>
+        <tr><th>Instruction</th><th>Description</th></tr>
+        <tr><td><code>A++;</code></td><td>Increment A by 1</td></tr>
+        <tr><td><code>A--;</code></td><td>If A is greater than 0, decrement A by 1</td></tr>
+        <tr><td><code>while A {...}</code></td><td>Repeat while A is greater than 0</td></tr>
     </table>
 
     <p>Example: <code>A++; while A {A--; B++;}</code></p>
@@ -35,10 +35,14 @@
         <textarea id="code-editor" placeholder="Write your program here!"></textarea>
     </div>
 
-    <div>
-    <!-- <button id="btn-reset">Reset</button> -->
-    <!-- <button id="btn-step">Step</button> -->
-    <button id="btn-run">Run</button>
+    <div class="row">
+        <!-- <button id="btn-reset">Reset</button> -->
+        <!-- <button id="btn-step">Step</button> -->
+        <button id="btn-run">Run</button>
+
+        <label>Bulk Expand</label>
+        <input id="run-speed" type="range" min="5" max="50" step="5" value="20" />
+        <label id="run-speed-value">20</label>
     </div>
 
     <p id="compiled"></p>

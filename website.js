@@ -1,14 +1,17 @@
 "use strict";
 import {log, strArray, strObject} from "./log.js"
 import {parse} from "./parser.js";
-import {run} from "./execute.js";
+import {runWithRate} from "./execute.js";
 
-const MAX_STEPS = 10000;
+const MAX_STEPS = 1000000000;
 
 const el = {
     // reset: document.getElementById("btn-reset"),
     run: document.getElementById("btn-run"),
     // step: document.getElementById("btn-step"),
+
+    runSpeed: document.getElementById("run-speed"),
+    runSpeedValue: document.getElementById("run-speed-value"),
 
     editor: document.getElementById("code-editor"),
     lineGutter: document.getElementById("line-gutter"),
@@ -20,6 +23,10 @@ const el = {
     output_value: document.getElementById("output-value"),
     output_caption: document.getElementById("output-caption"),
 }
+
+el.runSpeed.addEventListener("input", () => {
+    el.runSpeedValue.textContent = el.runSpeed.value;
+});
 
 // Line numbers
 // ================================================================
@@ -130,7 +137,11 @@ function updateVarsTable(vars, legend) {
 
 // el.reset.addEventListener("click", reset);
 
-el.run.addEventListener("click", () => {
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function compileAndRun() {
     // Clear previous output
     el.output_name.textContent = "";
     el.output_value.textContent = "";
@@ -146,9 +157,16 @@ el.run.addEventListener("click", () => {
     }
 
     el.compiled.innerHTML = `<code style="font-size: 14px; color: #C0C0C0;">${strArray(parsed)}</code>`;
-    const [halted, ctx] = run(parsed, {maxSteps: MAX_STEPS, deciders: false});
-    el.status.textContent = halted ? "Halted" : "Timed out";
-    updateVarsTable(ctx.vars, legend);
-});
+    const runGen = runWithRate(parsed, {maxSteps: MAX_STEPS, deciders: false});
+
+    el.status.textContent = "Running";
+    for (const ctx of runGen) {
+        updateVarsTable(ctx.vars, legend);
+        await sleep(1000 / el.runSpeed.value);
+    }
+    el.status.textContent = "Halted";
+}
+
+el.run.addEventListener("click", compileAndRun);
 
 // el.step.addEventListener("click", () => {});
