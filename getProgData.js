@@ -4,24 +4,62 @@ import {log} from "./log.js";
 // Core recursive search helpers
 // ================================================================
 
-// Check if `targetVar` can increase when `program` executes
-export function canVarInc(program, targetVar) {
-    for (const instr of program) {
-        if (instr.type === "inc") {
-            if (instr.var === targetVar) return true;
-        }
-        else if (instr.type === "while") {
-            if (!instr.body) return null;
+// Check list of vars that can increase when `program` executes
+export function getIncVars(program) {
+    if (!program) return null;
 
-            if (canVarInc(instr.body, targetVar)) return true;
+    let incVars = new Set();
+
+    function scan(block) {
+        for (const instr of block) {
+            if (!incVars) return;
+
+            if (instr.type === "inc") {
+                incVars.add(instr.var);
+            }
+            else if (instr.type === "while") {
+                if (!instr.body)
+                    incVars = null;
+                else
+                    scan(instr.body);
+            }
         }
     }
 
-    return false;
+    scan(program);
+
+    return incVars;
+}
+
+// Check list of vars that can either increase or decrease when `program` executes
+export function getUsedVars(program) {
+    if (!program) return null;
+
+    let usedVars = new Set();
+
+    function scan(block) {
+        for (const instr of block) {
+            if (!usedVars) return;
+
+            if (instr.type === "inc" || instr.type === "dec") {
+                usedVars.add(instr.var);
+            }
+            else if (instr.type === "while") {
+                if (!instr.body)
+                    usedVars = null;
+                else
+                    scan(instr.body);
+            }
+        }
+    }
+
+    scan(program);
+
+    return usedVars;
 }
 
 // Check if for each `var` in `program`, it also has `while var`
-// Assume that `program` does not have any undefined loop
+// Assume that every loop in `program` ran at least once
 export function areEachVarUseful(program) {
     const vars = new Set();
     const whiles = new Set();
@@ -46,7 +84,7 @@ export function areEachVarUseful(program) {
 export function hasUndefinedLoop(program) {
     for (const instr of program) {
         if (instr.type === "while")
-            if (instr.body === undefined || hasUndefinedLoop(instr.body))
+            if (!instr.body || hasUndefinedLoop(instr.body))
                 return true;
     }
 
@@ -62,4 +100,47 @@ export function isLoopNested(body, targetVar) {
 
     return body.length === 1
     && body[0].type === "while";
+}
+
+// Check if `body` has unused while vars in a row
+export function hasRowWhileVars(body) {
+    let bannedVars = new Set();
+
+    for (const instr of body) {
+        if (instr.type === "while") {
+            if (bannedVars.has(instr.var)) return true;
+
+            const incVars = getIncVars(instr.body);
+
+            if (incVars)
+                incVars.forEach((el) => bannedVars.delete(el));
+            else
+                bannedVars = new Set();
+
+            bannedVars.add(instr.var);
+        }
+        else if (instr.type === "inc") {
+            bannedVars.delete(instr.var);
+        }
+    }
+
+    return false;
+}
+
+// Check for `body` vars order equivalence
+export function areVarsOrdered(body) {
+    let allowedVars = null;
+
+    for (const instr of body) {
+        if (instr.type === "while") {
+            allowedVars = getUsedVars(instr.body);
+        }
+        else {
+            if (allowedVars && !allowedVars.has(instr.var)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }

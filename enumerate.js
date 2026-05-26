@@ -3,7 +3,7 @@ import {log} from "./log.js";
 import {parse, unparse} from "./parser.js";
 import {execute, exeOp, getVar, isVarPos, getPosVars, cloneStack} from "./execute.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
-import {isLoopNested, hasUndefinedLoop, areEachVarUseful} from "./getProgData.js";
+import {isLoopNested, hasUndefinedLoop, areEachVarUseful, hasRowWhileVars, areVarsOrdered} from "./getProgData.js";
 
 function compareInstr(instr, type, varId) {
     return instr.type === type && instr.var === varId;
@@ -33,8 +33,12 @@ function testLog(parsed, ctx, bodyCtx, ...args) {
 
 // Check if programs should be printed after full execution.
 export function skipProgram(maxLen, ctx, halted) {
+    // Keep only max length prorams
     return ctx.progLen !== maxLen
+    // Ignore programs with useless counters
     || halted !== true && !areEachVarUseful(ctx.prog)
+    || hasRowWhileVars(ctx.prog)
+    || !areVarsOrdered(ctx.prog);
 }
 
 // Check if two adjacent variables are equal.
@@ -62,8 +66,9 @@ function skipLoopBody(ctx, body, varId) {
     return isLoopNonhalting(body.prog, varId) === 1
     // Cannot repeat twice (only enforced outside loops)
     || !ctx.inLoop && !isVarPos(body.vars, varId)
-    // Nested in a way that would duplicate behavior
-    || isLoopNested(body.prog, varId);
+    || isLoopNested(body.prog, varId)
+    || hasRowWhileVars(body.prog)
+    || !areVarsOrdered(body.prog);
 }
 
 // Prune candidate loop-variable choices for a "while" instruction.
@@ -230,6 +235,7 @@ function* genLoopBody(instr, stack, len, ctx) {
         //     ctx, bodyCtx, bodyHalted, instr.var, halted, state
         // );
 
+        // Create context for enumerating tail
         const nextCtx = {
             ...ctx,
             progLen: ctx.progLen + bodyCtx.progLen,

@@ -24,19 +24,17 @@ Length 9:
 - [x] Enumerate comparator in `tester.js`
 - [x] Break down `enumerate.js` functions
 - [x] Fix and improve root loops ending equivalence
+- [x] Avoid multiple `while #` in a row
+- [x] Add *ordered counters and while loops* pruning rule back
+- [x] Update `README.md`
+- [ ] Remove nested generators from `enumerate.js` (use call stack)
+- [ ] Label loops to avoid recalculating `isLoopNonhalting`
 - [ ] `isLoopNonHalting` auto test
-- [ ] Avoid multiple `while #` in a row
-  - [ ] Add new argument *banned whiles* in enumerate.js (must be a Set)
-  - [ ] Function to remove argument if some while var appear
-  - [ ] Actually prune programs
-  - [ ] Write on `README.md`
-- [ ] Add *ordered counters and while loops* pruning rule back
 - [ ] Create champions leaderboard (to find other long halting programs)
 - [ ] Decide more bouncers
   - `A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}`
   - Can solve A => A*3-1
   - Use equations solving system
-- [ ] Label loops to avoid recalculating
 
 ### E/Ideas
 

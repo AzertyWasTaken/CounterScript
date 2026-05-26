@@ -10,6 +10,7 @@ Thanks for taking the time to contribute to this project.
 - **Bug fixes** and **consistency** fixes across the codebase
 - **Documentation** improvements
 - **Enumerate larger values** and publish the results
+- **Write formal proofs** for pruning rules and deciders
 
 ## Before you start
 
@@ -27,7 +28,7 @@ Open an issue with:
 - Minimal reproduction steps (or the smallest failing example)
 - (If applicable) a short log/output snippet
 
-## Proposing changes (Pull Requests)
+## Proposing changes (pull requests)
 
 Open a pull request with:
 
@@ -50,4 +51,4 @@ Open a pull request with:
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the project license (see repository `LICENSE` file).
+By contributing, you agree that your contributions will be licensed under the project license (see repository `LICENSE.txt` file).

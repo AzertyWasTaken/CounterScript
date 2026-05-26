@@ -86,7 +86,7 @@ An holdout is an undecided program — we do not know yet if it halts or not.
 
 | BBCS(n) | Holdouts
 | - | -
-| 11 | 39
+| 11 | 35
 
 Check Holdouts.md to find the list of current holdouts for smaller values.
 
@@ -140,15 +140,15 @@ Rules that identify **structurally different programs** (up to renaming/ordering
 #### Max counters id
 
 Remove `A++; while A {B++;} D++;` to `A++; while A {B++;} C++;` equivalence.  
-Each new counters id must be the smallest used one.
+Every new counter id must be the smallest unused one.
 
 #### Ordered counters id
 
 Remove `A++; B++; A++;` to `A++; A++; B++;` equivalence.  
 In every loopless sequence, instruction counters ids must be in ascending order.
 
-<!-- Remove `A++; while A {A--; B++;} C++;` to `A++; B++; while A {A--; C++;}` equivalence.  
-Every `#--` and `#++` must **not** succeed a while loop if it has `#`. -->
+Remove `A++; while A {A--; B++;} C++;` to `A++; B++; while A {A--; C++;}` equivalence.  
+Every `#--` and `#++` must **not** succeed the last while loop if it has a `#` statement.
 
 #### Tree Normal Form
 
@@ -172,17 +172,14 @@ Rules that **rewrite** programs into a smaller / more canonical form (while pres
 #### Ordered instructions
 
 Remove `A++; A--; B++;` to `B++;` equivalence.  
-In every loopless sequence, `#--` must precede `#++`.
+In every **loopless** sequence, `#--` must precede `#++`.
 
 #### Vars usefulness
 
 Remove `A++; while A {A++; while B {A--; B--;}}` to `A++; while A {A++;}` equivalence.  
-For each counter `#`, the program must also contain:
+For each `#++`, the program must also contain a `while #`.
 
-- A `#++` outside of any `while #`
-- A `while #` inside or preceding its root loop
-
-Exception: a halting program with a single counter `#` and no `while #` can be allowed to improve its score.  
+Exception: a halting program with a single counter `#` that has no `while #` can be allowed to improve its score.  
 Example: `A++; A++; A++; while A {A--; B++; B++; B++;}`  
 
 #### Vars declaration
@@ -193,12 +190,18 @@ New vars outside of loops must start with an increment (`#++`).
 #### Loops usefulness
 
 Remove `A++; while A {while A {A--; B++;}}` to `A++; while A {A--; B++;}` equivalence.  
-Any loop must not be on the form of `while # {while # {...}}`.  
+Any loop must not be on the form of `while # {while # {...}}`.
+
+Remove `A++; while A {while B {A--; B++;}}` to `A++; while A {A--; while B {B++;}}` equivalence.  
+Any loop must not be on the form of `while # {while #_2 {...}}`.
+
+Remove `A++; while A {A--: B++;} while A {A--; C++;}` to `A++; while A {A--: B++;}` equivalence.  
+Avoid multiple `while #` in a row if there are no `#++` between.
 
 #### Loops repeating multiple times
 
 Remove `A++; while A {A++; while A {A--; B++;} B++;}` to `A++; A++; while A {A--; B++;} B++;` equivalence.  
-Every root loops must repeat at least twice.  
+Every root loops must repeat at least twice.
 
 ---
 

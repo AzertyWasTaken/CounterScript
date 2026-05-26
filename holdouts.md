@@ -9,8 +9,6 @@ A++; B++; while A {while A {A--; B++;} while B {A++; A++; B--;} A--;}
 A++; B++; while A {while A {A--; B++; B++;} while B {A++; B--;} A--;}
 A++; while A {A++; A++; while A {A--; B++;} while B {A++; B--;} A--;}
 A++; while A {A++; B++; while A {A--; B++;} while B {A++; B--;} A--;}
-A++; while A {A++; B++; while B {B--; C++;} A--; while C {B++; C--;}}
-A++; while A {A++; B++; while B {B--; C++;} while C {B++; C--;} A--;}
 A++; while A {A++; while A {A--; B++;} A++; while B {A++; B--;} A--;}
 A++; while A {A++; while A {A--; B++;} B++; while B {A++; B--;} A--;}
 A++; while A {A++; while A {A--; B++;} while B {A++; B--;} A--; B++;}
@@ -22,10 +20,8 @@ A++; while A {B++; while A {A--; B++;} B++; while B {A++; B--;} A--;}
 A++; while A {B++; while A {A--; B++;} while B {A++; B--;} A--; B++;}
 A++; while A {B++; while A {A--; B++;} while B {A++; A++; B--;} A--;}
 A++; while A {B++; while A {A--; B++; B++;} while B {A++; B--;} A--;}
-A++; while A {B++; while B {B--; C++;} A++; while C {B++; C--;} A--;}
 A++; while A {B++; while B {B--; C++;} while C {A++; B++; C--;} A--;}
 A++; while A {B++; while B {A++; B--; C++;} A--; while C {B++; C--;}}
-A++; while A {B++; while B {A++; B--; C++;} while C {B++; C--;} A--;}
 A++; while A {B++; while B {A++; B--; C++;} while C {A--; B++; C--;}}
 A++; while A {while A {A--; B++;} A++; A++; A++; while B {A--; B--;}}
 A++; while A {while A {A--; B++;} A++; A++; while B {A++; B--;} A--;}

@@ -3,8 +3,9 @@ import {log} from "./log.js";
 import {parse, unparse} from "./parser.js";
 import {run, execute} from "./execute.js";
 import {enumerate} from "./enumerate.js";
-// import {enumerate as enumerate_prev} from "./enumerate_preOptLoopLen.js";
+// import {enumerate as enumerate_base} from "./enumerate_base.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
+import {hasRowWhileVars} from "./getProgData.js"
 
 function test(callback, program, ...arg) {
     log(callback(parse(program)[0], ...arg));
@@ -32,7 +33,7 @@ function compareEnum(enum1, enum2, length) {
     result.forEach(element => log(element));
 }
 
-function testDeciders(length) {
+function testExeDeciders(length) {
     for (const [program, halted, vars, steps, maxVarId] of enumerate(length)) {
         if (halted !== false) continue;
 
@@ -42,6 +43,17 @@ function testDeciders(length) {
 
     log("Test completed!")
 }
+
+// function testIsLoopNonhalting(length) {
+//     for (const [program, halted, vars, steps, maxVarId] of enumerate(length)) {
+//         if (halted !== false) continue;
+
+//         const [testHalted, vars, steps] = run(program, {maxSteps: 100, deciders: true});
+//         if (testHalted === true) log(unparse(program), vars);
+//     }
+
+//     log("Test completed!")
+// }
 
 // log(parse("A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}"));
 
@@ -75,6 +87,10 @@ function testDeciders(length) {
 // test(isLoopNonhalting, "while A {A--; B++; B++;} while B {A++; B--;}", 0);
 // test(isLoopNonhalting, "while A {A--; B++; B++; B++;} while B {A++; B--;} A--;", 0);
 
+// test(hasRowWhileVars, "while A {A--; B++;} A--; while A {C++;}");
+// test(hasRowWhileVars, "while A {A--; B++;} A++; A++; while A {C++;}");
+// test(hasRowWhileVars, "while A {A--; B++;} while B {C++;}");
+
 // test(run, "A++; while A {A--; A++;}", {maxSteps: 10, deciders: false});
 // test(run, "A++; while A {A--; A++;}", {maxSteps: 10, deciders: true});
 // test(run, "A++; A++; while A {A--; B++; B++;}", {maxSteps: 10, deciders: true});
@@ -88,7 +104,8 @@ function testDeciders(length) {
 // test(run, "A++; A++; A++; while A {A--; B++; B++; B++;}", {maxSteps: 10, deciders: true});
 // test(run, "A++; while A {A++; while B {A--; B--;} B++;}", {maxSteps: 100, deciders: true});
 
-// testDeciders(9);
+// testExeDeciders(10);
+// testIsLoopNonhalting(9);
 
 // testEnum(enumerate, 2, true, {prog: [], vars: [1], steps: 1, progLen: 0, maxVar: 1, minInstr: 0, inLoop: true});
 
