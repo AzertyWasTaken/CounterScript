@@ -198,8 +198,6 @@ export function run(program, config = {maxSteps: 10000, deciders: false}) {
 
 // Execution mutates `ctx`
 export function* executeWithRate(rate, config, ctx) {
-    yield ctx;
-
     // log("Init:", ctx.steps, config.maxSteps);
     while (ctx.steps < config.maxSteps) {
         const frame = getCurrentFrame(ctx);

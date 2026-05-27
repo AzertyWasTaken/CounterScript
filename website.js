@@ -3,12 +3,10 @@ import {log, strArray, strObject} from "./log.js"
 import {parse} from "./parser.js";
 import {runWithRate} from "./execute.js";
 
-const MAX_STEPS = 1000000000;
-
 const el = {
-    reset: document.getElementById("btn-reset"),
-    step: document.getElementById("btn-step"),
-    run: document.getElementById("btn-run"),
+    btn_reset: document.getElementById("btn-reset"),
+    btn_step: document.getElementById("btn-step"),
+    btn_run: document.getElementById("btn-run"),
 
     runSpeed: document.getElementById("run-speed"),
     runSpeedValue: document.getElementById("run-speed-value"),
@@ -16,12 +14,14 @@ const el = {
     editor: document.getElementById("code-editor"),
     lineGutter: document.getElementById("line-gutter"),
 
-    status: document.getElementById("status"),
-    compiled: document.getElementById("compiled"),
     output: document.getElementById("output"),
-    output_name: document.getElementById("output-name"),
-    output_value: document.getElementById("output-value"),
-    output_caption: document.getElementById("output-caption"),
+    status: document.getElementById("status"),
+    steps: document.getElementById("steps"),
+    compiled: document.getElementById("compiled"),
+
+    counters: document.getElementById("counters"),
+    counters_name: document.getElementById("counters-name"),
+    counters_value: document.getElementById("counters-value"),
 }
 
 el.runSpeed.addEventListener("input", () => {
@@ -109,109 +109,144 @@ function initLineNumbers() {
 
 initLineNumbers();
 
-// Run programs
+// Init
 // ================================================================
 
+const MAX_STEPS = 1000000000;
+
+let parsedProgram = null;
+let legend = null;
+let runGen = null;
+let halted = null;
+let steps = 0;
+
+// Stop control for async run loop (Reset cancels)
+let runToken = 0;
+
+// Pause control for async run loop (Pause does NOT cancel generator)
+let paused = true;
+let pauseWait = null;
+let pauseResolver = null;
+
+setRunDisabled(true);
+
+el.output.style.display = "none";
+
 function clearOutput() {
-    el.output_name.textContent = "";
-    el.output_value.textContent = "";
-    el.output_caption.textContent = "";
+    el.output.style.display = "block";
+    el.counters.style.display = "none";
+    setStatus("Running");
+    updateSteps();
+
+    el.compiled.innerHTML =
+        `<code style="font-size: 14px; color: #C0C0C0;">${strArray(parsedProgram)}</code>`;
+}
+
+function reset() {
+    // Stop any in-flight async run loop
+    runToken++;
+    compile();
+
+    // Clear pause/running controls
+    paused = true;
+    pauseWait = null;
+    pauseResolver = null;
+
+    // Clear previous output
+    clearOutput();
+
+    // Allow running again after reset
+    setRunDisabled(false);
+}
+
+// Display
+// ================================================================
+
+function updateSteps() {
+    el.steps.textContent = steps.toString();
 }
 
 function setStatus(text) {
     el.status.textContent = text;
 }
 
-let parsedProgram = null;
-let legend = null;
-let runGen = null;
-let halted = true;
-
-// Stop control for async run loop (Reset cancels)
-let runToken = 0;
-
-// Pause control for async run loop (Pause does NOT cancel generator)
-let paused = false;
-let pauseWait = null;
-let pauseResolver = null;
+function setRunDisabled(isDisabled) {
+    el.btn_step.disabled = isDisabled;
+    el.btn_run.disabled = isDisabled;
+}
 
 function updateVarsTable(vars, legend) {
-    el.output_name.textContent = "";
-    el.output_value.textContent = "";
-    el.output_caption.textContent = "Counters";
+    const entries = Object.entries(vars);
+    if (entries.length === 0) {
+        el.counters.style.display = "none";
+        return;
+    }
 
-    for (const [key, value] of Object.entries(vars)) {
+    el.counters.style.display = "table";
+    el.counters_name.textContent = "";
+    el.counters_value.textContent = "";
+
+    for (const [key, value] of entries) {
         const nameCell = document.createElement("th");
         nameCell.textContent = legend[key];
-        el.output_name.appendChild(nameCell);
+        el.counters_name.appendChild(nameCell);
 
         const valueCell = document.createElement("td");
         valueCell.textContent = value;
-        el.output_value.appendChild(valueCell);
+        el.counters_value.appendChild(valueCell);
     }
 }
+
+// Run programs
+// ================================================================
 
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function ensureCompiled() {
-    if (runGen) return true;
-
+function compile() {
     let parsed;
     try {
         [parsed, legend] = parse(el.editor.value);
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         el.status.textContent = `Parse error: ${message}`;
-        return false;
     }
 
     parsedProgram = parsed;
-    el.compiled.innerHTML =
-        `<code style="font-size: 14px; color: #C0C0C0;">${strArray(parsedProgram)}</code>`;
-
-    runGen = runWithRate(parsedProgram, { maxSteps: MAX_STEPS, deciders: false });
+    runGen = runWithRate(parsedProgram, {maxSteps: MAX_STEPS, deciders: false});
     halted = false;
-    return true;
+    steps = 0;
+
+    // If we just compiled successfully, execution is allowed to start.
+    setRunDisabled(false);
 }
 
-function reset() {
-    // Stop any in-flight async run loop
-    runToken++;
-
-    // Clear runtime state
-    parsedProgram = null;
-    legend = null;
-    runGen = null;
-    halted = true;
-
-    // Clear pause/running controls
-    paused = false;
-    pauseWait = null;
-    pauseResolver = null;
-
-    // Clear previous output
-    clearOutput();
-    el.compiled.innerHTML = "";
-    setStatus("");
-}
-
-function stepOnce() {
-    // If generator is not created yet, compile on demand
-    if (!ensureCompiled()) return;
-
-    if (halted) return;
-
+// Return false of the program halted
+function nextStep() {
     const res = runGen.next();
+
     if (res.done) {
         halted = true;
         setStatus("Halted");
-        return;
+        el.btn_run.textContent = "Run";
+        setRunDisabled(true);
+        return false;
     }
+
+    steps++;
+    updateSteps();
 
     const ctx = res.value;
     updateVarsTable(ctx.vars, legend);
+    return true;
+}
+
+function stepOnce() {
+    if (!runGen) return;
+    if (halted) return;
+
+    if (!nextStep()) return;
     setStatus("Running");
 }
 
@@ -225,20 +260,16 @@ function getPausePromise() {
 }
 
 async function runFromCurrent() {
-    if (!ensureCompiled()) return;
-
-    // If already halted, ensure we start from fresh generator
-    if (halted) {
-        runGen = null;
-        if (!ensureCompiled()) return;
-    }
+    if (!runGen) return;
+    if (halted) return;
 
     // Starting/resuming run cancels only previous "run loop" instance
-    const myToken = ++runToken;
+    runToken++;
+    const myToken = runToken;
     paused = false;
     setStatus("Running");
 
-    el.run.textContent = "Pause";
+    el.btn_run.textContent = "Pause";
 
     // Iterate remaining generator steps manually so Reset can stop us
     while (true) {
@@ -246,64 +277,51 @@ async function runFromCurrent() {
 
         // Pause: wait until resumed or reset cancels (runToken changes)
         if (paused) {
-            el.run.textContent = "Run";
+            el.btn_run.textContent = "Run";
             await getPausePromise();
             if (myToken !== runToken) return;
-            el.run.textContent = "Pause";
+            el.btn_run.textContent = "Pause";
             setStatus("Running");
         }
 
-        const res = runGen.next();
-        if (res.done) {
-            halted = true;
-            setStatus("Halted");
-            el.run.textContent = "Run";
-            return;
-        }
-
-        const ctx = res.value;
-        updateVarsTable(ctx.vars, legend);
+        if (!nextStep()) return;
 
         const delay = 1000 / el.runSpeed.value;
         await sleep(delay);
     }
 }
 
-el.reset.addEventListener("click", () => {
+el.btn_reset.addEventListener("click", () => {
     reset();
     // Optional: immediately show initial state after reset by creating generator on first step/run.
 });
 
-el.step.addEventListener("click", () => {
+el.btn_step.addEventListener("click", () => {
     // Step should not auto-run; it should advance a single yielded step
     // (one basic instruction, per executeWithRate() behavior).
     stepOnce();
 });
 
-el.run.addEventListener("click", () => {
+el.btn_run.addEventListener("click", () => {
     // Toggle Run/Pause
     if (halted) {
         // If halted, clicking Run starts a new execution from current code
         pauseWait = null;
         pauseResolver = null;
         runFromCurrent();
-        return;
     }
-
-    if (!runGen) {
+    else if (!runGen) {
         runFromCurrent();
-        return;
     }
-
-    if (!paused) {
-        paused = true;
-        // Resolve any existing pause wait (so loop can observe paused state promptly)
-        if (pauseResolver) pauseResolver();
-    } else {
+    else if (paused) {
         paused = false;
         pauseWait = null;
         pauseResolver = null;
         // Resume by starting a new loop instance (generator state is preserved)
         runFromCurrent();
+    } else {
+        paused = true;
+        // Resolve any existing pause wait (so loop can observe paused state promptly)
+        if (pauseResolver) pauseResolver();
     }
 });

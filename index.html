@@ -45,14 +45,27 @@
         <label id="run-speed-value">20/s</label>
     </div>
 
-    <p id="compiled"></p>
-    <p id="status" style="font-size: 20px; color: #FFFFFF;"></p>
+    <div class="block" id="output">
+        <p id="compiled"></p>
 
-    <table style="text-align: center;" id="output">
-        <caption id="output-caption"></caption>
-        <tr id="output-name"></tr>
-        <tr id="output-value"></tr>
-    </table>
+        <div class="row output-stats">
+            <div class="row">
+                <label>Status</label>
+                <p class="stat-value" id="status"></p>
+            </div>
+
+            <div class="row">
+                <label>Steps</label>
+                <p class="stat-value" id="steps"></p>
+            </div>
+        </div>
+
+        <table style="text-align: center;" id="counters">
+            <caption>Counters</caption>
+            <tr id="counters-name"></tr>
+            <tr id="counters-value"></tr>
+        </table>
+    </div>
 
     <script type="module" src="./website.js"></script>
 </body>

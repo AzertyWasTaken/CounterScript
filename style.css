@@ -34,7 +34,7 @@ hr {
 
 .block {
     background: #101010;
-    padding: 2px 2px;
+    padding: 8px;
     margin: 0;
     border-radius: 8px;
 }
@@ -66,8 +66,8 @@ code {
 label {
     display: flex;
     align-items: center;
-    gap: 6px;
     font-weight: 700;
+    margin: 0;
 }
 
 /* Link */
@@ -89,12 +89,46 @@ a:active {
     color: #FFA040;
 }
 
+/* Output Panel */
+/* ================================================================ */
+
+#compiled {
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+    color: #C0C0C0;
+}
+
+/* Status / Steps row */
+.output-stats {
+    margin: 0 8px;
+    padding: 0;
+    gap: 32px;
+}
+
+/* Counters Table */
+#output table#counters {
+    width: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.stat-value {
+    background: #000000;
+    padding: 0px 4px;
+    margin: 0;
+    border-radius: 4px;
+    font-size: 20px;
+}
+
 /* Table */
 /* ================================================================ */
 
 caption {
-    font-size: 16px;
-    margin: 8px 0px;
+    font-size: 18px;
+    margin: 10px;
+    font-weight: 700;
+    color: #FFE040;
 }
 
 table, th, td {
