@@ -1,7 +1,7 @@
 ﻿﻿"use strict";
 import {log} from "./log.js";
 import {parse, unparse} from "./parser.js";
-import {execute, exeOp, getVar, isVarPos, getPosVars, cloneStack} from "./execute.js";
+import {execute, executeBasicInstruction, getVar, isVarPos, getPosVars, cloneStack} from "./execute.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
 import {isLoopNested, hasUndefinedLoop, areEachVarUseful, hasRowWhileVars, areVarsOrdered} from "./getProgData.js";
 
@@ -104,7 +104,7 @@ export function* genInstructions(len, ctx) {
         // `maxVar` tracks the highest variable index that is reachable/considered.
         const nextMaxVar = Math.max(instr.var + 1, ctx.maxVar);
         // Apply the instruction to the current state.
-        const newVars = exeOp([...ctx.vars], instr);
+        const newVars = executeBasicInstruction([...ctx.vars], instr);
 
         ctx.prog.push(instr);
         ctx.progLen++;
@@ -228,7 +228,7 @@ function* genLoopBody(instr, stack, len, ctx) {
         instr.body = bodyCtx.prog;
 
         // Ignore loops that have unused loops.
-        if (halted !== undefined && !ctx.inLoop && hasUndefinedLoop(ctx.prog)) continue;
+        if (halted === true && !ctx.inLoop && hasUndefinedLoop(ctx.prog)) continue;
 
         // testLog(
         //     "A++; while A {while A {A++;}}",
