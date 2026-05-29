@@ -36,7 +36,7 @@ export function skipProgram(maxLen, ctx, halted) {
     // Keep only max length prorams
     return ctx.progLen !== maxLen
     // Ignore programs with useless counters
-    || halted !== true && !areEachVarUseful(ctx.prog)
+    || halted !== true && areEachVarUseful(ctx.prog) === false
     || hasRowWhileVars(ctx.prog)
     || !areVarsOrdered(ctx.prog);
 }

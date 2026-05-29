@@ -9,7 +9,7 @@ const LOG_HALTED = false;
 const LOG_NONHALTED = false;
 const LOG_HOLDOUT = true;
 
-const MAX_LENGTH = 11;
+const MAX_LENGTH = 10;
 
 const count = {
     total: 0,

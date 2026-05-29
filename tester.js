@@ -3,7 +3,7 @@ import {log} from "./log.js";
 import {parse, unparse} from "./parser.js";
 import {run, execute} from "./execute.js";
 import {enumerate} from "./enumerate.js";
-// import {enumerate as enumerate_base} from "./enumerate_base.js";
+import {enumerate as enumerate_new} from "./enumerate copy.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
 import {hasRowWhileVars} from "./getProgData.js"
 
@@ -108,5 +108,7 @@ function testExeDeciders(length) {
 // testIsLoopNonhalting(9);
 
 // testEnum(enumerate, 2, true, {prog: [], vars: [1], steps: 1, progLen: 0, maxVar: 1, minInstr: 0, inLoop: true});
+testEnum(enumerate, 8, false);
+testEnum(enumerate_new, 8, false);
 
 // compareEnum(enumerate_prev, enumerate, 4);

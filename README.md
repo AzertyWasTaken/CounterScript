@@ -115,17 +115,31 @@ CounterScript is also easier to accelerate and analyze.
 
 ## ⚙️ Project Structure
 
+### Mental model (high level)
+
+This repo implements a **Busy Beaver-style enumerator** for CounterScript.
+
+- **Programs** are represented as an AST (array of instructions). Each instruction is one of:
+  - `{ type: "inc", var: <number> }`
+  - `{ type: "dec", var: <number> }`
+  - `{ type: "while", var: <number>, body: <instruction[]> | undefined }`
+- **Variables** are “counters” initialized to `0`. Variables are identified by **numeric ids** (0, 1, 2, …) after parsing.
+- **Enumeration** generates candidate programs and simulates them with the interpreter.
+- **Execution** uses a stack of loop frames to support nested `while`.
+
+### Module responsibilities
+
 | Script | Description
 | - | -
 | website.js | Manage the UI of the CounterScript interpreter website.
-| tester.js | Tests new function to check if they work like intended.
-| log.js | Modified version of console.log function.
-| main.js | The script that should be run to search programs.
-| enumerate.js | Enumerate CounterScript programs up to length `n`.
-| execute.js | Execute CounterScript programs.
-| parse.js | Converts CounterScript code to a string or a plain object.
-| getProgData.js | Collects data from programs, like the set of used vars.
-| isLoopNonhalting.js | Decide some nonhalting loops by checking their structure.
+| tester.js | Executes small test routines to validate interpreter/pruning behavior.
+| log.js | Lightweight logging helpers for debugging (debug-friendly stringify).
+| main.js | Entry point for the enumerator.
+| enumerate.js | Enumerates CounterScript programs up to a given length, with pruning + partial simulation.
+| execute.js | Interpreter for CounterScript programs.
+| parser.js | Parses CounterScript source into the AST and unparses the AST back to source-like text.
+| getProgData.js | Derives structural properties from a program.
+| isLoopNonhalting.js | Heuristic/non-formal check to prove that a `while` region is nonhalting.
 
 ## 🔬 Search & Optimization Techniques
 
@@ -171,12 +185,12 @@ Rules that **rewrite** programs into a smaller / more canonical form (while pres
 
 #### Ordered instructions
 
-Remove `A++; A--; B++;` to `B++;` equivalence.  
+Remove `A++; A--; B++;` to `B++;` reduction.  
 In every **loopless** sequence, `#--` must precede `#++`.
 
 #### Vars usefulness
 
-Remove `A++; while A {A++; while B {A--; B--;}}` to `A++; while A {A++;}` equivalence.  
+Remove `A++; while A {A++; while B {A--; B--;}}` to `A++; while A {A++;}` reduction.  
 For each `#++`, the program must also contain a `while #`.
 
 Exception: a halting program with a single counter `#` that has no `while #` can be allowed to improve its score.  
@@ -184,23 +198,23 @@ Example: `A++; A++; A++; while A {A--; B++; B++; B++;}`
 
 #### Vars declaration
 
-Remove `A++; B--; while A {A--; B++;}` to `A++; while A {A--; B++;}` equivalence.  
+Remove `A++; B--; while A {A--; B++;}` to `A++; while A {A--; B++;}` reduction.  
 New vars outside of loops must start with an increment (`#++`).  
 
 #### Loops usefulness
 
-Remove `A++; while A {while A {A--; B++;}}` to `A++; while A {A--; B++;}` equivalence.  
+Remove `A++; while A {while A {A--; B++;}}` to `A++; while A {A--; B++;}` reduction.  
 Any loop must not be on the form of `while # {while # {...}}`.
 
-Remove `A++; while A {while B {A--; B++;}}` to `A++; while A {A--; while B {B++;}}` equivalence.  
+Remove `A++; while A {while B {A--; B++;}}` to `A++; while A {A--; while B {B++;}}` reduction.  
 Any loop must not be on the form of `while # {while #_2 {...}}`.
 
-Remove `A++; while A {A--: B++;} while A {A--; C++;}` to `A++; while A {A--: B++;}` equivalence.  
+Remove `A++; while A {A--: B++;} while A {A--; C++;}` to `A++; while A {A--: B++;}` reduction.  
 Avoid multiple `while #` in a row if there are no `#++` between.
 
 #### Loops repeating multiple times
 
-Remove `A++; while A {A++; while A {A--; B++;} B++;}` to `A++; A++; while A {A--; B++;} B++;` equivalence.  
+Remove `A++; while A {A++; while A {A--; B++;} B++;}` to `A++; A++; while A {A--; B++;} B++;` reduction.  
 Every root loops must repeat at least twice.
 
 ---

@@ -116,12 +116,8 @@ export function parse(program) {
 
 const VAR_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-function isObject(val) {
-    return typeof val !== "object" || val === null;
-}
-
 export function unparse(program) {
-    if (isObject(program)) return "N/A";
+    if (!Array.isArray(program)) return "N/A";
 
     return program.map((instr) => {
         const varName = VAR_NAMES[instr.var];
@@ -134,8 +130,8 @@ export function unparse(program) {
         }
         else if (instr.type === "while") {
             const isBodyEmpty = !instr.body || instr.body.length === 0;
-            const bosyStr = isBodyEmpty ? "" : `${unparse(instr.body)}`;
-            return `while ${varName} {${bosyStr}}`
+            const bodyStr = isBodyEmpty ? "" : `${unparse(instr.body)}`;
+            return `while ${varName} {${bodyStr}}`
         }
     }).join(" ");
 }
