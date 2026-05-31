@@ -23,9 +23,9 @@ CounterScript is Turing-Complete (e.g. it can simulate a Turing machine).
 
 ### Counters
 
-- CounterScript is a model of computation that uses a minimal instructions set.
-- A CounterScript program operates on a finite but unbounded set of counters: A, B, C, ...
-- All counters are initialized to 0.  
+- A CounterScript program operates on a finite but unbounded set of counters: `A`, `B`, `C`, ...
+- All counters are initialized to 0.
+- The set of all counters of a program is called its **state**.
 
 ### Instructions
 

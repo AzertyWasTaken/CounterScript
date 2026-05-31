@@ -12,7 +12,10 @@ This file is a shared task-board. When editing, only:
 
 Length 9:
 
-- Total: 6977
+- Total: 4723
+- Halted: 3448
+- Nonhalted: 1275
+- Holdout: 0
 
 ## Enumeration
 
@@ -30,15 +33,21 @@ Length 9:
 
 - [x] Remove `enumerator.js` strict loop length
 - [x] Break down `enumerate.js` functions
-- [ ] Optimize loops row reduction (Just-in-time computation) TODO
+- [ ] Optimize loops row reduction (Just-in-time computation)
 - [ ] Remove nested generators from `enumerate.js` (use call stack)
+- Use base version of `enumerate.js`
+- Use call stack
 
 ### Test & Documentation
 
 - [x] Enumerate comparator in `tester.js`
 - [x] Update `README.md`
 - [x] Improve `execute.js` readability
+- [x] Library module for counter methods
+- [ ] Remove executes redundancy (remove generators and add next step function)
 - [ ] `isLoopNonHalting` auto test
+- [ ] Refractor files and add folders
+- [ ] Move `executeWithRate` for website (use `export`/`import`)
 
 ### E/Ideas
 
@@ -56,17 +65,22 @@ Length 9:
 - [x] Add comments
 - [x] Text editor line numbers
 - [x] Display compiled program
-- [ ] Auto programs coloring
-- [ ] Color selected line
 - [x] Run step by step
 - [x] Option to change run speed (slider)
 - [x] Run/Pause button
 - [x] Step button
 - [x] Show steps count
+- [ ] Auto programs coloring
+- [ ] Color selected line
+- [ ] Functional programming `function A {...}` (compile to standard CS before running)
+- [ ] Variable scopes
+- [ ] Full speed execution
+- [ ] Smart compiling (auto multiply/transfer)
 
 ### W/Ideas
 
-- [ ] Visualize running program
+- Visualize running program
+- Search and replace
 
 ## Prompt for AI
 

@@ -1,7 +1,7 @@
 "use strict";
 import {log, strArray, strObject} from "./log.js"
 import {parse} from "./parser.js";
-import {runWithRate} from "./execute.js";
+import {executeNext, getCtx, getCurrentFrame} from "./execute.js";
 
 const el = {
     btn_reset: document.getElementById("btn-reset"),
@@ -116,9 +116,11 @@ const MAX_STEPS = 1000000000;
 
 let parsedProgram = null;
 let legend = null;
-let runGen = null;
 let halted = null;
+let ctx;
 let steps = 0;
+
+const config = {maxSteps: MAX_STEPS, deciders: false};
 
 // Stop control for async run loop (Reset cancels)
 let runToken = 0;
@@ -214,7 +216,8 @@ function compile() {
     }
 
     parsedProgram = parsed;
-    runGen = runWithRate(parsedProgram, {maxSteps: MAX_STEPS, deciders: false});
+
+    ctx = getCtx(parsedProgram);
     halted = false;
     steps = 0;
 
@@ -224,9 +227,16 @@ function compile() {
 
 // Return false of the program halted
 function nextStep() {
-    const res = runGen.next();
+    let res;
+    while (res !== true) {
+        const frame = getCurrentFrame(ctx);
+        const instr = frame?.block?.[frame.pc];
 
-    if (res.done) {
+        res = executeNext(config, ctx);
+        if (instr && instr.type !== "while") break;
+    }
+
+    if (res === true) {
         halted = true;
         setStatus("Halted");
         el.btn_run.textContent = "Run";
@@ -237,13 +247,12 @@ function nextStep() {
     steps++;
     updateSteps();
 
-    const ctx = res.value;
     updateVarsTable(ctx.vars, legend);
     return true;
 }
 
 function stepOnce() {
-    if (!runGen) return;
+    if (!ctx) return;
     if (halted) return;
 
     if (!nextStep()) return;
@@ -260,7 +269,7 @@ function getPausePromise() {
 }
 
 async function runFromCurrent() {
-    if (!runGen) return;
+    if (!ctx) return;
     if (halted) return;
 
     // Starting/resuming run cancels only previous "run loop" instance
@@ -310,7 +319,7 @@ el.btn_run.addEventListener("click", () => {
         pauseResolver = null;
         runFromCurrent();
     }
-    else if (!runGen) {
+    else if (!ctx) {
         runFromCurrent();
     }
     else if (paused) {

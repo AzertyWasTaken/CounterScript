@@ -66,7 +66,7 @@ export function areEachVarUseful(program) {
 
     function scan(block) {
         for (const instr of block) {
-            if (instr.body) return null;
+            if (!instr.body) return null;
 
             vars.add(instr.var);
 

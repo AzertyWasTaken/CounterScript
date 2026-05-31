@@ -1,32 +1,13 @@
 "use strict";
 import {log} from "./log.js";
 import {parse, unparse} from "./parser.js";
+import {counters} from "./counters.js";
 
 // Helpers
 // ================================================================
 
-export function getVar(vars, id) {
-    return vars[id] ?? 0;
-}
-
-export function incVar(vars, id) {
-    vars[id] = getVar(vars, id) + 1;
-}
-
-export function decVar(vars, id) {
-    vars[id] = Math.max(getVar(vars, id) - 1, 0);
-}
-
-export function isVarPos(vars, id) {
-    return vars[id] > 0;
-}
-
-export function getPosVars(vars) {
-    const set = new Set();
-    vars.forEach((v, id) => {
-        if (v > 0) set.add(id);
-    })
-    return set;
+export function getCtx(program) {
+    return {vars: [], steps: 0, stack: [{block: program, pc: 0}]};
 }
 
 // Mutate a to a.intersection(b)
@@ -58,8 +39,8 @@ function isTransCycler(currVars, prevVars, posVars) {
     const maxLength = Math.max(currVars.length, prevVars.length);
 
     for (let i = 0; i < maxLength; i++) {
-        const currVal = getVar(currVars, i);
-        const prevVal = getVar(prevVars, i);
+        const currVal = counters.get(currVars, i);
+        const prevVal = counters.get(prevVars, i);
 
         if (posVars.has(i)) {
             // Other variables must not decrease
@@ -76,7 +57,7 @@ function isTransCycler(currVars, prevVars, posVars) {
 // Iterative Execution
 // ================================================================
 
-function getCurrentFrame(ctx) {
+export function getCurrentFrame(ctx) {
     return ctx.stack.at(-1);
 }
 
@@ -86,23 +67,22 @@ function handleProgramEnd(config, ctx, frame) {
     // Check if loop condition still holds to repeat body
     if (
         frame.loopVar !== undefined
-        && isVarPos(ctx.vars, frame.loopVar)
+        && !counters.isZero(ctx.vars, frame.loopVar)
     ) {
         // Cycle detection (only if enabled)
         if (config.deciders)
             if (isTransCycler(ctx.vars, frame.prevVars, frame.posVars))
-                return [false, ctx];
+                return false;
 
         // Go to next iteration
         frame.pc = 0;
-        frame.posVars = getPosVars(ctx.vars);
+        frame.posVars = counters.getPosSet(ctx.vars);
         frame.prevVars = [...ctx.vars];
     }
     else {
         // End the loop
         ctx.stack.pop();
-        if (ctx.stack.length === 0)
-            return [true, ctx];
+        if (ctx.stack.length === 0) return true;
 
         const prevFrame = getCurrentFrame(ctx);
         prevFrame.pc++;
@@ -111,131 +91,84 @@ function handleProgramEnd(config, ctx, frame) {
             intersect(prevFrame.posVars, frame.posVars);
     }
 
-    return [null, ctx];
+    return null;
 }
 
+// Execute `while # {...}` (mutate `ctx`)
 function executeWhileInstruction(config, ctx, frame, instr) {
-    if (!isVarPos(ctx.vars, instr.var))
-        return [null, ctx];
+    if (counters.isZero(ctx.vars, instr.var)) return null;
 
-    if (!instr.body)
-        return [undefined, ctx];
+    if (!instr.body) return undefined;
 
     ctx.stack.push({
         block: instr.body,
         pc: 0,
         loopVar: instr.var,
-        posVars: getPosVars(ctx.vars),
+        posVars: counters.getPosSet(ctx.vars),
         prevVars: [...ctx.vars],
     });
 
     // Keep running with new frame
-    return ["continue", ctx];
+    return true;
 }
 
 export function executeBasicInstruction(vars, instr, frame = {}) {
     if (instr.type === "inc") {
-        incVar(vars, instr.var);
+        counters.inc(vars, instr.var);
     }
     else if (instr.type === "dec") {
-        decVar(vars, instr.var);
+        counters.dec(vars, instr.var);
     }
     else {
         throw new Error(`Unknown instruction: ${instr.type}`);
     }
 
-    if (frame.posVars && !isVarPos(vars, instr.var))
+    if (frame.posVars && counters.isZero(vars, instr.var))
         frame.posVars.delete(instr.var);
 
     return vars;
+}
+
+export function executeNext(config, ctx) {
+    const frame = getCurrentFrame(ctx);
+    // log("State:", frame.pc, frame.block[frame.pc], ctx.vars, frame.posVars);
+
+    // Check if pc have reached the end of the program
+    if (frame.pc >= frame.block.length) {
+        return handleProgramEnd(config, ctx, frame);
+    }
+    else {
+        const instr = frame.block[frame.pc];
+
+        // Execute the instruction
+        if (instr.type === "while") {
+            const status = executeWhileInstruction(config, ctx, frame, instr);
+
+            if (status === undefined) return undefined;
+
+            if (status !== true) frame.pc++;
+        }
+        else {
+            executeBasicInstruction(ctx.vars, instr, frame);
+            frame.pc++;
+        }
+
+        return null;
+    }
 }
 
 // Execution mutates `ctx`
 export function execute(config, ctx) {
     // log("Init:", ctx.steps, config.maxSteps);
     while (ctx.steps < config.maxSteps) {
-        const frame = getCurrentFrame(ctx);
-        // log("State:", frame.pc, frame.block[frame.pc], ctx.vars, frame.posVars);
+        const status = executeNext(config, ctx);
 
-        // Check if pc have reached the end of the program
-        if (frame.pc >= frame.block.length) {
-            const endRes = handleProgramEnd(config, ctx, frame);
-            const status = endRes[0];
-
-            if (status !== null) return endRes;
-
-            // Equivalent to `continue;` in the original code
-            continue;
-        }
-
-        const instr = frame.block[frame.pc];
-
-        // Execute the instruction
-        if (instr.type === "while") {
-            const whileRes = executeWhileInstruction(config, ctx, frame, instr);
-            const status = whileRes[0];
-
-            if (status === "continue") continue;
-
-            if (status !== null) return whileRes;
-
-        } else {
-            executeBasicInstruction(ctx.vars, instr, frame);
-        }
-
-        frame.pc++;
+        if (status !== null) return [status, ctx];
     }
 
     return [null, ctx];
 }
 
 export function run(program, config = {maxSteps: 10000, deciders: false}) {
-    return execute(config, {vars: [], steps: 0, stack: [{block: program, pc: 0}]});
-}
-
-// Execute with rate
-// ================================================================
-
-// Execution mutates `ctx`
-export function* executeWithRate(rate, config, ctx) {
-    // log("Init:", ctx.steps, config.maxSteps);
-    while (ctx.steps < config.maxSteps) {
-        const frame = getCurrentFrame(ctx);
-        // log("State:", frame.pc, frame.block[frame.pc], ctx.vars, frame.posVars);
-
-        // Check if pc have reached the end of the program
-        if (frame.pc >= frame.block.length) {
-            const endRes = handleProgramEnd(config, ctx, frame);
-            const status = endRes[0];
-
-            if (status !== null) return endRes;
-
-            // Equivalent to `continue;` in the original code
-            continue;
-        }
-
-        const instr = frame.block[frame.pc];
-
-        // Execute the instruction
-        if (instr.type === "while") {
-            const whileRes = executeWhileInstruction(config, ctx, frame, instr);
-            const status = whileRes[0];
-
-            if (status === "continue") continue;
-
-            if (status !== null) return whileRes;
-
-        } else {
-            executeBasicInstruction(ctx.vars, instr, frame);
-            yield ctx;
-        }
-
-        frame.pc++;
-    }
-
-    return [null, ctx];
-}
-
-export function runWithRate(program, rate, config = {maxSteps: 10000, deciders: false}) {
-    return executeWithRate(rate, config, {vars: [], steps: 0, stack: [{block: program, pc: 0}]});
+    return execute(config, getCtx(program));
 }

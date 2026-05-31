@@ -1,9 +1,10 @@
 ﻿﻿"use strict";
 import {log} from "./log.js";
 import {parse, unparse} from "./parser.js";
-import {execute, executeBasicInstruction, getVar, isVarPos, getPosVars, cloneStack} from "./execute.js";
+import {execute, executeBasicInstruction, cloneStack} from "./execute.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
 import {isLoopNested, hasUndefinedLoop, areEachVarUseful, hasRowWhileVars, areVarsOrdered} from "./getProgData.js";
+import {counters} from "./counters.js";
 
 function compareInstr(instr, type, varId) {
     return instr.type === type && instr.var === varId;
@@ -41,19 +42,13 @@ export function skipProgram(maxLen, ctx, halted) {
     || !areVarsOrdered(ctx.prog);
 }
 
-// Check if two adjacent variables are equal.
-function compareVars(vars, id) {
-    if (id <= 0) return null;
-    return getVar(vars, id) === getVar(vars, id - 1);
-}
-
 // Prune candidate non-loop instructions.
 function skipInstr(ctx, instr) {
     return !ctx.inLoop && (
         // Unused decrements (when the counter equals 0)
-        instr.type === "dec" && !isVarPos(ctx.vars, instr.var)
+        instr.type === "dec" && counters.isZero(ctx.vars, instr.var)
         // Equivalence (adjacent-variable symmetry)
-        || compareVars(ctx.vars, instr.var)
+        || counters.isEqualToPrev(ctx.vars, instr.var)
     )
     // Equivalence with loops order (disabled)
     // || ctx.allowed && !ctx.allowed.has(instr.var);
@@ -65,7 +60,7 @@ function skipLoopBody(ctx, body, varId) {
     // Nonhalting loop bodies
     return isLoopNonhalting(body.prog, varId) === 1
     // Cannot repeat twice (only enforced outside loops)
-    || !ctx.inLoop && !isVarPos(body.vars, varId)
+    || !ctx.inLoop && counters.isZero(body.vars, varId)
     || isLoopNested(body.prog, varId)
     || hasRowWhileVars(body.prog)
     || !areVarsOrdered(body.prog);
@@ -75,9 +70,9 @@ function skipLoopBody(ctx, body, varId) {
 function skipLoopVar(ctx, varId) {
     return !ctx.inLoop && (
         // Unused loops (when the counter equals 0)
-        !isVarPos(ctx.vars, varId)
+        counters.isZero(ctx.vars, varId)
         // Equivalence (adjacent-variable symmetry)
-        || compareVars(ctx.vars, varId)
+        || counters.isEqualToPrev(ctx.vars, varId)
     );
 }
 
@@ -156,10 +151,10 @@ export function* genWhileLoops(len, ctx) {
 
         // If the loop condition variable is not in the required position,
         // the while-block has no effect; just skip the loop body.
-        if (isVarPos(ctx.vars, varId))
-            yield* genLoopBody(instr, [], len, nextCtx);
-        else
+        if (counters.isZero(ctx.vars, varId))
             yield* enumerate(len, nextCtx);
+        else
+            yield* genLoopBody(instr, [], len, nextCtx);
 
         ctx.prog.pop();
     }
@@ -174,7 +169,7 @@ function appStack(loopVar, stack, bodyCtx) {
         pc: 0,
         loopVar: loopVar,
         // Cache positional infos used by deciders.
-        posVars: getPosVars(bodyCtx.vars),
+        posVars: counters.getPosSet(bodyCtx.vars),
         prevVars: [...bodyCtx.vars]
     });
 
@@ -184,7 +179,7 @@ function appStack(loopVar, stack, bodyCtx) {
 function exeLoop(bodyHalted, bodyCtx, instrVar, stack) {
     // Check if the body enumeration halted and the loop condition still holds.
     const shouldExec = bodyHalted === true
-    && isVarPos(bodyCtx.vars, instrVar);
+    && !counters.isZero(bodyCtx.vars, instrVar);
 
     // Execute the loop.
     return shouldExec
@@ -222,6 +217,8 @@ function* genLoopBody(instr, stack, len, ctx) {
             inLoop: true,
         })
     ) {
+        // const prog = "A++; while A {while A {A++;}}";
+        // testLog(prog, ctx, bodyCtx, bodyHalted);
         if (skipLoopBody(ctx, bodyCtx, instr.var)) continue;
     
         const [halted, state] = exeLoop(bodyHalted, bodyCtx, instr.var, stack);
@@ -229,11 +226,6 @@ function* genLoopBody(instr, stack, len, ctx) {
 
         // Ignore loops that have unused loops.
         if (halted === true && !ctx.inLoop && hasUndefinedLoop(ctx.prog)) continue;
-
-        // testLog(
-        //     "A++; while A {while A {A++;}}",
-        //     ctx, bodyCtx, bodyHalted, instr.var, halted, state
-        // );
 
         // Create context for enumerating tail
         const nextCtx = {
