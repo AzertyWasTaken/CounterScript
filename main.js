@@ -1,6 +1,6 @@
 "use strict";
 import {log} from "./log.js";
-import {enumerate, skipProgram} from "./enumerate.js";
+import {enumerate} from "./enumerate.js";
 // import {enumerate, skipProgram} from "./enumerate_preOptLoopLen.js";
 import {unparse} from "./parser.js";
 
@@ -20,20 +20,15 @@ const count = {
 
 let record = 0;
 
-for (const [halted, ctx] of enumerate(MAX_LENGTH)) {
-    // log(unparse(ctx.prog));
-    if (skipProgram(MAX_LENGTH, ctx, halted)) continue;
-
-    const progStr = unparse(ctx.prog);
-    // log(ctx);
+for (const [halted, program, state] of enumerate(MAX_LENGTH)) {
+    const progStr = unparse(program);
 
     if (halted === true) {
-        const score = Math.max(0, ...Object.values(ctx.vars));
+        const score = Math.max(0, ...Object.values(state.vars));
 
         if (score > record) {
-            record = score;
-
             if (LOG_CHAMPION) log("Champion:", progStr, "Score:", score);
+            record = score;
         }
         else {
             if (LOG_HALTED) log("Halted:", progStr);

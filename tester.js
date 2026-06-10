@@ -3,8 +3,8 @@ import {log} from "./log.js";
 import {parse, unparse} from "./parser.js";
 import {run, execute} from "./execute.js";
 import {enumerate} from "./enumerate.js";
-import {enumerate as enumerate_base} from "./enumerate_base.js";
-import {enumerate as enumerate_new} from "./enumerate_base copy.js";
+// import {enumerate as enumerate_nonRecursiveGen} from "./enumerate_nonRecursiveGen.js";
+// import {enumerate as enumerate_TNFnonRecursiveGen} from "./enumerate_TNFnonRecursiveGen.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
 import {hasRowWhileVars} from "./getProgData.js"
 
@@ -12,13 +12,13 @@ function test(callback, program, ...arg) {
     log(callback(parse(program)[0], ...arg));
 }
 
-function testEnum(callback, length, print, ctx) {
+function testEnum(callback, print, ...arg) {
     let total = 0;
     const progSet = new Set();
 
-    for (const [halted, resCtx] of callback(length, ctx)) {
-        if (print) log(halted, unparse(resCtx.prog));
-        progSet.add(unparse(resCtx.prog));
+    for (const [halted, program] of callback(...arg)) {
+        if (print) log(halted, unparse(program));
+        progSet.add(unparse(program));
         total++;
     }
 
@@ -27,14 +27,14 @@ function testEnum(callback, length, print, ctx) {
 }
 
 function compareEnum(enum1, enum2, length) {
-    const set1 = testEnum(enum1, length, false);
-    const set2 = testEnum(enum2, length, false);
+    const set1 = testEnum(enum1, false, length);
+    const set2 = testEnum(enum2, false, length);
     const result = set1.difference(set2);
 
     result.forEach(element => log(element));
 }
 
-function testExeDeciders(length) {
+function testExeDeciders(length) { // OUTDATED
     for (const [program, halted, vars, steps, maxVarId] of enumerate(length)) {
         if (halted !== false) continue;
 
@@ -108,9 +108,11 @@ function testExeDeciders(length) {
 // testExeDeciders(10);
 // testIsLoopNonhalting(9);
 
-// testEnum(enumerate, 2, true, {prog: [], vars: [1], steps: 1, progLen: 0, maxVar: 1, minInstr: 0, inLoop: true});
-// testEnum(enumerate, 8, false);
-// testEnum(enumerate_base, 6, false);
-// testEnum(enumerate_new, 6, false);
+// testEnum(enumerate, true, 2, {prog: [], vars: [1], steps: 1, progLen: 0, maxVar: 1, minInstr: 0, inLoop: true});
+// testEnum(enumerate, false, 8);
+// testEnum(enumerate_nonRecursiveGen, true, [{program: [], len: 5}]);
+testEnum(enumerate, true, 9);
 
 // compareEnum(enumerate_prev, enumerate, 4);
+
+//TODO revamp testEnum running arg

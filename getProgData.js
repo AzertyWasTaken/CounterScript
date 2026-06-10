@@ -82,6 +82,29 @@ export function areEachVarUseful(program) {
     return vars.isSubsetOf(whiles);
 }
 
+// Check if each `var` in `program` can be positive
+export function canEachVarInc(program) {
+    const vars = new Set();
+    const incs = new Set();
+
+    function scan(block) {
+        for (const instr of block) {
+            if (!instr.body) return null;
+
+            vars.add(instr.var);
+
+            if (instr.type === "inc") {
+                incs.add(instr.var);
+                scan(instr.body);
+            }
+        }
+    }
+
+    scan(program);
+
+    return vars.isSubsetOf(incs);
+}
+
 // Check if program has an undefined loop
 export function hasUndefinedLoop(program) {
     for (const instr of program) {
@@ -136,11 +159,9 @@ export function areVarsOrdered(body) {
     for (const instr of body) {
         if (instr.type === "while") {
             allowedVars = getUsedVars(instr.body);
-        }
-        else {
-            if (allowedVars && !allowedVars.has(instr.var)) {
+        } else {
+            if (allowedVars && !allowedVars.has(instr.var))
                 return false;
-            }
         }
     }
 

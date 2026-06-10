@@ -1,287 +1,193 @@
-﻿﻿"use strict";
+﻿"use strict";
 import {log} from "./log.js";
-import {parse, unparse} from "./parser.js";
-import {execute, executeBasicInstruction, cloneStack} from "./execute.js";
-import {isLoopNonhalting} from "./isLoopNonhalting.js";
-import {isLoopNested, hasUndefinedLoop, areEachVarUseful, hasRowWhileVars, areVarsOrdered} from "./getProgData.js";
+import {execute, executeBasicInstruction, cloneStack, getFrame, getInstruction} from "./execute.js";
 import {counters} from "./counters.js";
+import {prune} from "./pruner.js";
 
-function compareInstr(instr, type, varId) {
-    return instr.type === type && instr.var === varId;
-}
-
-function testLog(parsed, ctx, bodyCtx, ...args) {
-    if (
-        !ctx.inLoop
-        && unparse(ctx.prog) === parsed
-    ) {
-        log("Context:", ctx, "&", bodyCtx, "&", ...args);
-    }
-}
-
-/**
- * CounterScript programs enumerator for the Busy Beaver style search space.
- *
- * The main export, `enumerate(len, ctx)`, is a generator that yields tuples:
- *   [program, haltedFlag, vars, steps, maxVar]
- *
- * Various pruning helpers (`skip`*) reduce equivalent/invalid constructions
- * using information from `getProgData.js` and `isLoopNonhalting.js`.
- */
-
-// Helpers
+// Generate instructions
 // ================================================================
 
-// Check if programs should be printed after full execution.
-export function skipProgram(maxLen, ctx, halted) {
-    // Keep only max length prorams
-    return ctx.progLen !== maxLen
-    // Ignore programs with useless counters
-    || halted !== true && areEachVarUseful(ctx.prog) === false
-    || hasRowWhileVars(ctx.prog)
-    || !areVarsOrdered(ctx.prog);
-}
+// Append every possible basic (non-while) instruction to the program.
+export function* genBasicInstr(stack, state) {
+    const frame = stack.at(-1);
 
-// Prune candidate non-loop instructions.
-function skipInstr(ctx, instr) {
-    return !ctx.inLoop && (
-        // Unused decrements (when the counter equals 0)
-        instr.type === "dec" && counters.isZero(ctx.vars, instr.var)
-        // Equivalence (adjacent-variable symmetry)
-        || counters.isEqualToPrev(ctx.vars, instr.var)
-    )
-    // Equivalence with loops order (disabled)
-    // || ctx.allowed && !ctx.allowed.has(instr.var);
-}
-
-// Prune candidate while-loop bodies.
-// Bodies are enumerated independently, then stitched into the program.
-function skipLoopBody(ctx, body, varId) {
-    // Nonhalting loop bodies
-    return isLoopNonhalting(body.prog, varId) === 1
-    // Cannot repeat twice (only enforced outside loops)
-    || !ctx.inLoop && counters.isZero(body.vars, varId)
-    || isLoopNested(body.prog, varId)
-    || hasRowWhileVars(body.prog)
-    || !areVarsOrdered(body.prog);
-}
-
-// Prune candidate loop-variable choices for a "while" instruction.
-function skipLoopVar(ctx, varId) {
-    return !ctx.inLoop && (
-        // Unused loops (when the counter equals 0)
-        counters.isZero(ctx.vars, varId)
-        // Equivalence (adjacent-variable symmetry)
-        || counters.isEqualToPrev(ctx.vars, varId)
-    );
-}
-
-// Core instructions
-// ================================================================
-
-/**
- * Generate all programs of length `len` that begin with a non-loop instruction.
- *
- * `ctx.prog` is mutated via push/pop so we can reuse the same array during
- * backtracking, while the generator yields deeper results via `yield*`.
- */
-export function* genInstructions(len, ctx) {
-    for (let instrId = ctx.minInstr; instrId < (ctx.maxVar + 1) * 2; instrId++) {
+    for (let instrId = state.minInstr; instrId < (state.maxVar + 1) * 2; instrId++) {
         const instr = {
-            // Even ids -> "dec", odd ids -> "inc"
             type: instrId % 2 === 0 ? "dec" : "inc",
-            // Each variable gets two instruction ids (dec/inc)
             var: Math.floor(instrId / 2)
         };
 
-        if (skipInstr(ctx, instr)) continue;
-
-        // `maxVar` tracks the highest variable index that is reachable/considered.
-        const nextMaxVar = Math.max(instr.var + 1, ctx.maxVar);
-        // Apply the instruction to the current state.
-        const newVars = executeBasicInstruction([...ctx.vars], instr);
-
-        ctx.prog.push(instr);
-        ctx.progLen++;
-
-        // Recurse with one less remaining instruction.
-        yield* enumerate(len, {
-            ...ctx,
-            vars: newVars,
-            maxVar: nextMaxVar,
-            // Ensure we don't permute instruction order unnecessarily.
-            minInstr: instrId,
-        });
-
-        ctx.prog.pop();
-        ctx.progLen--;
-    }
-}
-
-// Core while loops
-// ================================================================
-
-/**
- * Generate "while" programs for length `len`.
- *
- * For each possible loop variable `varId`, we:
- * - Create a `while` instruction stub pushed into `ctx.prog`
- * - Enumerate all valid body lengths
- * - Either:
- *   - immediately proceed if the loop condition is false in the current state
- *   - or enumerate a concrete loop body via `genLoopBody`
- */
-export function* genWhileLoops(len, ctx) {
-    for (let varId = 0; varId < (ctx.maxVar + 1); varId++) {
-        if (skipLoopVar(ctx, varId)) continue;
-
-        const nextMaxVar = Math.max(varId + 1, ctx.maxVar);
-
-        const instr = {type: "while", var: varId, body: undefined};
-
-        ctx.prog.push(instr);
-
-        const nextCtx = {
-            ...ctx,
-            // Loop body length is 1 by default.
-            progLen: ctx.progLen + 2,
-            maxVar: nextMaxVar,
-            minInstr: 0,
+        if (prune.basicInstr(stack, state, instr)) continue;
+    
+        const nextState = {
+            ...state,
+            vars: executeBasicInstruction([...state.vars], instr),
+            progLength: state.progLength + 1,
+            maxVar: Math.max(instr.var + 1, state.maxVar),
+            minInstr: instrId
         };
 
-        // If the loop condition variable is not in the required position,
-        // the while-block has no effect; just skip the loop body.
-        if (counters.isZero(ctx.vars, varId))
-            yield* enumerate(len, nextCtx);
-        else
-            yield* genLoopBody(instr, [], len, nextCtx);
-
-        ctx.prog.pop();
+        frame.program.push(instr);
+        yield* nextInstr(stack, nextState);
+        frame.program.pop();
     }
 }
 
-// Create a new stack frame so the interpreter can execute the loop.
-function appStack(loopVar, stack, bodyCtx) {
-    const newStack = cloneStack(stack);
+// Generate while loops
+// ================================================================
+
+// Append every possible while instructions to the program.
+export function* genWhileLoop(stack, state) {
+    const frame = stack.at(-1);
+
+    for (let varId = 0; varId < (state.maxVar + 1); varId++) {
+        const instr = {type: "while", var: varId, body: undefined};
+
+        if (prune.loopVar(stack, state, instr)) continue;
+
+        const nextState = {
+            ...state,
+            // Loop body length is 1 by default, increasing total length by 2.
+            progLength: state.progLength + 2,
+            maxVar: Math.max(varId + 1, state.maxVar),
+            minInstr: 0
+        };
+
+        frame.program.push(instr);
+
+        // Go to the loop body if the loop condition is true.
+        if (!counters.isZero(state.vars, varId)) {
+            instr.body = [];
+            nextState.progLength--;
+
+            stack.push({program: instr.body, loopVar: varId, callStack: []});
+            yield* nextInstr(stack, nextState);
+            stack.pop();
+        } else {
+            yield* nextInstr(stack, nextState);
+        }
+
+        frame.program.pop();
+    }
+}
+
+// Run loop body
+// ================================================================
+
+// Create a new `callStack` frame so the interpreter can execute the loop.
+function appCallStack(frame, state) {
+    const newStack = cloneStack(frame.callStack);
 
     newStack.push({
-        block: bodyCtx.prog,
+        block: frame.program,
         pc: 0,
-        loopVar: loopVar,
+        loopVar: frame.loopVar,
         // Cache positional infos used by deciders.
-        posVars: counters.getPosSet(bodyCtx.vars),
-        prevVars: [...bodyCtx.vars]
+        posVars: counters.getPosSet(state.vars),
+        prevVars: [...state.vars]
     });
 
     return newStack;
 }
 
-function exeLoop(bodyHalted, bodyCtx, instrVar, stack) {
-    // Check if the body enumeration halted and the loop condition still holds.
-    const shouldExec = bodyHalted === true
-    && !counters.isZero(bodyCtx.vars, instrVar);
+function exeLoop(frame, state) {
+    const exeStack = counters.isZero(state.vars, frame.loopVar)
+    ? frame.callStack : appCallStack(frame, state);
 
-    // Execute the loop.
-    return shouldExec
-    ? execute({maxSteps: 100, deciders: true}, {
-        vars: [...bodyCtx.vars],
-        steps: bodyCtx.steps,
-        stack: appStack(instrVar, stack, bodyCtx)
-    })
-    : [bodyHalted, {
-        vars: [...bodyCtx.vars],
-        steps: bodyCtx.steps,
-        stack: stack
-    }];
+    // Execute the loop if the loop condition still holds.
+    return execute({maxSteps: 100, deciders: true}, {
+        vars: [...state.vars],
+        steps: state.steps,
+        stack: exeStack
+    });
 }
 
-/**
- * Enumerate and simulate loop bodies for a specific `while` instruction.
- *
- * Parameters:
- * - `instr`: the outer while instruction whose `.len` is known and `.body`
- *   will be filled in during enumeration
- * - `stack`: an execution stack representing nested loop frames
- * - `len`: remaining program length after the loop body portion
- * - `ctx`: outer enumeration context (program/progress info)
- */
-function* genLoopBody(instr, stack, len, ctx) {
-    ctx.steps++;
-    ctx.progLen--;
-    for (
-        // Enumerate the loop body itself; recursion is marked as `inLoop`.
-        const [bodyHalted, bodyCtx] of enumerate(len - ctx.progLen, {
-            ...ctx,
-            prog: [],
-            progLen: 0,
-            inLoop: true,
-        })
-    ) {
-        // const prog = "A++; while A {while A {A++;}}";
-        // testLog(prog, ctx, bodyCtx, bodyHalted);
-        if (skipLoopBody(ctx, bodyCtx, instr.var)) continue;
-    
-        const [halted, state] = exeLoop(bodyHalted, bodyCtx, instr.var, stack);
-        instr.body = bodyCtx.prog;
+export function* runLoopBody(frame, stack, state) {
+    const [halted, exeState] = exeLoop(frame, state);
 
-        // Ignore loops that have unused loops.
-        if (halted === true && !ctx.inLoop && hasUndefinedLoop(ctx.prog)) continue;
+    // Ignore loops that have unused loops.
+    if (prune.undefinedLoop(halted, stack, frame)) return;
 
-        // Create context for enumerating tail
-        const nextCtx = {
-            ...ctx,
-            progLen: ctx.progLen + bodyCtx.progLen,
-            vars: state.vars,
-            steps: state.steps,
-            // Max var after concatenating loop body with the remaining tail.
-            maxVar: Math.max(bodyCtx.maxVar, ctx.maxVar),
-        };
+    const nextState = {
+        ...state,
+        vars: exeState.vars,
+        steps: exeState.steps + 1,
+        minInstr: 0
+    };
 
-        if (halted === true) {
-            // Fully halted: enumerate the remainder (tail) under the final state.
-            yield* enumerate(len, nextCtx);
-        }
-        else if (halted === undefined) {
-            // Execution is "in progress" inside the stack: expand the next loop.
-            // Instruction that is pointed to by the top frame's pc.
-            const frame = state.stack.at(-1);
-            const loopInstr = frame.block[frame.pc];
+    if (halted === true) {
+        // Generate loop tail.
+        yield* nextInstr(stack, nextState);
+    }
+    else if (halted === undefined) {
+        // Execution is "in progress" inside the stack: expand the next loop.
+        nextState.progLength--;
 
-            yield* genLoopBody(loopInstr, state.stack, len, nextCtx);
+        // Instruction that is pointed to by the top frame's pc.
+        const nextFrame = getFrame(exeState);
+        const loopInstr = getInstruction(nextFrame);
+        loopInstr.body = [];
 
-            // Important: clear `.body` before continuing sibling enumerations.
-            loopInstr.body = undefined;
-        }
-        else {
-            // Terminal case: no more instructions left; yield final program/state.
-            yield [halted, nextCtx];
-        }
+        stack.push({program: loopInstr.body, loopVar: loopInstr.var, callStack: exeState.stack});
+        yield* nextInstr(stack, nextState);
+        stack.pop();
+
+        // Clear `.body` before continuing sibling enumerations.
+        loopInstr.body = undefined;
+    }
+    else {
+        // Terminal case: no more instructions left; yield final program/state.
+        yield* yieldProgram(halted, stack[0].program, state);
     }
 }
 
 // Main functions
 // ================================================================
 
+function* yieldProgram(halted, program, state) {
+    if (!prune.program(halted, program, state))
+        yield [halted, program, state];
+}
+
+function* endProgram(stack, state, frame) {
+    // Check if generation is in a loop.
+    if (stack.length > 1) {
+        if (prune.loopBody(stack, state, frame)) return;
+
+        // Generate while loop tail.
+        stack.pop();
+        yield* runLoopBody(frame, stack, state);
+        stack.push(frame);
+    } else {
+        yield* yieldProgram(true, frame.program, state);
+    }
+}
+
 /**
  * Enumerate all programs of exactly `len` instructions.
- *
- * `ctx` holds the current partial program (`prog`),
- * machine state (`vars`, `steps`), and bounds/pruning controls (`maxVar`, `minInstr`, `inLoop`).
+ * `state` keys are the same for each frame.
+ * `stack` keys are not global and can have multiple instances.
  */
-export function* enumerate(len, ctx = {
-    prog: [], vars: [], steps: 0,
-    progLen: 0, maxVar: 0,
-    minInstr: 0, inLoop: false,
-}) {
-    // `ctx` must not mutate when enumerating loop bodies.
-    if (ctx.progLen > 0) yield [true, ctx];
+export function* nextInstr(stack, state) {
+    const frame = stack.at(-1);
 
-    // Append a simple instruction.
-    if (ctx.progLen + 1 <= len) {
-        yield* genInstructions(len, ctx);
+    if (frame.program.length > 0) yield* endProgram(stack, state, frame);
 
-        // Append a while loop.
-        if (ctx.progLen + 2 <= len)
-            yield* genWhileLoops(len, ctx);
+    if (state.progLength + 1 <= state.maxLength) {
+        yield* genBasicInstr(stack, state);
+
+        if (state.progLength + 2 <= state.maxLength)
+            yield* genWhileLoop(stack, state);
     }
+}
+
+export function enumerate(maxLength) {
+    return nextInstr(
+        [{program: [], loopVar: null, callStack: null}],
+        {
+            vars: [], steps: 0,
+            progLength: 0, maxLength,
+            maxVar: 0, minInstr: 0
+        }
+    );
 }
