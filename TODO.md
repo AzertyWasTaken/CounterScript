@@ -10,11 +10,11 @@ This file is a shared task-board. When editing, only:
 
 ## Reference (for tests)
 
-Length 9:
+Length 10:
 
-- Total: 4723
-- Halted: 3448
-- Nonhalted: 1275
+- Total: 12003
+- Halted: 5220
+- Nonhalted: 6783
 - Holdout: 0
 
 ## Enumeration
@@ -23,20 +23,38 @@ Length 9:
 - [x] Fix and improve root loops ending equivalence
 - [x] Avoid multiple `while #` in a row
 - [x] Add *ordered counters and while loops* pruning rule back
+- [x] No loop tail pruning
+- [x] Maximum counters count pruning
+- [ ] Partial BBCS(12) enumeration
 - [ ] Create champions leaderboard (to find other long halting programs)
-- [ ] Decide more bouncers
-- `A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}`
-- Can solve A => A*3-1
-- Use equations solving system
+- [ ] Use equations solving system (search forward)
 
 ### Optimize
 
 - [x] Remove `enumerator.js` strict loop length
 - [x] Break down `enumerate.js` functions
-- [ ] Optimize loops row reduction (Just-in-time computation)
-- [ ] Remove nested generators from `enumerate.js` (use call stack)
-- Use base version of `enumerate.js`
-- Use call stack
+- [x] Base enumerator without nested generators
+- [x] TNF enumerator without nested generators
+  - [x] `nextInstr`
+  - [x] `genInstructions`
+  - [x] `genWhileLoops`
+  - [x] `genLoopsBodies`
+  - [x] Add pruning rules
+  - [x] Review stack call execution
+  - [x] Module script for pruning rules
+  - [x] Implement to `main.js`
+- [ ] Just-in-time computation
+  - [x] Save old version
+  - [ ] Just-in-time equation creator
+    - [x] New key in stack objects
+    - Define how counters change after loop iteration
+    - Can be a single number, a set of numbers or an unknown value
+    - [ ] Update in `genBasicInstr`, `genWhileLoop`, `runLoopBody`
+    - Default at `x => x`
+    - Can be `x => x`, `x => ?` or `x => 0`
+  - [ ] Optimize `isLoopNonhalting`
+  - [ ] Optimize `areVarsOrdered`
+  - [ ] Optimize `hasRowWhileVars`
 
 ### Test & Documentation
 
@@ -44,19 +62,17 @@ Length 9:
 - [x] Update `README.md`
 - [x] Improve `execute.js` readability
 - [x] Library module for counter methods
-- [ ] Remove executes redundancy (remove generators and add next step function)
+- [x] Remove executes redundancy (remove generators and add next step function)
 - [ ] `isLoopNonHalting` auto test
 - [ ] Refractor files and add folders
-- [ ] Move `executeWithRate` for website (use `export`/`import`)
+- [ ] Names dictionary in `README.md`
 
 ### E/Ideas
 
-- Split enumeration into tasks
-- Programs simplification decider
-  - Use custom instructions like `A=+B` or `C=0`
-  - Should decide most BBCS(11) nonhalting programs
 - Decide multiperiod cyclers
-- Optimize `isLoopNonhalting` (Just-in-time computation)
+- `enumerate_TNFnonRecursiveGen`
+- Prune short loop tails
+- Limit counters count
 
 ## Repo & Website
 
@@ -70,23 +86,14 @@ Length 9:
 - [x] Run/Pause button
 - [x] Step button
 - [x] Show steps count
+- [ ] Full speed execution
 - [ ] Auto programs coloring
 - [ ] Color selected line
 - [ ] Functional programming `function A {...}` (compile to standard CS before running)
 - [ ] Variable scopes
-- [ ] Full speed execution
-- [ ] Smart compiling (auto multiply/transfer)
+- [ ] Accelerated simulation (auto multiply/transfer counters)
 
 ### W/Ideas
 
 - Visualize running program
 - Search and replace
-
-## Prompt for AI
-
-- Improve this program to make it more readable. Use the latest JavaScript version. Avoid long variable names and short functions with many arguments. Do not hurt time performances. Do not use classes.
-- Find potential bugs in `script.js` that change the output of `enumerate(11)`.
-- Find why `D:\VSC\BusyBeaver\enumerate.js` do not enumerate `A++; A++; B++; while B {while A {while B {A--; B--;}}}`
-<!-- The local shell hit a sandbox setup failure before I could even read the files, so I’m retrying with elevated access just to inspect the project and make the fix cleanly. -->
-- Make this project easier to understand and update by both humans and AI agents.
-- Resume and complete the task.

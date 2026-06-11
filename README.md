@@ -88,7 +88,7 @@ An holdout is an undecided program — we do not know yet if it halts or not.
 | - | -
 | 11 | 35
 
-Check Holdouts.md to find the list of current holdouts for smaller values.
+Check `holdouts.md` to find the list of current holdouts for smaller values.
 
 ### Difficulty
 
@@ -120,9 +120,9 @@ CounterScript is also easier to accelerate and analyze.
 This repo implements a **Busy Beaver-style enumerator** for CounterScript.
 
 - **Programs** are represented as an AST (array of instructions). Each instruction is one of:
-  - `{ type: "inc", var: <number> }`
-  - `{ type: "dec", var: <number> }`
-  - `{ type: "while", var: <number>, body: <instruction[]> | undefined }`
+  - `{type: "inc", var: <number>}`
+  - `{type: "dec", var: <number>}`
+  - `{type: "while", var: <number>, body: <instruction[]> | undefined}`
 - **Variables** are “counters” initialized to `0`. Variables are identified by **numeric ids** (0, 1, 2, …) after parsing.
 - **Enumeration** generates candidate programs and simulates them with the interpreter.
 - **Execution** uses a stack of loop frames to support nested `while`.
@@ -131,15 +131,15 @@ This repo implements a **Busy Beaver-style enumerator** for CounterScript.
 
 | Script | Description
 | - | -
-| website.js | Manage the UI of the CounterScript interpreter website.
-| tester.js | Executes small test routines to validate interpreter/pruning behavior.
-| log.js | Lightweight logging helpers for debugging (debug-friendly stringify).
-| main.js | Entry point for the enumerator.
-| enumerate.js | Enumerates CounterScript programs up to a given length, with pruning + partial simulation.
-| execute.js | Interpreter for CounterScript programs.
-| parser.js | Parses CounterScript source into the AST and unparses the AST back to source-like text.
-| getProgData.js | Derives structural properties from a program.
-| isLoopNonhalting.js | Heuristic/non-formal check to prove that a `while` region is nonhalting.
+| `website.js` | Manage the UI of the CounterScript interpreter website.
+| `tester.js` | Executes small test routines to validate interpreter/pruning behavior.
+| `log.js` | Lightweight logging helpers for debugging (debug-friendly stringify).
+| `main.js` | Entry point for the enumerator.
+| `enumerate.js` | Enumerates CounterScript programs up to a given length, with pruning + partial simulation.
+| `execute.js` | Interpreter for CounterScript programs.
+| `parser.js` | Parses CounterScript source into the AST and unparses the AST back to source-like text.
+| `getProgData.js` | Derives structural properties from a program.
+| `isLoopNonhalting.js` | Heuristic/non-formal check to prove that a `while` region is nonhalting.
 
 ## 🔬 Search & Optimization Techniques
 
@@ -194,12 +194,12 @@ Remove `A++; while A {A++; while B {A--; B--;}}` to `A++; while A {A++;}` reduct
 For each `#++`, the program must also contain a `while #`.
 
 Exception: a halting program with a single counter `#` that has no `while #` can be allowed to improve its score.  
-Example: `A++; A++; A++; while A {A--; B++; B++; B++;}`  
+Example: `A++; A++; A++; while A {A--; B++; B++; B++;}`
 
 #### Vars declaration
 
 Remove `A++; B--; while A {A--; B++;}` to `A++; while A {A--; B++;}` reduction.  
-New vars outside of loops must start with an increment (`#++`).  
+New vars outside of loops must start with an increment (`#++`).
 
 #### Loops usefulness
 
@@ -216,6 +216,16 @@ Avoid multiple `while #` in a row if there are no `#++` between.
 
 Remove `A++; while A {A++; while A {A--; B++;} B++;}` to `A++; A++; while A {A--; B++;} B++;` reduction.  
 Every root loops must repeat at least twice.
+
+#### Cut root loop tail
+
+Remove `A++; while A {A--; B++; B++;} B++;` to `A++; while A {A--; B++; B++;}` reduction.  
+Every programs must not end with a tail of length < 4. (`while # {#--; #_2++; #_2++;}` doubles the value)
+
+#### Maximum counters
+
+Remove `A++; while A {A--; B++; B++; C--;}` to `A++; while A {A--; B++; B++;}` reduction.  
+Completed programs of length `n` must have at most `floor((n + 1) / 3)` counters.
 
 ---
 
@@ -244,11 +254,6 @@ Decide programs as nonhalting if every counter keeps the same value at the next 
 
 Decide `A++; while A {A++; A++; B++; while B {A--; B--;}}` as nonhalting.  
 If a counter did not reach 0 but is not less than its previous value, it counts like a cycler.
-
-<!-- #### Unreachable loops
-
-Decide `A++; B++; while A {A++; while B {A--; B--;}}` as nonhalting.  
-Filter out parts of a loop body that became unreachable, then apply the *Halting loops* decider again. -->
 
 ---
 
