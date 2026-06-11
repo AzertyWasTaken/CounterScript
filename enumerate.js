@@ -4,6 +4,17 @@ import {execute, executeBasicInstruction, cloneStack, getFrame, getInstruction} 
 import {counters} from "./counters.js";
 import {prune} from "./pruner.js";
 
+function maxVarsCount(length) {
+    return Math.floor((length + 1) / 3);
+}
+
+function getMaxVarId(varId, state) {
+    return Math.min(
+        maxVarsCount(state.maxLength) - 1,
+        Math.max(varId + 1, state.maxVar)
+    );
+}
+
 // Generate instructions
 // ================================================================
 
@@ -23,7 +34,7 @@ export function* genBasicInstr(stack, state) {
             ...state,
             vars: executeBasicInstruction([...state.vars], instr),
             progLength: state.progLength + 1,
-            maxVar: Math.max(instr.var + 1, state.maxVar),
+            maxVar: getMaxVarId(instr.var, state),
             minInstr: instrId
         };
 
@@ -49,7 +60,7 @@ export function* genWhileLoop(stack, state) {
             ...state,
             // Loop body length is 1 by default, increasing total length by 2.
             progLength: state.progLength + 2,
-            maxVar: Math.max(varId + 1, state.maxVar),
+            maxVar: getMaxVarId(varId, state),
             minInstr: 0
         };
 
@@ -63,8 +74,7 @@ export function* genWhileLoop(stack, state) {
             stack.push({
                 program: instr.body,
                 loopVar: varId,
-                callStack: [],
-                equation: []
+                callStack: []
             });
             yield* nextInstr(stack, nextState);
             stack.pop();
@@ -136,8 +146,7 @@ export function* runLoopBody(frame, stack, state) {
         stack.push({
             program: loopInstr.body,
             loopVar: loopInstr.var,
-            callStack: exeState.stack,
-            equation: []
+            callStack: exeState.stack
         });
         yield* nextInstr(stack, nextState);
         stack.pop();
@@ -197,8 +206,7 @@ export function enumerate(maxLength) {
         [{
             program: [],
             loopVar: null,
-            callStack: null,
-            equation: []
+            callStack: null
         }],
         {
             vars: [],
