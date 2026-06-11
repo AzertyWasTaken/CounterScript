@@ -28,10 +28,16 @@ export const prune = {
     },
 
     loopBody(stack, state, frame) {
+        const tailLength = state.maxLength - state.progLength;
+
+        // Check if the program is a root while-loop
+        return stack.length <= 2 && (
+            // Cannot repeat twice (only enforced outside loops)
+            counters.isZero(state.vars, frame.loopVar)
+            || tailLength > 0 && tailLength < 4
+        )
         // Nonhalting loop bodies
-        return isLoopNonhalting(frame.program, frame.loopVar) === 1
-        // Cannot repeat twice (only enforced outside loops)
-        || stack.length <= 2 && counters.isZero(state.vars, frame.loopVar)
+        || isLoopNonhalting(frame.program, frame.loopVar) === 1
         || isLoopNested(frame.program, frame.loopVar)
         || hasRowWhileVars(frame.program)
         || !areVarsOrdered(frame.program);

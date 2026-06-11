@@ -60,7 +60,12 @@ export function* genWhileLoop(stack, state) {
             instr.body = [];
             nextState.progLength--;
 
-            stack.push({program: instr.body, loopVar: varId, callStack: []});
+            stack.push({
+                program: instr.body,
+                loopVar: varId,
+                callStack: [],
+                equation: []
+            });
             yield* nextInstr(stack, nextState);
             stack.pop();
         } else {
@@ -76,9 +81,9 @@ export function* genWhileLoop(stack, state) {
 
 // Create a new `callStack` frame so the interpreter can execute the loop.
 function appCallStack(frame, state) {
-    const newStack = cloneStack(frame.callStack);
+    const callStack = cloneStack(frame.callStack);
 
-    newStack.push({
+    callStack.push({
         block: frame.program,
         pc: 0,
         loopVar: frame.loopVar,
@@ -87,7 +92,7 @@ function appCallStack(frame, state) {
         prevVars: [...state.vars]
     });
 
-    return newStack;
+    return callStack;
 }
 
 function exeLoop(frame, state) {
@@ -128,7 +133,12 @@ export function* runLoopBody(frame, stack, state) {
         const loopInstr = getInstruction(nextFrame);
         loopInstr.body = [];
 
-        stack.push({program: loopInstr.body, loopVar: loopInstr.var, callStack: exeState.stack});
+        stack.push({
+            program: loopInstr.body,
+            loopVar: loopInstr.var,
+            callStack: exeState.stack,
+            equation: []
+        });
         yield* nextInstr(stack, nextState);
         stack.pop();
 
@@ -171,7 +181,8 @@ function* endProgram(stack, state, frame) {
 export function* nextInstr(stack, state) {
     const frame = stack.at(-1);
 
-    if (frame.program.length > 0) yield* endProgram(stack, state, frame);
+    if (frame.program.length > 0)
+        yield* endProgram(stack, state, frame);
 
     if (state.progLength + 1 <= state.maxLength) {
         yield* genBasicInstr(stack, state);
@@ -183,11 +194,19 @@ export function* nextInstr(stack, state) {
 
 export function enumerate(maxLength) {
     return nextInstr(
-        [{program: [], loopVar: null, callStack: null}],
+        [{
+            program: [],
+            loopVar: null,
+            callStack: null,
+            equation: []
+        }],
         {
-            vars: [], steps: 0,
-            progLength: 0, maxLength,
-            maxVar: 0, minInstr: 0
+            vars: [],
+            steps: 0,
+            progLength: 0,
+            maxLength,
+            maxVar: 0,
+            minInstr: 0
         }
     );
 }

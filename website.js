@@ -1,12 +1,12 @@
 "use strict";
 import {log, strArray, strObject} from "./log.js"
 import {parse} from "./parser.js";
-import {executeNext, getCtx, getCurrentFrame} from "./execute.js";
+import {executeNext, getCtx, getFrame, getInstruction} from "./execute.js";
 
 const el = {
-    btn_reset: document.getElementById("btn-reset"),
-    btn_step: document.getElementById("btn-step"),
-    btn_run: document.getElementById("btn-run"),
+    btnReset: document.getElementById("btn-reset"),
+    btnStep: document.getElementById("btn-step"),
+    btnRun: document.getElementById("btn-run"),
 
     runSpeed: document.getElementById("run-speed"),
     runSpeedValue: document.getElementById("run-speed-value"),
@@ -20,8 +20,8 @@ const el = {
     compiled: document.getElementById("compiled"),
 
     counters: document.getElementById("counters"),
-    counters_name: document.getElementById("counters-name"),
-    counters_value: document.getElementById("counters-value"),
+    countersName: document.getElementById("counters-name"),
+    countersValue: document.getElementById("counters-value"),
 }
 
 el.runSpeed.addEventListener("input", () => {
@@ -173,8 +173,8 @@ function setStatus(text) {
 }
 
 function setRunDisabled(isDisabled) {
-    el.btn_step.disabled = isDisabled;
-    el.btn_run.disabled = isDisabled;
+    el.btnStep.disabled = isDisabled;
+    el.btnRun.disabled = isDisabled;
 }
 
 function updateVarsTable(vars, legend) {
@@ -185,17 +185,17 @@ function updateVarsTable(vars, legend) {
     }
 
     el.counters.style.display = "table";
-    el.counters_name.textContent = "";
-    el.counters_value.textContent = "";
+    el.countersName.textContent = "";
+    el.countersValue.textContent = "";
 
     for (const [key, value] of entries) {
         const nameCell = document.createElement("th");
         nameCell.textContent = legend[key];
-        el.counters_name.appendChild(nameCell);
+        el.countersName.appendChild(nameCell);
 
         const valueCell = document.createElement("td");
         valueCell.textContent = value;
-        el.counters_value.appendChild(valueCell);
+        el.countersValue.appendChild(valueCell);
     }
 }
 
@@ -229,8 +229,8 @@ function compile() {
 function nextStep() {
     let res;
     while (res !== true) {
-        const frame = getCurrentFrame(ctx);
-        const instr = frame?.block?.[frame.pc];
+        const frame = getFrame(ctx);
+        const instr = getInstruction(frame);
 
         res = executeNext(config, ctx);
         if (instr && instr.type !== "while") break;
@@ -239,7 +239,7 @@ function nextStep() {
     if (res === true) {
         halted = true;
         setStatus("Halted");
-        el.btn_run.textContent = "Run";
+        el.btnRun.textContent = "Run";
         setRunDisabled(true);
         return false;
     }
@@ -278,7 +278,7 @@ async function runFromCurrent() {
     paused = false;
     setStatus("Running");
 
-    el.btn_run.textContent = "Pause";
+    el.btnRun.textContent = "Pause";
 
     // Iterate remaining generator steps manually so Reset can stop us
     while (true) {
@@ -286,10 +286,10 @@ async function runFromCurrent() {
 
         // Pause: wait until resumed or reset cancels (runToken changes)
         if (paused) {
-            el.btn_run.textContent = "Run";
+            el.btnRun.textContent = "Run";
             await getPausePromise();
             if (myToken !== runToken) return;
-            el.btn_run.textContent = "Pause";
+            el.btnRun.textContent = "Pause";
             setStatus("Running");
         }
 
@@ -300,18 +300,18 @@ async function runFromCurrent() {
     }
 }
 
-el.btn_reset.addEventListener("click", () => {
+el.btnReset.addEventListener("click", () => {
     reset();
     // Optional: immediately show initial state after reset by creating generator on first step/run.
 });
 
-el.btn_step.addEventListener("click", () => {
+el.btnStep.addEventListener("click", () => {
     // Step should not auto-run; it should advance a single yielded step
     // (one basic instruction, per executeWithRate() behavior).
     stepOnce();
 });
 
-el.btn_run.addEventListener("click", () => {
+el.btnRun.addEventListener("click", () => {
     // Toggle Run/Pause
     if (halted) {
         // If halted, clicking Run starts a new execution from current code
