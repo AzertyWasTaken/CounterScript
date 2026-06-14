@@ -25,9 +25,22 @@ Length 10:
 - [x] Add *ordered counters and while loops* pruning rule back
 - [x] No loop tail pruning
 - [x] Maximum counters count pruning
-- [ ] Partial BBCS(12) enumeration
-- [ ] Create champions leaderboard (to find other long halting programs)
+- [x] Partial BBCS(12) enumeration
+- [ ] `isInLoop` argument for pruning functions
+- [ ] Fix reductible nested nonhalting holdouts
+  - [ ] Iterate through previous frames
 - [ ] Use equations solving system (search forward)
+  - [x] Save old version
+  - [ ] Just-in-time equation creator
+    - [x] New key in stack objects
+    - Define how counters change after loop iteration
+    - Can be a single number, a set of numbers or an unknown value
+    - [ ] Update in `genBasicInstr`, `genWhileLoop`, `runLoopBody` TODO
+    - Default at `x => x`
+    - Can be `x => x`, `x => ?` or `x => 0`
+  - [ ] Optimize `isLoopNonhalting`
+  - [ ] Optimize `areVarsOrdered`
+  - [ ] Optimize `hasRowWhileVars`
 
 ### Optimize
 
@@ -35,26 +48,6 @@ Length 10:
 - [x] Break down `enumerate.js` functions
 - [x] Base enumerator without nested generators
 - [x] TNF enumerator without nested generators
-  - [x] `nextInstr`
-  - [x] `genInstructions`
-  - [x] `genWhileLoops`
-  - [x] `genLoopsBodies`
-  - [x] Add pruning rules
-  - [x] Review stack call execution
-  - [x] Module script for pruning rules
-  - [x] Implement to `main.js`
-- [ ] Just-in-time computation
-  - [x] Save old version
-  - [ ] Just-in-time equation creator
-    - [x] New key in stack objects
-    - Define how counters change after loop iteration
-    - Can be a single number, a set of numbers or an unknown value
-    - [ ] Update in `genBasicInstr`, `genWhileLoop`, `runLoopBody`
-    - Default at `x => x`
-    - Can be `x => x`, `x => ?` or `x => 0`
-  - [ ] Optimize `isLoopNonhalting`
-  - [ ] Optimize `areVarsOrdered`
-  - [ ] Optimize `hasRowWhileVars`
 
 ### Test & Documentation
 
@@ -86,7 +79,7 @@ Length 10:
 - [x] Run/Pause button
 - [x] Step button
 - [x] Show steps count
-- [ ] Full speed execution
+- [ ] Full speed execution TODO
 - [ ] Auto programs coloring
 - [ ] Color selected line
 - [ ] Functional programming `function A {...}` (compile to standard CS before running)

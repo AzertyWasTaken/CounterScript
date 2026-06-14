@@ -1,7 +1,7 @@
 "use strict";
 import {log} from "./log.js";
 
-export const counters = {
+export const Counters = {
     get(v, id) {return v[id] ?? 0;},
 
     inc(v, id) {v[id] = this.get(v, id) + 1;},

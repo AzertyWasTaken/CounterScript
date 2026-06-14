@@ -1,9 +1,9 @@
 "use strict";
-import {counters} from "./counters.js";
+import {Counters} from "./counters.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
 import {isLoopNested, hasUndefinedLoop, areEachVarUseful, canEachVarInc, hasRowWhileVars, areVarsOrdered} from "./getProgData.js";
 
-export const prune = {
+export const Prune = {
     program(halted, program, state) {
         // Keep only max length prorams
         return state.progLength !== state.maxLength
@@ -21,10 +21,19 @@ export const prune = {
     basicInstr(stack, state, instr) {
         return stack.length <= 1 && (
             // Unused decrements (when the counter equals 0)
-            instr.type === "dec" && counters.isZero(state.vars, instr.var)
+            instr.type === "dec" && Counters.isZero(state.vars, instr.var)
             // Equivalence (adjacent-variable symmetry)
-            || counters.isEqualToPrev(state.vars, instr.var)
+            || Counters.isEqualToPrev(state.vars, instr.var)
         )
+    },
+
+    loopVar(stack, state, instr) {
+        return stack.length <= 1 && (
+            // Unused loops (when the counter equals 0)
+            Counters.isZero(state.vars, instr.var)
+            // Equivalence (adjacent-variable symmetry)
+            || Counters.isEqualToPrev(state.vars, instr.var)
+        );
     },
 
     loopBody(stack, state, frame) {
@@ -33,7 +42,7 @@ export const prune = {
         // Check if the program is a root while-loop
         return stack.length <= 2 && (
             // Cannot repeat twice (only enforced outside loops)
-            counters.isZero(state.vars, frame.loopVar)
+            Counters.isZero(state.vars, frame.loopVar)
             || tailLength > 0 && tailLength < 4
         )
         // Nonhalting loop bodies
@@ -43,18 +52,9 @@ export const prune = {
         || !areVarsOrdered(frame.program);
     },
 
-    loopVar(stack, state, instr) {
-        return stack.length <= 1 && (
-            // Unused loops (when the counter equals 0)
-            counters.isZero(state.vars, instr.var)
-            // Equivalence (adjacent-variable symmetry)
-            || counters.isEqualToPrev(state.vars, instr.var)
-        );
-    },
-
     undefinedLoop(halted, stack, frame) {
         return halted !== true
-        && stack.length <= 1
+        && stack.length <= 2
         && hasUndefinedLoop(frame.program);
     },
 }

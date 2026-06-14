@@ -1,8 +1,3 @@
-# Holdouts
-
-## BBCS(11)
-
-``` js
 A++; A++; while A {while A {A--; B++;} while B {A++; A++; B--;} A--;}
 A++; A++; while A {while A {A--; B++; B++;} while B {A++; B--;} A--;}
 A++; B++; while A {while A {A--; B++;} while B {A++; A++; B--;} A--;}
@@ -38,4 +33,3 @@ A++; while A {while A {A--; B++; B++;} B++; while B {A++; B--;} A--;}
 A++; while A {while A {A--; B++; B++;} while B {A++; B--;} A--; B++;}
 A++; while A {while A {A--; B++; B++;} while B {A++; A++; B--;} A--;}
 A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}
-```

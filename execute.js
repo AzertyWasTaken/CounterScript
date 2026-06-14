@@ -1,7 +1,7 @@
 "use strict";
 import {log} from "./log.js";
 import {parse, unparse} from "./parser.js";
-import {counters} from "./counters.js";
+import {Counters} from "./counters.js";
 
 // Helpers
 // ================================================================
@@ -49,8 +49,8 @@ function isTransCycler(currVars, prevVars, posVars) {
     const maxLength = Math.max(currVars.length, prevVars.length);
 
     for (let i = 0; i < maxLength; i++) {
-        const currVal = counters.get(currVars, i);
-        const prevVal = counters.get(prevVars, i);
+        const currVal = Counters.get(currVars, i);
+        const prevVal = Counters.get(prevVars, i);
 
         if (posVars.has(i)) {
             // Other variables must not decrease
@@ -73,7 +73,7 @@ function handleProgramEnd(config, ctx, frame) {
     // Check if loop condition still holds to repeat body
     if (
         frame.loopVar !== undefined
-        && !counters.isZero(ctx.vars, frame.loopVar)
+        && !Counters.isZero(ctx.vars, frame.loopVar)
     ) {
         // Cycle detection (only if enabled)
         if (config.deciders)
@@ -82,7 +82,7 @@ function handleProgramEnd(config, ctx, frame) {
 
         // Go to next iteration
         frame.pc = 0;
-        frame.posVars = counters.getPosSet(ctx.vars);
+        frame.posVars = Counters.getPosSet(ctx.vars);
         frame.prevVars = [...ctx.vars];
     } else {
         // End the loop
@@ -101,7 +101,7 @@ function handleProgramEnd(config, ctx, frame) {
 
 // Execute `while # {...}` (mutate `ctx`)
 function executeWhileInstruction(config, ctx, frame, instr) {
-    if (counters.isZero(ctx.vars, instr.var)) return false;
+    if (Counters.isZero(ctx.vars, instr.var)) return false;
 
     if (!instr.body) return undefined;
 
@@ -109,7 +109,7 @@ function executeWhileInstruction(config, ctx, frame, instr) {
         block: instr.body,
         pc: 0,
         loopVar: instr.var,
-        posVars: counters.getPosSet(ctx.vars),
+        posVars: Counters.getPosSet(ctx.vars),
         prevVars: [...ctx.vars],
     });
 
@@ -119,16 +119,16 @@ function executeWhileInstruction(config, ctx, frame, instr) {
 
 export function executeBasicInstruction(vars, instr, frame = {}) {
     if (instr.type === "inc") {
-        counters.inc(vars, instr.var);
+        Counters.inc(vars, instr.var);
     }
     else if (instr.type === "dec") {
-        counters.dec(vars, instr.var);
+        Counters.dec(vars, instr.var);
     }
     else {
         throw new Error(`Unknown instruction: ${instr.type}`);
     }
 
-    if (frame.posVars && counters.isZero(vars, instr.var))
+    if (frame.posVars && Counters.isZero(vars, instr.var))
         frame.posVars.delete(instr.var);
 
     return vars;

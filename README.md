@@ -87,6 +87,7 @@ An holdout is an undecided program — we do not know yet if it halts or not.
 | BBCS(n) | Holdouts
 | - | -
 | 11 | 35
+| 12 | > 569
 
 Check `holdouts.md` to find the list of current holdouts for smaller values.
 

@@ -3,7 +3,7 @@ import {log} from "./log.js";
 import {parse, unparse} from "./parser.js";
 import {run, execute} from "./execute.js";
 import {enumerate} from "./enumerate.js";
-// import {enumerate as enumerate_nonRecursiveGen} from "./enumerate_nonRecursiveGen.js";
+import {enumerate as enumerate_partial} from "./enumerate_partial.js";
 // import {enumerate as enumerate_TNFnonRecursiveGen} from "./enumerate_TNFnonRecursiveGen.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
 import {hasRowWhileVars} from "./getProgData.js"
@@ -16,7 +16,7 @@ function testEnum(callback, print, ...arg) {
     let total = 0;
     const progSet = new Set();
 
-    for (const [halted, program] of callback(...arg)) {
+    for (const [halted, program, state] of callback(...arg)) {
         if (print) log(halted, unparse(program));
         progSet.add(unparse(program));
         total++;
@@ -111,8 +111,8 @@ function testExeDeciders(length) { // OUTDATED
 // testEnum(enumerate, true, 2, {prog: [], vars: [1], steps: 1, progLen: 0, maxVar: 1, minInstr: 0, inLoop: true});
 // testEnum(enumerate, false, 8);
 // testEnum(enumerate_nonRecursiveGen, true, [{program: [], len: 5}]);
-testEnum(enumerate, true, 9);
+
+// testEnum(enumerate, false, 10);
+// testEnum(enumerate_partial, false, 10);
 
 // compareEnum(enumerate_prev, enumerate, 4);
-
-//TODO revamp testEnum running arg
