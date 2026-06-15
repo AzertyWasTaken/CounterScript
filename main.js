@@ -1,7 +1,7 @@
 "use strict";
 import {log} from "./log.js";
 import {enumerate} from "./enumerate.js";
-import {unparse} from "./parser.js";
+import {unparse, parseArea} from "./parser.js";
 
 const LOG = {
     CHAMPION: true,
@@ -10,9 +10,9 @@ const LOG = {
     HOLDOUT: true,
 }
 
-const MAX_LENGTH = 12;
-const AREA = [{type: "inc", var: 0}, {type: "while", var: 0, body: undefined}, {type: "inc", var: 1}];
-// [{type: "inc", var: 0}, {type: "inc", var: 0}, {type: "inc", var: 0}];
+const MAX_LENGTH = 10;
+const AREA = parseArea("A+; wA{ wb{");
+const AREA_ENABLED = false;
 
 const count = {
     total: 0,
@@ -23,7 +23,7 @@ const count = {
 
 let record = 0;
 
-for (const [halted, program, state] of enumerate(MAX_LENGTH, AREA.reverse())) {
+for (const [halted, program, state] of enumerate(MAX_LENGTH, AREA_ENABLED ? AREA.reverse() : [])) {
     const progStr = unparse(program);
 
     if (halted === true) {

@@ -135,3 +135,95 @@ export function unparse(program) {
         }
     }).join(" ");
 }
+
+// Area
+// ================================================================
+
+export function parseArea(program) {
+    const instructions = [];
+    let i = 0;
+
+    const varsId = {};
+    let nextVarId = 0;
+
+    function skipWhitespace() {
+        while (true) {
+            if (/\s/.test(program[i])) {
+                i++;
+                continue;
+            }
+
+            break;
+        }
+    }
+
+    function getVarId(varName) {
+        if (!varsId.hasOwnProperty(varName)) {
+            varsId[varName] = nextVarId;
+            nextVarId++;
+        }
+        return varsId[varName];
+    }
+
+    function parseVar() {
+        skipWhitespace();
+        const match = /^[A-Za-z_]\w*/.exec(program.slice(i));
+        if (!match)
+            throw new Error(`Expected variable at position ${i}`);
+
+        i += match[0].length;
+        return getVarId(match[0]);
+    }
+
+    function expect(str) {
+        skipWhitespace();
+        if (!program.startsWith(str, i))
+            throw new Error(`Expected "${str}" at position ${i}`);
+
+        i += str.length;
+    }
+
+    function parseInstruction() {
+        skipWhitespace();
+
+        if (program.startsWith("}", i)) {
+            return {type: "exit"};
+        }
+
+        if (program.startsWith("w", i)) {
+            i++;
+            const variable = parseVar();
+            skipWhitespace();
+            expect("{");
+            return {type: "while", var: variable, body: undefined};
+        }
+
+        const variable = parseVar();
+        skipWhitespace();
+
+        if (program.startsWith("+", i)) {
+            i++;
+            expect(";");
+            return {type: "inc", var: variable};
+        }
+
+        if (program.startsWith("-", i)) {
+            i++;
+            expect(";");
+            return {type: "dec", var: variable};
+        }
+
+        throw new Error(`Unknown instruction at position ${i}`);
+    }
+
+    function parseProgram() {
+        while (i < program.length) {
+            skipWhitespace();
+            if (i >= program.length) break;
+            instructions.push(parseInstruction());
+        }
+    }
+
+    parseProgram();
+    return instructions;
+}

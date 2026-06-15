@@ -64,5 +64,3 @@ A++; A++; while A {while A {A--; B++; C--;} while B {A++; A++; B--;} A--;}
 A++; A++; while A {while A {A--; B++; C++;} while B {A++; A++; B--;} A--;}
 A++; A++; while A {while A {A--; B++; C++;} while C {A++; A++; C--;} A--;}
 A++; A++; while A {while A {A--; B++; C++; C++;} while C {A++; C--;} A--;}
-A++; A++; while A {while A {while A {A--; B++;} while B {A++; A++; B--;} A--;}}
-A++; A++; while A {while A {while A {A--; B++; B++;} while B {A++; B--;} A--;}}

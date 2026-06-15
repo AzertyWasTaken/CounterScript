@@ -47,7 +47,7 @@ export const Prune = {
         )
         // Nonhalting loop bodies
         || isLoopNonhalting(frame.program, frame.loopVar) === 1
-        || isLoopNested(frame.program, frame.loopVar)
+        || isLoopNested(frame.program)
         || hasRowWhileVars(frame.program)
         || !areVarsOrdered(frame.program);
     },
@@ -56,5 +56,14 @@ export const Prune = {
         return halted !== true
         && stack.length <= 2
         && hasUndefinedLoop(frame.program);
+    },
+
+    holdout(stack) {
+        // Nonhalting loop bodies
+        for (const frame of stack.slice(1)) {
+            if (isLoopNested(frame.program))
+                return true;
+        }
+        return false;
     },
 }

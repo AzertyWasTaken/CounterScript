@@ -173,7 +173,9 @@ export function* runLoopBody(stack, state, frame) {
     }
     else {
         // Terminal case: no more instructions left; yield final program/state.
-        yield* yieldProgram(halted, stack[0].program, state);
+        if (!Prune.holdout(stack)) {
+            yield* yieldProgram(halted, stack[0].program, state);
+        }
     }
 
     stack.push(frame);

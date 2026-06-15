@@ -87,7 +87,7 @@ An holdout is an undecided program — we do not know yet if it halts or not.
 | BBCS(n) | Holdouts
 | - | -
 | 11 | 35
-| 12 | > 569
+| 12 | 866
 
 Check `holdouts.md` to find the list of current holdouts for smaller values.
 
@@ -258,7 +258,7 @@ If a counter did not reach 0 but is not less than its previous value, it counts 
 
 ---
 
-### Accelerated Simulation
+### Accelerated simulation
 
 Rules used to **speed up** halting (or not) programs execution.
 

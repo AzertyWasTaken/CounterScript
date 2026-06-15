@@ -120,7 +120,7 @@ export function hasUndefinedLoop(program) {
 // ================================================================
 
 // Check if a loop is unecessary nested
-export function isLoopNested(body, targetVar) {
+export function isLoopNested(body) {
     if (!body) return null;
 
     return body.length === 1

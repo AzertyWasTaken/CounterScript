@@ -26,16 +26,14 @@ Length 10:
 - [x] No loop tail pruning
 - [x] Maximum counters count pruning
 - [x] Partial BBCS(12) enumeration
-- [ ] `isInLoop` argument for pruning functions
-- [ ] Fix reductible nested nonhalting holdouts
-  - [ ] Iterate through previous frames
+- [x] Remove reductible nested nonhalting holdouts
 - [ ] Use equations solving system (search forward)
-  - [x] Save old version
+  - [ ] Save old version (with partial enum)
   - [ ] Just-in-time equation creator
-    - [x] New key in stack objects
+    - [ ] New key in stack objects
     - Define how counters change after loop iteration
     - Can be a single number, a set of numbers or an unknown value
-    - [ ] Update in `genBasicInstr`, `genWhileLoop`, `runLoopBody` TODO
+    - [ ] Update in `genBasicInstr`, `genWhileLoop`, `runLoopBody`
     - Default at `x => x`
     - Can be `x => x`, `x => ?` or `x => 0`
   - [ ] Optimize `isLoopNonhalting`
@@ -56,7 +54,7 @@ Length 10:
 - [x] Improve `execute.js` readability
 - [x] Library module for counter methods
 - [x] Remove executes redundancy (remove generators and add next step function)
-- [ ] `isLoopNonHalting` auto test
+- [x] Parsable area enum config
 - [ ] Refractor files and add folders
 - [ ] Names dictionary in `README.md`
 
@@ -66,6 +64,11 @@ Length 10:
 - `enumerate_TNFnonRecursiveGen`
 - Prune short loop tails
 - Limit counters count
+- `isInLoop` argument for pruning functions
+- Revamp parser (with engine)
+- Generalized scan programs function
+- `isLoopNonHalting` auto test
+- Early detect programs with useless counters
 
 ## Repo & Website
 
