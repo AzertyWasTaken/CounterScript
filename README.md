@@ -87,7 +87,7 @@ An holdout is an undecided program — we do not know yet if it halts or not.
 | BBCS(n) | Holdouts
 | - | -
 | 11 | 35
-| 12 | 866
+| 12 | 477
 
 Check `holdouts.md` to find the list of current holdouts for smaller values.
 
@@ -108,6 +108,7 @@ Check `holdouts.md` to find the list of current holdouts for smaller values.
 | 9 | Has bouncers — values that repeatedly bounce from 0 to an increasing value.
 | 10 | -
 | 11 | Has 2-period cyclers and more complex bouncers — subtracting after a multiplication, triangular sequence growing.
+| 12 | *To be explored*
 
 ### BBCS VS BB
 
@@ -136,7 +137,10 @@ This repo implements a **Busy Beaver-style enumerator** for CounterScript.
 | `tester.js` | Executes small test routines to validate interpreter/pruning behavior.
 | `log.js` | Lightweight logging helpers for debugging (debug-friendly stringify).
 | `main.js` | Entry point for the enumerator.
-| `enumerate.js` | Enumerates CounterScript programs up to a given length, with pruning + partial simulation.
+| `enumerate.js` | Enumerates CounterScript programs up to a given length, with pruning and partial simulation.
+| `pruner.js` | Manage pruning rules application.
+| `scanner.js` | Scan the program to detect unused counters.
+| `counters.js` | Methods for counters (`vars`) objects.
 | `execute.js` | Interpreter for CounterScript programs.
 | `parser.js` | Parses CounterScript source into the AST and unparses the AST back to source-like text.
 | `getProgData.js` | Derives structural properties from a program.
