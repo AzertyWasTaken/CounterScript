@@ -1,21 +1,28 @@
 "use strict";
 import {Counters} from "./counters.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
-import {isLoopNested, hasUndefinedLoop, areEachVarUseful, canEachVarInc, hasRowWhileVars, areVarsOrdered} from "./getProgData.js";
+import {isLoopNested, hasUndefinedLoop, hasRowWhileVars, areVarsOrdered} from "./getProgData.js";
+import {scanVars} from "./scanner.js";
+
+function checkUnusedVars(program) {
+}
 
 export const Prune = {
     program(halted, program, state) {
-        // Keep only max length prorams
-        return state.progLength !== state.maxLength
-        // Ignore programs with useless counters
-        || hasUndefinedLoop(program)
-        || (
+        if (
+            state.progLength !== state.maxLength
+            || hasUndefinedLoop(program)
+        ) return true;
+
+        // Assume that every while-loop have run at least once
+        const {isValid, incs, decs, whiles} = scanVars(program);
+        if (
             halted === true
-            ? canEachVarInc(program) === false
-            : areEachVarUseful(program) === false
-        )
-        || hasRowWhileVars(program)
-        || !areVarsOrdered(program);
+            ? incs.difference(whiles).size > 1 && decs.difference(whiles).size > 0
+            : incs.union(decs).difference(whiles).size > 0
+        ) return true;
+
+        return hasRowWhileVars(program) || !areVarsOrdered(program);
     },
 
     basicInstr(stack, state, instr) {
@@ -61,8 +68,13 @@ export const Prune = {
     holdout(stack) {
         // Nonhalting loop bodies
         for (const frame of stack.slice(1)) {
-            if (isLoopNested(frame.program))
-                return true;
+            if (
+                isLoopNonhalting(frame.program, frame.loopVar) === 1
+                || isLoopNested(frame.program)
+                || hasRowWhileVars(frame.program)
+                || !areVarsOrdered(frame.program)
+            )
+            return true;
         }
         return false;
     },

@@ -10,9 +10,9 @@ const LOG = {
     HOLDOUT: true,
 }
 
-const MAX_LENGTH = 10;
-const AREA = parseArea("A+; wA{ wb{");
-const AREA_ENABLED = false;
+const MAX_LENGTH = 12;
+const AREA = parseArea("a+; wa{ wb{");
+const AREA_ENABLED = true;
 
 const count = {
     total: 0,

@@ -1,0 +1,34 @@
+"use strict";
+export function scanVars(program) {
+    const incs = new Set();
+    const decs = new Set();
+    const whiles = new Set();
+    let isValid = true;
+
+    function scan(block) {
+        if (!block) {
+            isValid = false;
+            return false;
+        }
+
+        for (const instr of block) {
+            if (instr.type === "inc") {
+                incs.add(instr.var);
+            }
+            else if (instr.type === "dec") {
+                decs.add(instr.var);
+            }
+            else if (instr.type === "while") {
+                if (!scan(instr.body)) return false;
+
+                whiles.add(instr.var);
+            }
+        }
+
+        return true;
+    }
+
+    scan(program);
+
+    return {isValid, incs, decs, whiles};
+}
