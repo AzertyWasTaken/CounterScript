@@ -59,26 +59,28 @@ The length of a program is the number of instructions it contains.
 
 ### Lower Bounds
 
+In order to improve readability, we will write `#+=n` for n `#++` in a row.
+
 The following values of BBCS(n) are **proven exact** up to **n = 10**, and **lower bounds** beyond:  
 
 | BBCS(n) | Value | Champion | Notes
 | - | - | - | -
 | 1 | 1 | `A++;` | -
-| 2 | 2 | `A++; A++;` | -
-| 3 | 3 | `A++; A++; A++;` | -
-| 4 | 4 | `A++; A++; A++; A++;` | -
-| 5 | 5 | `A++; A++; A++; A++; A++;` | -
-| 6 | 6 | `A++; A++; A++; A++; A++; A++;` | -
-| 7 | 7 | `A++; A++; A++; A++; A++; A++; A++;` | -
-| 8 | 9 | `A++; A++; A++; while A {A--; B++; B++; B++;}` | Multiply 3 by 3
-| 9 | 12 | `A++; A++; A++; A++; while A {A--; B++; B++; B++;}` | -
-| 10 | 16 | `A++; A++; A++; A++; while A {A--; B++; B++; B++; B++;}` | -
-| 11 | 20 | `A++; A++; A++; A++; A++; while A {A--; B++; B++; B++; B++;}` | -
-| 12 | 25 | `A++; A++; A++; A++; A++; while A {A--; B++; B++; B++; B++; B++;}` | -
-| 13 | 30 | `A++; A++; A++; A++; A++; A++; while A {A--; B++; B++; B++; B++; B++;}` | -
-| 14 | 36 | `A++; A++; A++; A++; A++; A++; while A {A--; B++; B++; B++; B++; B++; B++;}` | -
-| 15 | 42 | `A++; A++; A++; A++; A++; A++; A++; while A {A--; B++; B++; B++; B++; B++; B++;}` | -
-| 16 | 49 | `A++; A++; A++; A++; A++; A++; A++; while A {A--; B++; B++; B++; B++; B++; B++; B++;}` | -
+| 2 | 2 | `A+=2;` | -
+| 3 | 3 | `A+=3;` | -
+| 4 | 4 | `A+=4;` | -
+| 5 | 5 | `A+=5;` | -
+| 6 | 6 | `A+=6;` | -
+| 7 | 7 | `A+=7;` | -
+| 8 | 9 | `A+=3; while A {A--; B+=3;}` | Multiply 3 by 3
+| 9 | 12 | `A+=4; while A {A--; B+=3;}` | -
+| 10 | 16 | `A+=4; while A {A--; B+=4;}` | -
+| 11 | 20 | `A+=5; while A {A--; B+=4;}` | -
+| 12 | 25 | `A+=5; while A {A--; B+=5;}` | -
+| 13 | 30 | `A+=6; while A {A--; B+=5;}` | -
+| 14 | 36 | `A+=6; while A {A--; B+=6;}` | -
+| 15 | 42 | `A+=7; while A {A--; B+=6;}` | -
+| 16 | 49 | `A+=7; while A {A--; B+=7;}` | -
 
 ### Holdouts
 
@@ -88,6 +90,7 @@ An holdout is an undecided program — we do not know yet if it halts or not.
 | - | -
 | 11 | 35
 | 12 | 477
+| 13 | > 283
 
 Check `holdouts.md` to find the list of current holdouts for smaller values.
 
@@ -109,6 +112,7 @@ Check `holdouts.md` to find the list of current holdouts for smaller values.
 | 10 | -
 | 11 | Has 2-period cyclers and more complex bouncers — subtracting after a multiplication, triangular sequence growing.
 | 12 | *To be explored*
+| 13 | *To be explored*
 
 ### BBCS VS BB
 

@@ -17,9 +17,8 @@ export const Prune = {
         // Assume that every while-loop have run at least once
         const {isValid, incs, decs, whiles} = scanVars(program);
         if (
-            halted === true
-            ? incs.difference(whiles).size > 1 && decs.difference(whiles).size > 0
-            : incs.union(decs).difference(whiles).size > 0
+            decs.difference(whiles).size > 0
+            || incs.difference(whiles).size > (halted === true ? 1 : 0)
         ) return true;
 
         return hasRowWhileVars(program) || !areVarsOrdered(program);
