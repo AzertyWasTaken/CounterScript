@@ -177,8 +177,9 @@ function setRunDisabled(isDisabled) {
     el.btnRun.disabled = isDisabled;
 }
 
-function updateVarsTable(vars, legend) {
-    const entries = Object.entries(vars);
+function updateVarsTable() {
+    log(ctx.vars);
+    const entries = Object.entries(ctx.vars);
     if (entries.length === 0) {
         el.counters.style.display = "none";
         return;
@@ -247,7 +248,7 @@ function nextStep() {
     steps++;
     updateSteps();
 
-    updateVarsTable(ctx.vars, legend);
+    updateVarsTable();
     return true;
 }
 

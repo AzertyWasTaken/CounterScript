@@ -1,114 +1,158 @@
 "use strict";
-// Parse
-// ================================================================
+function getChar(ctx) {
+    return ctx.program[ctx.pointer];
+}
 
-function swapKeyValue(obj){
-    let result = {};
-    for(const key in obj){
-        result[obj[key]] = key;
+function startsWith(ctx, token) {
+    return ctx.program.startsWith(token, ctx.pointer);
+}
+
+function slice(ctx) {
+    return ctx.program.slice(ctx.pointer);
+}
+
+function findToken(ctx, token) {
+    if (startsWith(ctx, token)) {
+        ctx.pointer += token.length;
+        return true;
+    }
+    return false;
+}
+
+function skipWhitespace(ctx) {
+    while (true) {
+        // Comments start with "\\" and go until end-of-line
+        if (findToken(ctx, "\\\\")) {
+            while (/\n|\r/.test(getChar(ctx)))
+                ctx.pointer++;
+        }
+        else if (/\s/.test(getChar(ctx))) {
+            ctx.pointer++;
+        }
+        else break;
+    }
+}
+
+function expect(ctx, token) {
+    skipWhitespace(ctx);
+    if (!startsWith(ctx, token))
+        throw new Error(`Expected "${token}" at position ${ctx.pointer}`);
+
+    ctx.pointer += token.length;
+}
+
+function getVarId(varsId, varName) {
+    const itemPos = varsId.indexOf(varName);
+    if (itemPos < 0) {
+        varsId.push(varName);
+        return varsId.length - 1;
+    }
+    return itemPos;
+}
+
+function parseVar(ctx, varsId) {
+    skipWhitespace(ctx);
+    const match = /^[A-Za-z0-9_]\w*/.exec(slice(ctx));
+    if (!match)
+        throw new Error(`Expected variable at position ${ctx.pointer}`);
+
+    ctx.pointer += match[0].length;
+    return getVarId(varsId, match[0]);
+}
+
+function parseProgram(ctx, callback) {
+    const result = [];
+    while (ctx.pointer < ctx.program.length) {
+        skipWhitespace(ctx);
+        if (ctx.pointer >= ctx.program.length) break;
+        result.push(callback());
     }
     return result;
 }
 
+// Parse
+// ================================================================
+
 export function parse(program) {
+    const ctx = {program, pointer: 0};
+    const varsId = [];
     const instructions = [];
-    let i = 0;
-
-    const varsId = {};
-    let nextVarId = 0;
-
-    function skipWhitespace() {
-        while (true) {
-            // Comments start with "\\" and go until end-of-line
-            if (program.startsWith("\\\\", i)) {
-                i += 2;
-                while (i < program.length && program[i] !== "\n" && program[i] !== "\r") i++;
-                continue;
-            }
-
-            if (/\s/.test(program[i])) {
-                i++;
-                continue;
-            }
-
-            break;
-        }
-    }
-
-    function getVarId(varName) {
-        if (!varsId.hasOwnProperty(varName)) {
-            varsId[varName] = nextVarId;
-            nextVarId++;
-        }
-        return varsId[varName];
-    }
-
-    function parseVar() {
-        skipWhitespace();
-        const match = /^[A-Za-z_]\w*/.exec(program.slice(i));
-        if (!match)
-            throw new Error(`Expected variable at position ${i}`);
-
-        i += match[0].length;
-        return getVarId(match[0]);
-    }
-
-    function expect(str) {
-        skipWhitespace();
-        if (!program.startsWith(str, i))
-            throw new Error(`Expected "${str}" at position ${i}`);
-
-        i += str.length;
-    }
 
     function parseInstruction() {
-        skipWhitespace();
+        skipWhitespace(ctx);
 
-        if (program.startsWith("while", i)) {
-            i += 5;
-            const variable = parseVar();
-            skipWhitespace();
-            expect("{");
+        if (findToken(ctx, "while")) {
+            const variable = parseVar(ctx, varsId);
+            skipWhitespace(ctx);
+            expect(ctx, "{");
 
             const body = [];
             while (true) {
-                skipWhitespace();
-                if (program[i] === "}") break;
+                skipWhitespace(ctx);
+                if (getChar(ctx) === "}") break;
                 body.push(parseInstruction());
             }
 
-            expect("}");
+            expect(ctx, "}");
             return {type: "while", var: variable, body};
         }
 
-        const variable = parseVar();
-        skipWhitespace();
+        const variable = parseVar(ctx, varsId);
+        skipWhitespace(ctx);
 
-        if (program.startsWith("++", i)) {
-            i += 2;
-            expect(";");
+        if (findToken(ctx, "++")) {
+            expect(ctx, ";");
             return {type: "inc", var: variable};
         }
 
-        if (program.startsWith("--", i)) {
-            i += 2;
-            expect(";");
+        if (findToken(ctx, "--")) {
+            expect(ctx, ";");
             return {type: "dec", var: variable};
         }
 
-        throw new Error(`Unknown instruction at position ${i}`);
+        throw new Error(`Unknown instruction at position ${ctx.pointer}`);
     }
 
-    function parseProgram() {
-        while (i < program.length) {
-            skipWhitespace();
-            if (i >= program.length) break;
-            instructions.push(parseInstruction());
+    return [parseProgram(ctx, () => parseInstruction()), varsId];
+}
+
+// Area
+// ================================================================
+
+export function parseArea(program) {
+    const ctx = {program, pointer : 0};
+    const varsId = [];
+    const instructions = [];
+
+    function parseInstruction() {
+        skipWhitespace(ctx);
+
+        if (findToken(ctx, "}")) {
+            return {type: "exit"};
         }
+
+        if (findToken(ctx, "w")) {
+            const variable = parseVar(ctx, varsId);
+            skipWhitespace(ctx);
+            expect(ctx, "{");
+            return {type: "while", var: variable, body: undefined};
+        }
+
+        const variable = parseVar(ctx, varsId);
+        skipWhitespace(ctx);
+
+        if (findToken(ctx, "+")) {
+            return {type: "inc", var: variable};
+        }
+
+        if (findToken(ctx, "-")) {
+            return {type: "dec", var: variable};
+        }
+
+        throw new Error(`Unknown instruction at position ${ctx.pointer}`);
     }
 
-    parseProgram();
-    return [instructions, swapKeyValue(varsId)];
+    return [parseProgram(ctx, () => parseInstruction()), varsId];
 }
 
 // Unparse
@@ -134,96 +178,4 @@ export function unparse(program) {
             return `while ${varName} {${bodyStr}}`
         }
     }).join(" ");
-}
-
-// Area
-// ================================================================
-
-export function parseArea(program) {
-    const instructions = [];
-    let i = 0;
-
-    const varsId = {};
-    let nextVarId = 0;
-
-    function skipWhitespace() {
-        while (true) {
-            if (/\s/.test(program[i])) {
-                i++;
-                continue;
-            }
-
-            break;
-        }
-    }
-
-    function getVarId(varName) {
-        if (!varsId.hasOwnProperty(varName)) {
-            varsId[varName] = nextVarId;
-            nextVarId++;
-        }
-        return varsId[varName];
-    }
-
-    function parseVar() {
-        skipWhitespace();
-        const match = /^[A-Za-z_]\w*/.exec(program.slice(i));
-        if (!match)
-            throw new Error(`Expected variable at position ${i}`);
-
-        i += match[0].length;
-        return getVarId(match[0]);
-    }
-
-    function expect(str) {
-        skipWhitespace();
-        if (!program.startsWith(str, i))
-            throw new Error(`Expected "${str}" at position ${i}`);
-
-        i += str.length;
-    }
-
-    function parseInstruction() {
-        skipWhitespace();
-
-        if (program.startsWith("}", i)) {
-            return {type: "exit"};
-        }
-
-        if (program.startsWith("w", i)) {
-            i++;
-            const variable = parseVar();
-            skipWhitespace();
-            expect("{");
-            return {type: "while", var: variable, body: undefined};
-        }
-
-        const variable = parseVar();
-        skipWhitespace();
-
-        if (program.startsWith("+", i)) {
-            i++;
-            expect(";");
-            return {type: "inc", var: variable};
-        }
-
-        if (program.startsWith("-", i)) {
-            i++;
-            expect(";");
-            return {type: "dec", var: variable};
-        }
-
-        throw new Error(`Unknown instruction at position ${i}`);
-    }
-
-    function parseProgram() {
-        while (i < program.length) {
-            skipWhitespace();
-            if (i >= program.length) break;
-            instructions.push(parseInstruction());
-        }
-    }
-
-    parseProgram();
-    return instructions;
 }

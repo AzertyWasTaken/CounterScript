@@ -1,10 +1,9 @@
 "use strict";
 import {log} from "./log.js";
-import {parse, unparse} from "./parser.js";
+import {parse, unparse, parseArea} from "./parser.js";
 import {run, execute} from "./execute.js";
 import {enumerate} from "./enumerate.js";
-import {enumerate as enumerate_partial} from "./enumerate_partial.js";
-// import {enumerate as enumerate_TNFnonRecursiveGen} from "./enumerate_TNFnonRecursiveGen.js";
+// import {enumerate as enumerate_partial} from "./enumerate_partial.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
 import {hasRowWhileVars} from "./getProgData.js"
 
@@ -56,7 +55,8 @@ function testExeDeciders(length) { // OUTDATED
 //     log("Test completed!")
 // }
 
-// log(parse("A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}"));
+log(parse("A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--; foo++;} A--;}"));
+log(parseArea("A+ wa{ B-"));
 
 // log(run(
 //     [{type: "inc", var: 0}, {type: "inc", var: 0}, {type: "while", var: 0, body: [{type: "dec", var: 0}, {type: "inc", var: 1}, {type: "inc", var: 1}]}],
