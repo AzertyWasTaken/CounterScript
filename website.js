@@ -24,9 +24,19 @@ const el = {
     countersValue: document.getElementById("counters-value"),
 }
 
-el.runSpeed.addEventListener("input", () => {
-    el.runSpeedValue.textContent = `${el.runSpeed.value}/s`;
-});
+const magNumber = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6.5, 8];
+
+function getRunSpeed(value) {
+    return magNumber[value % 10] * 10**Math.floor(value / 10);
+}
+
+function updateRunSpeed() {
+    el.runSpeedValue.textContent = getRunSpeed(el.runSpeed.value);
+}
+
+updateRunSpeed();
+
+el.runSpeed.addEventListener("input", updateRunSpeed);
 
 // Line numbers
 // ================================================================
@@ -125,10 +135,38 @@ const config = {maxSteps: MAX_STEPS, deciders: false};
 // Stop control for async run loop (Reset cancels)
 let runToken = 0;
 
-// Pause control for async run loop (Pause does NOT cancel generator)
+/**
+ * Pause control for async run loop (Pause does NOT cancel generator)
+ *
+ * Note: When the user closes the tab/window, the page is being torn down and
+ * JS execution may stop immediately after lifecycle events. We still make a
+ * best-effort to set `paused=true` and unblock any `await getPausePromise()`
+ * so the run loop doesn't continue stepping longer than necessary.
+ */
 let paused = true;
 let pauseWait = null;
 let pauseResolver = null;
+
+function pauseOnPageHide() {
+    // Idempotent: safe to call multiple times.
+    if (halted) return;
+
+    paused = true;
+
+    // If the run loop is currently blocked in getPausePromise(), resolve it
+    // so it can re-check `paused` and stop stepping promptly.
+    if (pauseResolver) {
+        try {
+            pauseResolver();
+        } finally {
+            pauseResolver = null;
+        }
+    }
+
+    // Reflect UI state best-effort.
+    if (el && el.btnRun) el.btnRun.textContent = "Run";
+    setStatus("Paused");
+}
 
 setRunDisabled(true);
 
@@ -158,6 +196,7 @@ function reset() {
     clearOutput();
 
     // Allow running again after reset
+    el.btnRun.textContent = "Run";
     setRunDisabled(false);
 }
 
@@ -281,7 +320,19 @@ async function runFromCurrent() {
 
     el.btnRun.textContent = "Pause";
 
-    // Iterate remaining generator steps manually so Reset can stop us
+    // Time-budget pacing:
+    // Run as many nextStep() iterations as we can within the per-step budget,
+    // then yield once to the event loop. This avoids timer clamping overhead
+    // from sleeping after every single step (especially for large runSpeed).
+    const now = () => (typeof performance !== "undefined" && performance.now ? performance.now() : Date.now());
+
+    // Token-bucket state MUST persist across yields, otherwise we lose accumulated tokens.
+    let tokens = 0;
+    let last = now();
+
+    // Also prevent starving the UI for very large runSpeed values.
+    const burstCap = 10000;
+
     while (true) {
         if (myToken !== runToken) return;
 
@@ -292,12 +343,41 @@ async function runFromCurrent() {
             if (myToken !== runToken) return;
             el.btnRun.textContent = "Pause";
             setStatus("Running");
+
+            // Reset timing baseline after pause to avoid huge dt jumps.
+            last = now();
+            tokens = 0;
         }
 
-        if (!nextStep()) return;
+        const runSpeed = getRunSpeed(el.runSpeed.value); // steps/sec
 
-        const delay = 1000 / el.runSpeed.value;
-        await sleep(delay);
+        const current = now();
+        const dt = Math.max(0, current - last); // ms
+        last = current;
+
+        // Accumulate fractional tokens.
+        tokens += (runSpeed * dt) / 1000;
+
+        // Run as many whole steps as tokens allow, with a safety burst cap.
+        let stepsThisBurst = 0;
+        while (tokens >= 1) {
+            if (myToken !== runToken) return;
+            if (paused) break;
+
+            if (!nextStep()) return;
+
+            tokens -= 1;
+            stepsThisBurst++;
+
+            if (stepsThisBurst >= burstCap) break;
+        }
+
+        // Yield once to avoid blocking the main thread completely.
+        if (typeof requestAnimationFrame !== "undefined") {
+            await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+        } else {
+            await sleep(0);
+        }
     }
 }
 
@@ -335,3 +415,12 @@ el.btnRun.addEventListener("click", () => {
         if (pauseResolver) pauseResolver();
     }
 });
+
+// Pause execution best-effort when the tab/window is being closed or hidden.
+window.addEventListener("pagehide", pauseOnPageHide, {capture: true});
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") pauseOnPageHide();
+}, {capture: true});
+
+// Fallback (some browsers rely on this during navigation/unload).
+window.addEventListener("beforeunload", pauseOnPageHide, {capture: true});

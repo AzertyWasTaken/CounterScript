@@ -31,7 +31,7 @@ function encodeInstr(obj) {
 }
 
 // Append a basic (non-while) instruction to the program.
-export function* appBasicInstr(stack, state, instr) {
+function* appBasicInstr(stack, state, instr) {
     const frame = stack.at(-1);
 
     const nextState = {
@@ -47,7 +47,7 @@ export function* appBasicInstr(stack, state, instr) {
     frame.program.pop();
 }
 
-export function* genBasicInstr(stack, state) {
+function* genBasicInstr(stack, state) {
     for (let instrId = state.minInstr; instrId < (state.maxVar + 1) * 2; instrId++) {
         const instr = decodeInstr(instrId);
 
@@ -60,7 +60,7 @@ export function* genBasicInstr(stack, state) {
 // ================================================================
 
 // Append a while instruction to the program.
-export function* appWhileLoop(stack, state, instr) {
+function* appWhileLoop(stack, state, instr) {
     const frame = stack.at(-1);
 
     const nextState = {
@@ -92,7 +92,7 @@ export function* appWhileLoop(stack, state, instr) {
     frame.program.pop();
 }
 
-export function* genWhileLoop(stack, state) {
+function* genWhileLoop(stack, state) {
     for (let varId = 0; varId < (state.maxVar + 1); varId++) {
         const instr = {type: "while", var: varId, body: undefined};
 
@@ -132,7 +132,8 @@ function exeLoop(frame, state) {
     });
 }
 
-export function* runLoopBody(stack, state, frame) {
+function* runLoopBody(stack, state) {
+    const frame = stack.at(-1);
     const [halted, exeState] = exeLoop(frame, state);
 
     // Ignore loops that have unused loops.
@@ -190,15 +191,13 @@ function* yieldProgram(halted, program, state) {
 }
 
 function* endProgram(stack, state) {
-    const frame = stack.at(-1);
-
     // Check if generation is in a loop.
     if (stack.length > 1) {
         // Generate while loop tail.
-        if (!Prune.loopBody(stack, state, frame))
-            yield* runLoopBody(stack, state, frame);
+        if (!Prune.loopBody(stack, state))
+            yield* runLoopBody(stack, state);
     } else {
-        yield* yieldProgram(true, frame.program, state);
+        yield* yieldProgram(true, stack.at(-1).program, state);
     }
 }
 
@@ -208,7 +207,7 @@ function* nextArea(stack, state) {
     state.area.pop();
 
     if (head.type === "exit") {
-        yield* runLoopBody(stack, state, stack.at(-1));
+        yield* runLoopBody(stack, state);
     }
     else if (head.type === "while") {
         yield* appWhileLoop(stack, state, head);
@@ -225,7 +224,7 @@ function* nextArea(stack, state) {
  * `state` keys are the same for each frame.
  * `stack` keys are not global and can have multiple instances.
  */
-export function* nextInstr(stack, state) {
+function* nextInstr(stack, state) {
     if (stack.at(-1).program.length > 0)
         yield* endProgram(stack, state);
 
@@ -242,7 +241,7 @@ export function* nextInstr(stack, state) {
     }
 }
 
-export function enumerate(maxLength, area) {
+export function enumerate(maxLength, area = []) {
     return nextInstr(
         [{
             program: [],

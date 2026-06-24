@@ -10,12 +10,15 @@ This file is a shared task-board. When editing, only:
 
 ## Reference (for tests)
 
-Length 10:
+`A++; while A {A++; while B {A--; B--; C++;} while C {B++; C--; while B {B--; D++; D++; D++;} while D {D--; B++;}} C++;}`
 
-- Total: 5492
-- Halted: 4184
+### BBCS(10) default
+
+- Total: 3472
+- Halted: 2164
 - Nonhalted: 1308
 - Holdout: 0
+- Duration: 1.5s
 
 ## Enumeration
 
@@ -26,6 +29,11 @@ Length 10:
 - [x] No loop tail pruning
 - [x] Maximum counters count pruning
 - [x] Partial BBCS(12) enumeration
+- [ ] Equation solving system (search backward)
+  - [ ] Split into `isLoopNonhalting` and `getEquation`
+  - [ ] Vars transform array
+
+<!--
 - [ ] Use equations solving system (search forward)
   - [ ] Just-in-time equation creator
     - [ ] New key in stack objects
@@ -35,6 +43,12 @@ Length 10:
     - Default at `x => x`
     - Can be `x => x`, `x => ?` or `x => 0`
   - [ ] Optimize `isLoopNonhalting`
+- [ ] Equation enumerator (unknown or 0)
+  - [ ] Check stack bug
+  - [ ] Add equal value
+  - [ ] Default parameter (unknown and equal)
+  - [ ] Disable for outside loops
+-->
 
 ### Optimize
 
@@ -42,12 +56,11 @@ Length 10:
 - [x] Break down `enumerate.js` functions
 - [x] Base enumerator without nested generators
 - [x] TNF enumerator without nested generators
-- [ ] Optimize `hasRowWhileVars`
-  - [ ] Create copy script
-  - [ ] Vars are unknown at first
-  - [ ] New parameter: zeroVars
-  - [ ] Set var to 0 when adding while loop
+<!--
+- [ ] New equation param: no change
+- [ ] Default value for each counter `equation`
 - [ ] Optimize `areVarsOrdered`
+-->
 
 ### Test & Documentation
 
@@ -59,9 +72,11 @@ Length 10:
 - [x] Parsable area enum config
 - [x] Generalized scan programs function
 - [x] Revamp parser (with engine methods)
-- [ ] Refractor files and add folders
+- [x] Option to hide programs status in enumeration output
+<!--
 - [ ] More accessible configs
 - [ ] Names dictionary in `README.md`
+-->
 
 ### E/Ideas
 
@@ -75,6 +90,9 @@ Length 10:
 - Early detect programs with useless counters
 - Remove equivalence `A++; while A {while A {...} ... w/! A++}`
 - Remove equivalence `while A {A--; B++;} while B {A++; A++; B--;}`
+- head-body-tail equation storage trio
+- Refractor files and add folders
+- Documentation wiki
 
 ## Repo & Website
 
@@ -88,7 +106,12 @@ Length 10:
 - [x] Run/Pause button
 - [x] Step button
 - [x] Show steps count
-- [ ] Full speed execution TODO
+- [x] Full speed execution
+- [x] Stop executing when while web page window is closed
+- [ ] Refractor scripts into modules
+  - [ ] Line numbers
+  - [ ] Programs execution
+- [ ] Parse macros
 - [ ] Undo step
   - [ ] Memory object
 - [ ] Auto programs coloring

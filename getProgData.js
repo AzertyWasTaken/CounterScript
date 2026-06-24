@@ -1,17 +1,6 @@
 "use strict";
 import {scanVars} from "./scanner.js";
 
-// Check if program has an undefined loop
-export function hasUndefinedLoop(program) {
-    for (const instr of program) {
-        if (instr.type === "while")
-            if (!instr.body || hasUndefinedLoop(instr.body))
-                return true;
-    }
-
-    return false;
-}
-
 // Check if a loop is unecessary nested
 export function isLoopNested(body) {
     if (!body) return null;

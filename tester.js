@@ -3,7 +3,7 @@ import {log} from "./log.js";
 import {parse, unparse, parseArea} from "./parser.js";
 import {run, execute} from "./execute.js";
 import {enumerate} from "./enumerate.js";
-// import {enumerate as enumerate_partial} from "./enumerate_partial.js";
+import {enumerate as enumerate_equation} from "./enumerate_equation.js"; // OUTDATED
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
 import {hasRowWhileVars} from "./getProgData.js"
 
@@ -55,8 +55,8 @@ function testExeDeciders(length) { // OUTDATED
 //     log("Test completed!")
 // }
 
-log(parse("A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--; foo++;} A--;}"));
-log(parseArea("A+ wa{ B-"));
+// log(parse("A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--; foo++;} A--;}"));
+// log(parseArea("A+ wa{ B-"));
 
 // log(run(
 //     [{type: "inc", var: 0}, {type: "inc", var: 0}, {type: "while", var: 0, body: [{type: "dec", var: 0}, {type: "inc", var: 1}, {type: "inc", var: 1}]}],
@@ -90,7 +90,8 @@ log(parseArea("A+ wa{ B-"));
 
 // test(hasRowWhileVars, "while A {A--; B++;} A--; while A {C++;}");
 // test(hasRowWhileVars, "while A {A--; B++;} A++; A++; while A {C++;}");
-// test(hasRowWhileVars, "while A {A--; B++;} while B {C++;}");
+// test(hasRowWhileVars, "while A {A--; B++;} while B {B--; C++;}");
+// test(hasRowWhileVars, "while A {A--; B++;} while A {A--; B++;}");
 
 // test(run, "A++; while A {A--; A++;}", {maxSteps: 10, deciders: false});
 // test(run, "A++; while A {A--; A++;}", {maxSteps: 10, deciders: true});
@@ -113,6 +114,6 @@ log(parseArea("A+ wa{ B-"));
 // testEnum(enumerate_nonRecursiveGen, true, [{program: [], len: 5}]);
 
 // testEnum(enumerate, false, 10);
-// testEnum(enumerate_partial, false, 10);
+// testEnum(enumerate_equation, false, 10);
 
 // compareEnum(enumerate_prev, enumerate, 4);

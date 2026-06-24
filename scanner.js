@@ -1,4 +1,5 @@
 "use strict";
+// Integral `program` scan
 export function scanVars(program) {
     const incs = new Set();
     const decs = new Set();
@@ -31,4 +32,15 @@ export function scanVars(program) {
     scan(program);
 
     return {isValid, incs, decs, whiles};
+}
+
+// Check if `program` has an undefined loop
+export function hasUndefinedLoop(program) {
+    for (const instr of program) {
+        if (instr.type === "while")
+            if (!instr.body || hasUndefinedLoop(instr.body))
+                return true;
+    }
+
+    return false;
 }

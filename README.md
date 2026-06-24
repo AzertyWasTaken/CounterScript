@@ -90,7 +90,7 @@ An holdout is an undecided program — we do not know yet if it halts or not.
 | - | -
 | 11 | 35
 | 12 | 477
-| 13 | > 283
+| 13 | > 535
 
 Check `holdouts.md` to find the list of current holdouts for smaller values.
 
