@@ -2,12 +2,23 @@
 import {log} from "./log.js";
 import {Counters} from "./counters.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
-import {isLoopNested, hasRowWhileVars, areVarsOrdered} from "./getProgData.js";
+import {hasRowWhileVars} from "./hasRowWhileVars.js";
+import {areVarsOrdered} from "./areVarsOrdered.js";
 import {scanVars, hasUndefinedLoop} from "./scanner.js";
+import {CONFIG} from "./enumerate.js";
+import {unparse} from "./parser.js";
+
+// Check if a loop is unecessary nested
+function isLoopNested(body) {
+    if (!body) return null;
+    return body.length === 1
+    && body[0].type === "while";
+}
 
 export const Prune = {
+    // Prune completed programs
     program(halted, program, state) {
-        if (state.progLength !== state.maxLength) return true;
+        if (state.progLength !== CONFIG.MAX_LENGTH) return true;
 
         const {isValid, incs, decs, whiles} = scanVars(program);
         if (
@@ -20,6 +31,7 @@ export const Prune = {
         return !areVarsOrdered(program);
     },
 
+    // Prune new basic intructions
     basicInstr(stack, state, instr) {
         return stack.length <= 1 && (
             // Unused decrements (when the counter equals 0)
@@ -29,6 +41,7 @@ export const Prune = {
         )
     },
 
+    // Prune new while loops
     loopVar(stack, state, instr) {
         return stack.length <= 1 && (
             // Unused loops (when the counter equals 0)
@@ -38,28 +51,45 @@ export const Prune = {
         );
     },
 
-    loopBody(stack, state) {
+    // Prune new loop bodies
+    newLoopBody(stack, state) {
         const frame = stack.at(-1);
-        const tailLength = state.maxLength - state.progLength;
-
         // Check if the program is a root while-loop
-        return stack.length <= 2 && (
-            // Cannot repeat twice (only enforced outside loops)
-            Counters.isZero(state.vars, frame.loopVar)
-            || tailLength > 0 && tailLength < 4
-        )
-        // Nonhalting loop bodies
-        || isLoopNonhalting(frame.program, frame.loopVar) === 1
+        if (stack.length <= 2) {
+            // Check if loop cannot repeat twice
+            if (Counters.isZero(state.vars, frame.loopVar)) return true;
+
+            const tailLength = CONFIG.MAX_LENGTH - state.progLength;
+            if (tailLength > 0 && tailLength < 4) return true;
+        }
+        // Nonhalting loop bodies (do not have to decide nested loops)
+        return isLoopNonhalting(frame.program, frame.loopVar)
         || isLoopNested(frame.program)
         || hasRowWhileVars(frame.program)
         || !areVarsOrdered(frame.program);
     },
 
+    // Prune loop bodies (when a nested body is generated)
+    loopBody(stack) {
+        const callStack = stack.at(-1).callStack;
+
+        for (const item of callStack) {
+            if (
+                isLoopNonhalting(item.block, item.loopVar)
+                || hasRowWhileVars(item.block)
+                || !areVarsOrdered(item.block)
+            )
+            return true;
+        }
+        return false;
+    },
+
+    // Prune nested holdouts
     holdout(stack) {
-        // Nonhalting loop bodies
         for (const frame of stack.slice(1)) {
             if (
-                isLoopNested(frame.program)
+                isLoopNonhalting(frame.program)
+                || isLoopNested(frame.program)
                 || hasRowWhileVars(frame.program)
                 || !areVarsOrdered(frame.program)
             )
@@ -68,8 +98,9 @@ export const Prune = {
         return false;
     },
 
+    // Prune root loop bodies that have undefined loop bodies
     undefinedLoop(halted, stack, frame) {
-        return halted !== true
+        return halted === true
         && stack.length <= 2
         && hasUndefinedLoop(frame.program);
     },

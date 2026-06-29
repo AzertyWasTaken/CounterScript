@@ -1,16 +1,6 @@
 "use strict";
-import {log} from "./log.js";
-/**
- * Heuristic/non-formal check used by the Busy Beaver enumerator.
- *
- * Returns:
- * - 1: targetVar is provably/heuristically never 0 within this region.
- * - 0: targetVar sign/effect is neutral for reaching 0 (safe to keep).
- * - -1: targetVar can reach 0.
- * - null: an inner while-loop has `body === undefined` (unknown).
- */
-export function isLoopNonhalting(program, targetVar, loopVar = targetVar) {
-    if (!program) return null;
+export function analyzeLoop(program, targetVar, loopVar = targetVar) {
+    if (!program) return -1;
 
     for (let i = program.length - 1; i >= 0; i--) {
         const instr = program[i];
@@ -22,17 +12,22 @@ export function isLoopNonhalting(program, targetVar, loopVar = targetVar) {
             if (instr.var === targetVar) return -1;
         }
         else if (instr.type === "while") {
-            const res = isLoopNonhalting(instr.body, targetVar, instr.var);
+            const bodyRes = analyzeLoop(instr.body, targetVar, instr.var);
 
-            if (res === -1) {
+            if (bodyRes === -1) {
                 return -1;
             }
-            else if (res === 1) {
-                if (isLoopNonhalting(program.slice(0, i), instr.var, loopVar))
+            else if (bodyRes === 1) {
+                if (analyzeLoop(program.slice(0, i), instr.var, loopVar) === 1)
                     return 1;
             }
         }
     }
 
     return targetVar === loopVar ? 1 : 0;
+}
+
+export function isLoopNonhalting(program, loopVar) {
+    const analysis = analyzeLoop(program, loopVar);
+    return analysis === 1 || analysis === 0;
 }

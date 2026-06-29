@@ -1,119 +1,81 @@
 "use strict";
 import {log} from "./log.js";
+import {analyzeLoop} from "./isLoopNonhalting.js";
 import {parse, unparse, parseArea} from "./parser.js";
 import {run, execute} from "./execute.js";
-import {enumerate} from "./enumerate.js";
-import {enumerate as enumerate_equation} from "./enumerate_equation.js"; // OUTDATED
-import {isLoopNonhalting} from "./isLoopNonhalting.js";
-import {hasRowWhileVars} from "./getProgData.js"
+import {hasRowWhileVars} from "./hasRowWhileVars.js"
 
+// Helper functions
+// ================================================================
+
+// Quick test for functions that take a program as its first argument
 function test(callback, program, ...arg) {
     log(callback(parse(program)[0], ...arg));
 }
 
-function testEnum(callback, print, ...arg) {
-    let total = 0;
-    const progSet = new Set();
+// Tester functions
+// ================================================================
 
-    for (const [halted, program, state] of callback(...arg)) {
-        if (print) log(halted, unparse(program));
-        progSet.add(unparse(program));
-        total++;
-    }
+function testAnalyzeLoop() {
+    // Halting loops
+    test(analyzeLoop, "A++; while A {A--; B--;}", 1);
+    test(analyzeLoop, "A--; while B {A++; B--;}", 0);
+    test(analyzeLoop, "A--; B++; while B {B--;}", 0);
+    test(analyzeLoop, "A--; B--; while B {B--; A++;} B++;", 0);
 
-    log("Total:", total);
-    return progSet;
+    // Fixed loops
+    test(analyzeLoop, "A++; A++; B++;", 2);
+    test(analyzeLoop, "while B {A++; B--;} while A {A--; B++;}", 2);
+
+    // Nonhalting loops
+    test(analyzeLoop, "A++; A++;", 0);
+    test(analyzeLoop, "A++; B--; B++; B++;", 1);
+    test(analyzeLoop, "A++; while A {A--; B++;}", 1);
+    test(analyzeLoop, "A++; B--; while A {A--; B++; B++;}", 1);
+    test(analyzeLoop, "A--; B++; while B {A++; B--;}", 0);
+    test(analyzeLoop, "A--; B++; C++; while B {A++; B--;} B++;", 0);
+    test(analyzeLoop, "A++; while A {A--; B++;} while B {A++; B--;}", 0);
+    test(analyzeLoop, "while A {A--; B++; B++;} while B {A++; B--;}", 0);
+    test(analyzeLoop, "while A {A--; B++; B++;} while B {A++; A++; B--;} A--;", 0);
 }
 
-function compareEnum(enum1, enum2, length) {
-    const set1 = testEnum(enum1, false, length);
-    const set2 = testEnum(enum2, false, length);
-    const result = set1.difference(set2);
+function testRun() {
+    // Halting programs
+    test(run, "A++; A++; while A {A--; B++; B++;}", {maxSteps: 10, deciders: true});
+    test(run, "A++; A++; A++; while A {A--; B++; while B {B--; C++; C++;} while C {B++; C--;}}", {maxSteps: 100, deciders: true})
+    test(run, "A++; while A {A++; B++; while B {A--; A--; B--;}}", {maxSteps: 10, deciders: true});
 
-    result.forEach(element => log(element));
+    // Nonhalting programs
+    test(run, "A++; while A {A--; A++;}", {maxSteps: 10, deciders: false});
+    test(run, "A++; while A {A--; A++;}", {maxSteps: 10, deciders: true});
+    test(run, "A++; A++; B++; while A {while B {A--; B--;}}", {maxSteps: 10, deciders: true});
+    test(run, "A++; while A {A--; B++; while B {A++; A++; B--;}}", {maxSteps: 10, deciders: true});
+    test(run, "A++; while A {while A {A--; B++; B++;} while B {A++; B--;}}", {maxSteps: 10, deciders: true});
+    test(run, "A++; A++; while A {while A {A--; B++; B++;} while B {A++; B--;} A--;}", {maxSteps: 10, deciders: true})
 }
 
-function testExeDeciders(length) { // OUTDATED
-    for (const [program, halted, vars, steps, maxVarId] of enumerate(length)) {
-        if (halted !== false) continue;
-
-        const [testHalted, vars, steps] = run(program, {maxSteps: 100, deciders: true});
-        if (testHalted === true) log(unparse(program), vars);
-    }
-
-    log("Test completed!")
+function testHasRowWhileVars() {
+    test(hasRowWhileVars, "while A {A--; B++;} A--; while A {C++;}");
+    test(hasRowWhileVars, "while A {A--; B++;} A++; A++; while A {C++;}");
+    test(hasRowWhileVars, "while A {A--; B++;} while B {B--; C++;}");
+    test(hasRowWhileVars, "while A {A--; B++;} while A {A--; B++;}");
 }
 
-// function testIsLoopNonhalting(length) {
-//     for (const [program, halted, vars, steps, maxVarId] of enumerate(length)) {
-//         if (halted !== false) continue;
+function testUnparse() {
+    log(unparse([{type: "inc", var: 0}, {type: "while", var: 0, body: [
+        {type: "dec", var: 0}, {type: "inc", var: 1}, {type: "while", var: 1, body: [
+            {type: "inc", var: 0}, {type: "dec", var: 1}
+        ]},
+        {type: "inc", var: 2}
+    ]}]));
+}
 
-//         const [testHalted, vars, steps] = run(program, {maxSteps: 100, deciders: true});
-//         if (testHalted === true) log(unparse(program), vars);
-//     }
+// Init
+// ================================================================
 
-//     log("Test completed!")
-// }
-
-// log(parse("A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--; foo++;} A--;}"));
-// log(parseArea("A+ wa{ B-"));
-
-// log(run(
-//     [{type: "inc", var: 0}, {type: "inc", var: 0}, {type: "while", var: 0, body: [{type: "dec", var: 0}, {type: "inc", var: 1}, {type: "inc", var: 1}]}],
-//     {maxSteps: 100, deciders: true}
-// ));
-// log(run(
-//     [{type: "inc", var: 0}, {type: "while", var: 0, body: [{type: "inc", var: 0}]}],
-//     {maxSteps: 100, deciders: false}
-// ));
-// log(run(
-//     [{type: "inc", var: 0}, {type: "while", var: 0, body: [{type: "inc", var: 0}]}],
-//     {maxSteps: 100, deciders: true}
-// ));
-// log(run(
-//     [{type: "inc", var: 0}, {type: "while", var: 0, body: [{type: "while", var: 1}, {type: "inc", var: 1}]}],
-//     {maxSteps: 100, deciders: false}
-// ));
-
-// test(isLoopNonhalting, "A++; while A {B--;}", 1);
-// test(isLoopNonhalting, "A++; B--; B++;", 1);
-// test(isLoopNonhalting, "A++; while A {B++;}", 1);
-// test(isLoopNonhalting, "A++; B--; while A {A--; B++;}", 1);
-// test(isLoopNonhalting, "A--; B++; while B {A++; B--;}", 0);
-// test(isLoopNonhalting, "A--; while B {A++; B--;}", 0);
-// test(isLoopNonhalting, "A--; B++; while B {B--;}", 0);
-// test(isLoopNonhalting, "A--; B++; C++; while B {A++; B--;} B++;", 0);
-// test(isLoopNonhalting, "A--; B--; while B {A++;} B++;", 0);
-// test(isLoopNonhalting, "A++; while A {A--; B++;} while B {A++; B--;}", 0);
-// test(isLoopNonhalting, "while A {A--; B++; B++;} while B {A++; B--;}", 0);
-// test(isLoopNonhalting, "while A {A--; B++; B++; B++;} while B {A++; B--;} A--;", 0);
-
-// test(hasRowWhileVars, "while A {A--; B++;} A--; while A {C++;}");
-// test(hasRowWhileVars, "while A {A--; B++;} A++; A++; while A {C++;}");
-// test(hasRowWhileVars, "while A {A--; B++;} while B {B--; C++;}");
-// test(hasRowWhileVars, "while A {A--; B++;} while A {A--; B++;}");
-
-// test(run, "A++; while A {A--; A++;}", {maxSteps: 10, deciders: false});
-// test(run, "A++; while A {A--; A++;}", {maxSteps: 10, deciders: true});
-// test(run, "A++; A++; while A {A--; B++; B++;}", {maxSteps: 10, deciders: true});
-// test(run, "A++; A++; B++; while A {while B {A--; B--;}}", {maxSteps: 10, deciders: true});
-// test(run, "A++; while A {A--; B++; while B {A++; A++; B--;}}", {maxSteps: 10, deciders: true});
-// test(run, "A++; while A {A++; B++; while B {A--; A--; B--;}}", {maxSteps: 10, deciders: true});
-// test(run, "A++; while A {while A {A--; B++; B++;} while B {A++; B--;}}", {maxSteps: 10, deciders: true});
-// test(run, "A++; while A {while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}", {maxSteps: 10, deciders: true})
-// test(run, "A++; A++; A++; while A {A--; B++; while B {B--; C++; C++;} while C {B++; C--;}}", {maxSteps: 100, deciders: true})
-
-// test(run, "A++; A++; A++; while A {A--; B++; B++; B++;}", {maxSteps: 10, deciders: true});
-// test(run, "A++; while A {A++; while B {A--; B--;} B++;}", {maxSteps: 100, deciders: true});
-
-// testExeDeciders(10);
-// testIsLoopNonhalting(9);
-
-// testEnum(enumerate, true, 2, {prog: [], vars: [1], steps: 1, progLen: 0, maxVar: 1, minInstr: 0, inLoop: true});
-// testEnum(enumerate, false, 8);
-// testEnum(enumerate_nonRecursiveGen, true, [{program: [], len: 5}]);
-
-// testEnum(enumerate, false, 10);
-// testEnum(enumerate_equation, false, 10);
-
-// compareEnum(enumerate_prev, enumerate, 4);
+testRun();
+testAnalyzeLoop();
+testHasRowWhileVars();
+log(parse("A++; while A {while A {A--; B++;} while B {A++; B--; foo++;} A--;}"));
+log(parseArea("A+ wa{ B- wB{ B- A+ }"));
+testUnparse();

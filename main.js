@@ -1,7 +1,6 @@
 "use strict";
 import {log} from "./log.js";
 import {enumerate} from "./enumerate.js";
-// import {enumerate} from "./enumerate_equation.js"; // OUTDATED
 import {unparse, parseArea} from "./parser.js";
 
 const LOG = {
@@ -12,9 +11,8 @@ const LOG = {
     SHOW_STATUS: false
 }
 
-const MAX_LENGTH = 13;
-const AREA = "A+ A+ wA{ B-";
-const AREA_ENABLED = true;
+const AREA = "A+ wA{ B+ wB{ wC{ wA{ A- C+";
+const AREA_ENABLED = false;
 
 const count = {
     total: 0,
@@ -33,7 +31,7 @@ function logProgram(status, program, ...arg) {
     log(...logArray);
 }
 
-for (const [halted, program, state] of enumerate(MAX_LENGTH, AREA_ENABLED ? parseArea(AREA) : [])) {
+for (const [halted, program, state] of enumerate(AREA_ENABLED ? parseArea(AREA) : [])) {
     if (halted === true) {
         const score = Math.max(0, ...Object.values(state.vars));
 

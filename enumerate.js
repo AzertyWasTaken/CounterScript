@@ -1,18 +1,13 @@
 ﻿"use strict";
 import {log} from "./log.js";
-import {execute, executeBasicInstruction, cloneStack, getFrame, getInstruction} from "./execute.js";
+import {execute, cloneStack, getFrame, getInstruction} from "./execute.js";
 import {Counters} from "./counters.js";
 import {Prune} from "./pruner.js";
+import {NextState} from "./nextState.js";
 
-function maxVarsCount(length) {
-    return Math.floor((length + 1) / 3);
-}
-
-function getMaxVarId(varId, state) {
-    return Math.min(
-        Math.max(maxVarsCount(state.maxLength) - 1, 0),
-        Math.max(varId + 1, state.maxVar)
-    );
+export const CONFIG = {
+    MAX_LENGTH: 11,
+    MAX_STEPS: 100,
 }
 
 // Generate instructions
@@ -25,25 +20,12 @@ function decodeInstr(id) {
     };
 }
 
-function encodeInstr(obj) {
-    return obj.var * 2
-    + (obj.type === "dec" ? 0 : 1);
-}
-
 // Append a basic (non-while) instruction to the program.
 function* appBasicInstr(stack, state, instr) {
     const frame = stack.at(-1);
 
-    const nextState = {
-        ...state,
-        vars: executeBasicInstruction([...state.vars], instr),
-        progLength: state.progLength + 1,
-        maxVar: getMaxVarId(instr.var, state),
-        minInstr: encodeInstr(instr)
-    };
-
     frame.program.push(instr);
-    yield* nextInstr(stack, nextState);
+    yield* nextInstr(stack, NextState.basicInstr(state, instr));
     frame.program.pop();
 }
 
@@ -63,30 +45,21 @@ function* genBasicInstr(stack, state) {
 function* appWhileLoop(stack, state, instr) {
     const frame = stack.at(-1);
 
-    const nextState = {
-        ...state,
-        // Loop body length is 1 by default, increasing total length by 2.
-        progLength: state.progLength + 2,
-        maxVar: getMaxVarId(instr.var, state),
-        minInstr: 0
-    };
-
     frame.program.push(instr);
 
     // Go to the loop body if the loop condition is true.
     if (!Counters.isZero(state.vars, instr.var)) {
         instr.body = [];
-        nextState.progLength--;
 
         stack.push({
             program: instr.body,
             loopVar: instr.var,
             callStack: []
         });
-        yield* nextInstr(stack, nextState);
+        yield* nextInstr(stack, NextState.loopVar(state, instr, 1));
         stack.pop();
     } else {
-        yield* nextInstr(stack, nextState);
+        yield* nextInstr(stack, NextState.loopVar(state, instr, 2));
     }
 
     frame.program.pop();
@@ -105,9 +78,7 @@ function* genWhileLoop(stack, state) {
 // ================================================================
 
 // Create a new `callStack` frame so the interpreter can execute the loop.
-function appCallStack(frame, state) {
-    const callStack = cloneStack(frame.callStack);
-
+function appCallStack(callStack, frame, state) {
     callStack.push({
         block: frame.program,
         pc: 0,
@@ -116,19 +87,19 @@ function appCallStack(frame, state) {
         posVars: Counters.getPosSet(state.vars),
         prevVars: [...state.vars]
     });
-
-    return callStack;
 }
 
 function exeLoop(frame, state) {
-    const exeStack = Counters.isZero(state.vars, frame.loopVar)
-    ? frame.callStack : appCallStack(frame, state);
+    const callStack = cloneStack(frame.callStack);
+
+    if (!Counters.isZero(state.vars, frame.loopVar))
+        appCallStack(callStack, frame, state);
 
     // Execute the loop if the loop condition still holds.
-    return execute({maxSteps: 100, deciders: true}, {
+    return execute({maxSteps: CONFIG.MAX_STEPS, deciders: true}, {
         vars: [...state.vars],
         steps: state.steps,
-        stack: exeStack
+        stack: callStack
     });
 }
 
@@ -141,24 +112,14 @@ function* runLoopBody(stack, state) {
 
     stack.pop();
 
-    const nextState = {
-        ...state,
-        vars: exeState.vars,
-        steps: exeState.steps + 1,
-        minInstr: 0
-    };
-
     if (halted === true) {
         // Generate loop tail.
-        yield* nextInstr(stack, nextState);
+        yield* nextInstr(stack, NextState.loopBody(state, exeState, 0));
     }
     else if (halted === undefined) {
         // Execution is "in progress" inside the stack: expand the next loop.
-        nextState.progLength--;
-
         // Instruction that is pointed to by the top frame's pc.
-        const nextFrame = getFrame(exeState);
-        const loopInstr = getInstruction(nextFrame);
+        const loopInstr = getInstruction(getFrame(exeState));
         loopInstr.body = [];
 
         stack.push({
@@ -166,7 +127,7 @@ function* runLoopBody(stack, state) {
             loopVar: loopInstr.var,
             callStack: exeState.stack
         });
-        yield* nextInstr(stack, nextState);
+        yield* nextInstr(stack, NextState.loopBody(state, exeState, 1));
         stack.pop();
 
         // Clear `.body` before continuing sibling enumerations.
@@ -175,7 +136,7 @@ function* runLoopBody(stack, state) {
     else {
         // Terminal case: no more instructions left; yield final program/state.
         if (!Prune.holdout(stack)) {
-            yield* yieldProgram(halted, stack[0].program, state);
+            yield* yieldProgram(halted, stack[0].program, NextState.loopBody(state, exeState, 0));
         }
     }
 
@@ -187,6 +148,7 @@ function* runLoopBody(stack, state) {
 
 function* yieldProgram(halted, program, state) {
     if (!Prune.program(halted, program, state))
+        // `program` and `state` are mutable for better time performances
         yield [halted, program, state];
 }
 
@@ -194,7 +156,7 @@ function* endProgram(stack, state) {
     // Check if generation is in a loop.
     if (stack.length > 1) {
         // Generate while loop tail.
-        if (!Prune.loopBody(stack, state))
+        if (!Prune.newLoopBody(stack, state) && !Prune.loopBody(stack))
             yield* runLoopBody(stack, state);
     } else {
         yield* yieldProgram(true, stack.at(-1).program, state);
@@ -202,9 +164,7 @@ function* endProgram(stack, state) {
 }
 
 function* nextArea(stack, state) {
-    const head = state.area.at(-1);
-
-    state.area.pop();
+    const head = state.area.pop();
 
     if (head.type === "exit") {
         yield* runLoopBody(stack, state);
@@ -231,17 +191,18 @@ function* nextInstr(stack, state) {
     if (state.area.length > 0) {
         yield* nextArea(stack, state);
     } else {
-        if (state.progLength + 1 <= state.maxLength) {
+        if (state.progLength + 1 <= CONFIG.MAX_LENGTH) {
             yield* genBasicInstr(stack, state);
 
-            if (state.progLength + 2 <= state.maxLength) {
+            if (state.progLength + 2 <= CONFIG.MAX_LENGTH) {
                 yield* genWhileLoop(stack, state);
             }
         }
     }
 }
 
-export function enumerate(maxLength, area = []) {
+export function enumerate(area = []) {
+    // `area` is mutable for better time performances
     return nextInstr(
         [{
             program: [],
@@ -252,7 +213,6 @@ export function enumerate(maxLength, area = []) {
             vars: [],
             steps: 0,
             progLength: 0,
-            maxLength,
             maxVar: 0,
             minInstr: 0,
             area: area

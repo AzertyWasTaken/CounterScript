@@ -1,7 +1,9 @@
 "use strict";
-import {log, strArray, strObject} from "./log.js"
-import {parse} from "./parser.js";
-import {executeNext, getCtx, getFrame, getInstruction} from "./execute.js";
+import {log, strArray, strObject} from "../log.js"
+import {parse} from "../parser.js";
+import {executeNext, getCtx, getFrame, getInstruction} from "../execute.js";
+import {initLineNumbers} from "./lineNumbers.js";
+import {renderCounters} from "./renderCounters.js";
 
 const el = {
     btnReset: document.getElementById("btn-reset"),
@@ -11,17 +13,10 @@ const el = {
     runSpeed: document.getElementById("run-speed"),
     runSpeedValue: document.getElementById("run-speed-value"),
 
-    editor: document.getElementById("code-editor"),
-    lineGutter: document.getElementById("line-gutter"),
-
     output: document.getElementById("output"),
     status: document.getElementById("status"),
     steps: document.getElementById("steps"),
     compiled: document.getElementById("compiled"),
-
-    counters: document.getElementById("counters"),
-    countersName: document.getElementById("counters-name"),
-    countersValue: document.getElementById("counters-value"),
 }
 
 const magNumber = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6.5, 8];
@@ -37,85 +32,6 @@ function updateRunSpeed() {
 updateRunSpeed();
 
 el.runSpeed.addEventListener("input", updateRunSpeed);
-
-// Line numbers
-// ================================================================
-
-function getLineCount(text) {
-    // Ensure at least one line number is shown
-    const lines = text.split("\n").length;
-    return Math.max(1, lines);
-}
-
-function renderLineGutter() {
-    if (!el.lineGutter || !el.editor) return;
-
-    const lineCount = getLineCount(el.editor.value);
-
-    // Render one element per line number so layout doesn't depend on newline rendering.
-    el.lineGutter.textContent = "";
-    for (let i = 0; i < lineCount; i++) {
-        const lineNumberEl = document.createElement("div");
-        lineNumberEl.className = "line-number";
-        lineNumberEl.textContent = (i + 1).toString();
-        el.lineGutter.appendChild(lineNumberEl);
-    }
-}
-
-function syncGutterScroll() {
-    if (!el.lineGutter || !el.editor) return;
-    el.lineGutter.scrollTop = el.editor.scrollTop;
-}
-
-function syncGutterHeight() {
-    if (!el.lineGutter || !el.editor) return;
-
-    // textarea clientHeight excludes borders; gutter is border-box in CSS,
-    // but height sync with clientHeight keeps scroll areas aligned.
-    const h = el.editor.clientHeight;
-
-    el.lineGutter.style.height = `${h}px`;
-    el.lineGutter.style.minHeight = `${h}px`;
-}
-
-function initLineNumbers() {
-    // If the gutter isn't present, do nothing.
-    if (!el.lineGutter || !el.editor) return;
-
-    // Initial render + geometry sync
-    renderLineGutter();
-    syncGutterHeight();
-    syncGutterScroll();
-
-    // Update on typing/paste
-    el.editor.addEventListener("input", () => {
-        renderLineGutter();
-        syncGutterHeight();
-        syncGutterScroll();
-    });
-
-    // Keep aligned while scrolling
-    el.editor.addEventListener("scroll", () => {
-        syncGutterScroll();
-    });
-
-    // Keep aligned while resizing (e.g. dragging textarea bottom-right corner)
-    if (typeof ResizeObserver !== "undefined") {
-        const ro = new ResizeObserver(() => {
-            syncGutterHeight();
-            syncGutterScroll();
-        });
-        ro.observe(el.editor);
-    } else {
-        // Fallback: window resize + next frame
-        window.addEventListener("resize", () => {
-            requestAnimationFrame(() => {
-                syncGutterHeight();
-                syncGutterScroll();
-            });
-        });
-    }
-}
 
 initLineNumbers();
 
@@ -174,7 +90,7 @@ el.output.style.display = "none";
 
 function clearOutput() {
     el.output.style.display = "block";
-    el.counters.style.display = "none";
+    document.getElementById("counters").style.display = "none";
     setStatus("Running");
     updateSteps();
 
@@ -216,29 +132,6 @@ function setRunDisabled(isDisabled) {
     el.btnRun.disabled = isDisabled;
 }
 
-function updateVarsTable() {
-    log(ctx.vars);
-    const entries = Object.entries(ctx.vars);
-    if (entries.length === 0) {
-        el.counters.style.display = "none";
-        return;
-    }
-
-    el.counters.style.display = "table";
-    el.countersName.textContent = "";
-    el.countersValue.textContent = "";
-
-    for (const [key, value] of entries) {
-        const nameCell = document.createElement("th");
-        nameCell.textContent = legend[key];
-        el.countersName.appendChild(nameCell);
-
-        const valueCell = document.createElement("td");
-        valueCell.textContent = value;
-        el.countersValue.appendChild(valueCell);
-    }
-}
-
 // Run programs
 // ================================================================
 
@@ -249,7 +142,7 @@ function sleep(ms) {
 function compile() {
     let parsed;
     try {
-        [parsed, legend] = parse(el.editor.value);
+        [parsed, legend] = parse(document.getElementById("code-editor").value);
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         el.status.textContent = `Parse error: ${message}`;
@@ -287,7 +180,7 @@ function nextStep() {
     steps++;
     updateSteps();
 
-    updateVarsTable();
+    renderCounters(ctx.vars, legend);
     return true;
 }
 
