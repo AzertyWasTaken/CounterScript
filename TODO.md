@@ -72,7 +72,7 @@ This file is a shared task-board. When editing, only:
 - [x] Split `getProgData.js`
 - [x] Revamp `tester.js`
 - [x] Explain how stacks work in TNF document
-- [ ] Comment `analyzeLoop.js`
+- [x] Comment `analyzeLoop.js`
 - [ ] Undefined loop parser `while # {...}`
 - [ ] Function to reuse call stack appends from `execute.js`
 - [ ] Function to append instructions

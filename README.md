@@ -5,7 +5,9 @@
 ![Language](https://img.shields.io/badge/Language-JavaScript-purple)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2)](https://discord.gg/H3FnyZwA6P)
 
-This project studies the Busy Beaver function for **CounterScript**, a minimal computational model.  
+This project studies the Busy Beaver function for **CounterScript**, a minimal computational model.
+
+> **Note**: some informations may be outdated: feel free to fix them if you find any.
 
 ## Documentation
 
