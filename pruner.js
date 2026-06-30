@@ -2,8 +2,8 @@
 import {log} from "./log.js";
 import {Counters} from "./counters.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
-import {hasRowWhileVars} from "./hasRowWhileVars.js";
 import {areVarsOrdered} from "./areVarsOrdered.js";
+import {filterLoop} from "./analyzeLoop.js";
 import {scanVars, hasUndefinedLoop} from "./scanner.js";
 import {CONFIG} from "./enumerate.js";
 import {unparse} from "./parser.js";
@@ -54,6 +54,8 @@ export const Prune = {
     // Prune new loop bodies
     newLoopBody(stack, state) {
         const frame = stack.at(-1);
+        const program = frame.program;
+
         // Check if the program is a root while-loop
         if (stack.length <= 2) {
             // Check if loop cannot repeat twice
@@ -63,10 +65,10 @@ export const Prune = {
             if (tailLength > 0 && tailLength < 4) return true;
         }
         // Nonhalting loop bodies (do not have to decide nested loops)
-        return isLoopNonhalting(frame.program, frame.loopVar)
-        || isLoopNested(frame.program)
-        || hasRowWhileVars(frame.program)
-        || !areVarsOrdered(frame.program);
+        return isLoopNested(program)
+        || isLoopNonhalting(program, frame.loopVar)
+        || !areVarsOrdered(program)
+        || filterLoop(program, frame.loopVar);
     },
 
     // Prune loop bodies (when a nested body is generated)
@@ -74,10 +76,11 @@ export const Prune = {
         const callStack = stack.at(-1).callStack;
 
         for (const item of callStack) {
+            const program = item.block;
             if (
-                isLoopNonhalting(item.block, item.loopVar)
-                || hasRowWhileVars(item.block)
-                || !areVarsOrdered(item.block)
+                isLoopNonhalting(program, item.loopVar)
+                || !areVarsOrdered(program)
+                || filterLoop(program, item.loopVar)
             )
             return true;
         }
@@ -87,11 +90,12 @@ export const Prune = {
     // Prune nested holdouts
     holdout(stack) {
         for (const frame of stack.slice(1)) {
+            const program = frame.program;
             if (
-                isLoopNonhalting(frame.program)
-                || isLoopNested(frame.program)
-                || hasRowWhileVars(frame.program)
-                || !areVarsOrdered(frame.program)
+                isLoopNested(program)
+                || isLoopNonhalting(program, frame.loopVar)
+                || !areVarsOrdered(program)
+                || filterLoop(program, frame.loopVar)
             )
             return true;
         }

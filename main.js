@@ -11,7 +11,7 @@ const LOG = {
     SHOW_STATUS: false
 }
 
-const AREA = "A+ wA{ B+ wB{ wC{ wA{ A- C+";
+const AREA = "A+ wA{ A-";
 const AREA_ENABLED = false;
 
 const count = {

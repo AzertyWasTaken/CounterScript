@@ -56,10 +56,10 @@ function* appWhileLoop(stack, state, instr) {
             loopVar: instr.var,
             callStack: []
         });
-        yield* nextInstr(stack, NextState.loopVar(state, instr, 1));
+        yield* nextInstr(stack, NextState.loopVar(state, instr, 0));
         stack.pop();
     } else {
-        yield* nextInstr(stack, NextState.loopVar(state, instr, 2));
+        yield* nextInstr(stack, NextState.loopVar(state, instr, 1));
     }
 
     frame.program.pop();
@@ -136,7 +136,7 @@ function* runLoopBody(stack, state) {
     else {
         // Terminal case: no more instructions left; yield final program/state.
         if (!Prune.holdout(stack)) {
-            yield* yieldProgram(halted, stack[0].program, NextState.loopBody(state, exeState, 0));
+            yield* yieldProgram(halted, stack[0].program, NextState.holdout(state, exeState));
         }
     }
 
@@ -167,6 +167,8 @@ function* nextArea(stack, state) {
     const head = state.area.pop();
 
     if (head.type === "exit") {
+        if (stack.length <= 1) throw new Error(`Cannot exit loop`);
+
         yield* runLoopBody(stack, state);
     }
     else if (head.type === "while") {

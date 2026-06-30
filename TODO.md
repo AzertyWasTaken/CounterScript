@@ -12,18 +12,21 @@ This file is a shared task-board. When editing, only:
 
 - `A++; while A {A++; while B {A--; B--; C++;} while C {B++; C--; while B {B--; D++; D++; D++;} while D {D--; B++;}} C++;}`
 
-- `enumerate.js` lines count: **261**
-
 ### BBCS(10) default
 
-- Total: 3336
+- Total: 3683
 - Halted: 2319
-- Nonhalted: 1017
+- Nonhalted: 1364
 - Holdout: 0
+- Duration: 1.6s
 
 ### BBCS(11) default
 
-- Duration: 26s
+- Total: 25036
+- Halted: 14395
+- Nonhalted: 10590
+- Holdout: 51
+- Duration: 25s
 
 ## Enumeration
 
@@ -36,9 +39,8 @@ This file is a shared task-board. When editing, only:
 - [x] Partial BBCS(12) enumeration
 - [x] Fix `isLoopNonhalting.js` bugs
 - [x] Fix `enumerate.js` bugs
-- [ ] General equation solving system (merge `isLoopNonhalting.js`, `hasRowWhileVars.js` and `areVarsOrdered.js`) (decide `A++; A++; while A {while A {A--; B++;} while B {A++; A++; B--;} A--;}`)
-  - [ ] `true` and `is equal to 0`
-  - [ ] `is equal to #`
+- [x] General equation solving system (merge `isLoopNonhalting.js`, `hasRowWhileVars.js` and `areVarsOrdered.js`) (decide `A++; A++; while A {while A {A--; B++;} while B {A++; A++; B--;} A--;}`)
+- [ ] `is equal to n` (use objects)
 
 ### Optimize
 
@@ -70,6 +72,8 @@ This file is a shared task-board. When editing, only:
 - [x] Split `getProgData.js`
 - [x] Revamp `tester.js`
 - [x] Explain how stacks work in TNF document
+- [ ] Comment `analyzeLoop.js`
+- [ ] Undefined loop parser `while # {...}`
 - [ ] Function to reuse call stack appends from `execute.js`
 - [ ] Function to append instructions
 
