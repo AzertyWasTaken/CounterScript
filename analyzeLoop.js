@@ -45,17 +45,20 @@ export function analyzeLoop(program) {
         }
         else if (instr.type === "while") {
             const loopVar = instr.var;
+            const loopValue = getValue(state, loopVar);
+
             // Cannot execute a def-0 while-loop counter
-            if (getValue(state, loopVar) === "isZero") return null;
+            if (loopValue === "isZero") return null;
 
             // Analyze loop body independently
             const bodyState = analyzeLoop(instr.body);
             if (bodyState === null || isLoopNonhalting(bodyState, loopVar)) return null;
+            // Check if loop always repeat exactly once
+            if (loopValue === "isGreaterThanZero" && getValue(bodyState, loopVar) === "isZero") return null;
 
             // If body can always terminate with "true", propagate upward
             if (bodyState.def === "true") state.def = "true";
 
-            const isLoopExecuted = getValue(state, loopVar) === "isGreaterThanZero";
             const maxVarId = Math.max(state.eq.length, bodyState.eq.length);
 
             for (let varId = 0; varId < maxVarId; varId++) {
@@ -64,7 +67,7 @@ export function analyzeLoop(program) {
                 if (bodyValue === "isEqualToSelf") continue;
 
                 // Check if loop body is always executed at least once
-                if (isLoopExecuted) {
+                if (loopValue === "isGreaterThanZero") {
                     // Use loop body results directly
                     setValue(state, varId, bodyValue);
                 } else {
