@@ -1,4 +1,4 @@
-# BBCS Results & Open Problems
+# BBCS results & open problems
 
 This section summarizes the **Busy Beaver** results for **CounterScript** (BBCS).
 
@@ -9,7 +9,7 @@ This section summarizes the **Busy Beaver** results for **CounterScript** (BBCS)
 - The **score** is the largest value of the counters.
 - The **length** of a program is the total number of instructions in the program.
 
-## Lower Bounds
+## Lower bounds
 
 For readability purposes, sequences containing `#++` repeated `n` times in a row are replaced by `#+=n`.
 
@@ -48,13 +48,15 @@ An **holdout** is an undecided program: we do not yet know if it halts or not.
 
 | BBCS(n) | Holdouts |
 | - | - |
-| 11 | 35 |
-| 12 | 477 |
-| 13 | > 535 |
+| 11 | 47 |
+| 12 | ~~477~~ |
+| 13 | ~~> 535~~ |
 
 For the detailed list, see the repo’s holdout artifacts (tracked in the `Holdouts/` directory).
 
-## Difficulty Notes
+> **Note**: due to a bug that occured during enumeration, all holdouts list, except `11.txt`, are currently inaccurate.
+
+## Difficulty notes
 
 A qualitative guide for why some BBCS(n) are harder to resolve.
 
@@ -69,7 +71,7 @@ A qualitative guide for why some BBCS(n) are harder to resolve.
 | 5 | Has `while #` that have every `#--` inside unreachable loops. |
 | 6 | *Not interesting* |
 | 7 | Has nontrivial translated cyclers with preperiod. |
-| 8 | Has nontrivial champions. Difficulty is comparable to BB(2). |
+| 8 | Has nontrivial champions. Difficulty is comparable to **BB(2)**. |
 | 9 | Has bouncers — values that repeatedly bounce from 0 to an increasing value. |
 | 10 | *Not interesting* |
 | 11 | Has 2-period cyclers and more complex bouncers — subtracting after a multiplication, triangular sequence growing. |
@@ -78,5 +80,6 @@ A qualitative guide for why some BBCS(n) are harder to resolve.
 
 ## BBCS vs BB
 
-Unlike Turing Machines, smaller CounterScript programs are much less chaotic, and holdouts size tends to reflect complexity more directly.  
+Unlike Turing Machines, smaller CounterScript programs are much less chaotic, and holdouts size tends to reflect complexity more directly.
+
 CounterScript is also easier to accelerate and analyze.

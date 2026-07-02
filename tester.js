@@ -72,13 +72,19 @@ function testUnparse() {
 }
 
 function testAnalyzeLoop() {
+    // Should NOT be pruned
     test(analyzeLoop, "A++; A++; B--;");
+    test(analyzeLoop, "while A {A--;} A++; A++;");
     test(analyzeLoop, "A++; while B {B--; A++;}");
-    test(analyzeLoop, "A++; B++; while A {A--; C++;}");
+    test(analyzeLoop, "A++; B++; B++; while A {A--; C++;}");
     test(analyzeLoop, "A++; while A {while B {B--;} A--;}");
     test(analyzeLoop, "while A {A--; B++; B++;} while B {A++; B--;}");
+    test(analyzeLoop, "while A {A--; B++;} while B {A++; A++; B--;} A--;");
+
+    // Should be pruned
     test(analyzeLoop, "while A {A--; B++;} A--;");
     test(analyzeLoop, "while A {A--; while B {B++;}}");
+    test(analyzeLoop, "A++; while A {B++; while A {A--;}}");
 }
 
 // Init

@@ -1,4 +1,20 @@
 "use strict";
+/**
+ * Performs abstract interpretation to determine loop termination properties
+ * 
+ * Abstract values represent possible runtime states:
+ * - t="isEqualTo", v=<int>: counter is def equal to `int`
+ * - t="isAtLeast", v=<int>: counter is at least `int`
+ * - t="isEqualToSelf": counter value does not change
+ * 
+ * Return analysis result, or null if:
+ * - Proven non-halting
+ * - Equivalent to another (possibly smaller) program
+ */
+
+// Helpers
+// ================================================================
+
 function getValue(state, varId) {
     return state.eq[varId] ?? state.def;
 }
@@ -7,78 +23,140 @@ function setValue(state, varId, val) {
     return state.eq[varId] = val;
 }
 
-function isLoopNonhalting(state, loopVar) {
-    const value = getValue(state, loopVar);
-    return value === "isEqualToSelf" || value === "isGreaterThanZero";
+function isUnknown(value) {
+    return value.t === "isAtLeast" && value.v === 0;
 }
 
-/**
- * Performs abstract interpretation to determine loop termination properties
- * 
- * Abstract values represent possible runtime states:
- * - "isZero": counter is def zero
- * - "isGreaterThanZero": counter is def greater than zero
- * - "true": counter value is unknown
- * - "isEqualToSelf": counter value does not change
- * 
- * Return analysis result, or null if:
- * - Proven non-halting
- * - Equivalent to another (possibly smaller) program
- */
+function isZero(value) {
+    return value.t === "isEqualTo" && value.v === 0;
+}
+
+function isGreaterThanZero(value) {
+    return value.t === "isAtLeast" && value.v > 0
+    || value.t === "isEqualTo" && value.v > 0;
+}
+
+function unknownValue() {
+    return {t: "isAtLeast", v: 0};
+}
+
+function compare(a, b) {
+    const key_a = Object.keys(a);
+    const key_b = Object.keys(b);
+    if (key_a.length !== key_b.length) return false;
+    
+    for (const k of key_a) {
+        if (a[k] !== b[k]) return false;
+    }
+    return true;
+}
+
+function isLoopNonhalting(state, loopVar) {
+    const value = getValue(state, loopVar);
+    return value.t === "isEqualToSelf" || isGreaterThanZero(value);
+}
+
+// States updater
+// ================================================================
+
+function incInstr(value) {
+    if (value.t === "isEqualTo") {
+        return {t: "isEqualTo", v: value.v + 1};
+    }
+    else if (value.t === "isAtLeast") {
+        return {t: "isAtLeast", v: value.v + 1};
+    }
+    else {
+        // Incrementing a counter makes it def > 0
+        return {t: "isAtLeast", v: 1};
+    }
+}
+
+function decInstr(value) {
+    if (value.t === "isEqualTo") {
+        return {t: "isEqualTo", v: Math.max(value.v - 1, 0)};
+    }
+    else if (value.t === "isAtLeast") {
+        return {t: "isAtLeast", v: Math.max(value.v - 1, 0)};
+    }
+    else {
+        // Decrementing an unknown/positive counter makes it uncertain
+        return unknownValue();
+    }
+}
+
+function loopBody(state, bodyState, cannotSkipLoop) {
+    // If body can always terminate with "true", propagate upward
+    if (isUnknown(bodyState.def)) state.def = unknownValue();
+
+    const maxVarId = Math.max(state.eq.length, bodyState.eq.length);
+
+    for (let varId = 0; varId < maxVarId; varId++) {
+        const bodyValue = getValue(bodyState, varId);
+        // Ignore variables that remain unchanged in the body
+        if (bodyValue.t === "isEqualToSelf") continue;
+
+        // Check if loop body is always executed at least once
+        if (cannotSkipLoop) {
+            // Use loop body results directly
+            setValue(state, varId, bodyValue);
+        } else {
+            const headValue = getValue(state, varId);
+            const isTypeEqual = headValue.t === bodyValue.t;
+            // Set value to unknown if it may change
+            if (!isTypeEqual || headValue.t === "isEqualTo" && headValue.v !== bodyValue.v) {
+                setValue(state, varId, unknownValue());
+            }
+            else if (headValue.t === "isAtLeast") {
+                setValue(state, varId, {t: "isAtLeast", v: Math.min(headValue.v, bodyValue.v)});
+            }
+        }
+    }
+}
+
+// Analyzer
+// ================================================================
+
 export function analyzeLoop(program) {
     // Undefined program state is unknown
-    if (!program) return {eq: [], def: "true"};
+    if (!program) return {eq: [], def: unknownValue()};
 
     // State does not change by default
-    const state = {eq: [], def: "isEqualToSelf"};
+    const state = {eq: [], def: {t: "isEqualToSelf"}};
 
     for (const instr of program) {
         if (instr.type === "inc") {
-            // Incrementing a counter makes it def > 0
-            setValue(state, instr.var, "isGreaterThanZero");
+            const value = getValue(state, instr.var);
+
+            setValue(state, instr.var, incInstr(value));
         }
         else if (instr.type === "dec") {
+            const value = getValue(state, instr.var);
             // Cannot decrement a def-0 counter
-            if (getValue(state, instr.var) === "isZero") return null;
-            // Decrementing an unknown/positive counter makes it uncertain
-            setValue(state, instr.var, "true");
+            if (isZero(value)) return null;
+
+            setValue(state, instr.var, decInstr(value));
         }
         else if (instr.type === "while") {
             const loopVar = instr.var;
-            const loopValue = getValue(state, loopVar);
+            const headValue = getValue(state, loopVar);
 
             // Cannot execute a def-0 while-loop counter
-            if (loopValue === "isZero") return null;
+            if (isZero(headValue)) return null;
 
             // Analyze loop body independently
             const bodyState = analyzeLoop(instr.body);
-            if (bodyState === null || isLoopNonhalting(bodyState, loopVar)) return null;
+            if (bodyState === null || isLoopNonhalting(bodyState, instr.var)) return null;
+
             // Check if loop always repeat exactly once
-            if (loopValue === "isGreaterThanZero" && getValue(bodyState, loopVar) === "isZero") return null;
+            const bodyValue = getValue(bodyState, loopVar);
+            const cannotSkipLoop = isGreaterThanZero(headValue);
+            if (cannotSkipLoop && isZero(bodyValue)) return null;
 
-            // If body can always terminate with "true", propagate upward
-            if (bodyState.def === "true") state.def = "true";
-
-            const maxVarId = Math.max(state.eq.length, bodyState.eq.length);
-
-            for (let varId = 0; varId < maxVarId; varId++) {
-                const bodyValue = getValue(bodyState, varId);
-                // Ignore variables that remain unchanged in the body
-                if (bodyValue === "isEqualToSelf") continue;
-
-                // Check if loop body is always executed at least once
-                if (loopValue === "isGreaterThanZero") {
-                    // Use loop body results directly
-                    setValue(state, varId, bodyValue);
-                } else {
-                    const currValue = getValue(state, varId);
-                    // Set value to "true" if it may change
-                    if (bodyValue !== currValue) setValue(state, varId, "true");
-                }
-            }
-
+            // Merge current state and loop body state
+            loopBody(state, bodyState, cannotSkipLoop);
             // After loop completes, its counter is def 0
-            setValue(state, loopVar, "isZero");
+            setValue(state, loopVar, {t: "isEqualTo", v: 0});
         }
         else {
             throw new Error(`Unknown instruction: ${instr.type}`);
@@ -87,6 +165,9 @@ export function analyzeLoop(program) {
 
     return state;
 }
+
+// Filterer
+// ================================================================
 
 // Return true if while-loop is proven non-halting or equivalent
 export function filterLoop(program, loopVar) {

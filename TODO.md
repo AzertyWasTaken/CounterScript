@@ -14,33 +14,33 @@ This file is a shared task-board. When editing, only:
 
 ### BBCS(10) default
 
-- Total: 3683
-- Halted: 2319
-- Nonhalted: 1364
+- Total: 3108
+- Halted: 2142
+- Nonhalted: 966
 - Holdout: 0
 - Duration: 1.6s
 
 ### BBCS(11) default
 
-- Total: 25036
-- Halted: 14395
-- Nonhalted: 10590
-- Holdout: 51
-- Duration: 25s
+- Total: 20492
+- Halted: 12915
+- Nonhalted: 7530
+- Holdout: 47
+- Duration: 26s
 
 ## Enumeration
 
-- [x] Enumerate BBCS(11)
-- [x] Fix and improve root loops ending equivalence
-- [x] Avoid multiple `while #` in a row
-- [x] Add *ordered counters and while loops* pruning rule back
 - [x] Prune short loop tails
 - [x] Maximum counters count pruning
-- [x] Partial BBCS(12) enumeration
-- [x] Fix `isLoopNonhalting.js` bugs
-- [x] Fix `enumerate.js` bugs
-- [x] General equation solving system (merge `isLoopNonhalting.js`, `hasRowWhileVars.js` and `areVarsOrdered.js`) (decide `A++; A++; while A {while A {A--; B++;} while B {A++; A++; B--;} A--;}`)
-- [ ] `is equal to n` (use objects)
+- [x] Enumerate BBCS(12)
+- [x] Fix `isLoopNonhalting.js` and enumeration bugs
+- [x] Loop structure analyzer
+- [x] Switch to objects (analyzer)
+- [x] Create `is equal to n` type (analyzer)
+- [x] Create `is at least n` type (analyzer)
+- [ ] Loop var argument (is at least 1)
+- [ ] Merge analyzer with `areVarsOrdered.js`
+  - [ ] Use last loop history
 
 ### Optimize
 
@@ -48,24 +48,24 @@ This file is a shared task-board. When editing, only:
 - [x] Break down `enumerate.js` functions
 - [x] Base enumerator without nested generators
 - [x] TNF enumerator without nested generators
-- [ ] Memoize while loops halting
-- Each loop may have a `analysis` property with `type: <bool>`
+- [ ] Memoize while-loops states
+  - [ ] Each loop may have a `analysis` property with `type: state`
+  - [ ] Memoize only when the loop has no undefined values
+  - [ ] Restart loop analysis when a nested undefined loop body is generated
+  - [ ] `filterLoop` must take an analysis
+  - [ ] memoize function must take the whole loop
+  - [ ] program stack must have the parent loop
 
 ### Test & Documentation
 
 - [x] Enumerate comparator in `tester.js`
-- [x] Update `README.md` techniques list
-- [x] Improve `execute.js` readability
 - [x] Library module for counter methods
-- [x] Remove executes redundancy (remove generators and add next step function)
 - [x] Parsable area enum config
 - [x] Generalized scan programs function
-- [x] Revamp parser (with engine methods)
 - [x] Option to hide programs status in enumeration output
-- [x] Add a sections table
-- [x] Split `README.js` into a docs folder
+- [x] Split `README.js` into a docs folder & add a sections table
 - [x] Improve glossary
-- [x] Module for `nextState`
+- [x] Table of methods for `nextState`
 - [x] Maximum execution steps config in `main.js`
 - [x] Document to explain TNF
 - [x] Comment `Prune` methods
@@ -106,12 +106,10 @@ This file is a shared task-board. When editing, only:
 - [x] Show steps count
 - [x] Full speed execution
 - [x] Stop executing when while web page window is closed
-- [x] Module line numbers
-- [x] Module programs execution
-- [x] Module render counters
+- [x] Refractor main script
 - [ ] Add macros parser
-- [ ] Undo step
-  - [ ] Memory object
+- [ ] Undo step option
+  - [ ] States history object
 - [ ] Auto programs coloring
 - [ ] Color selected line
 

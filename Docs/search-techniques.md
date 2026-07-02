@@ -2,7 +2,7 @@
 
 During enumeration, this project reduces the search space and early-rejects candidates using four main ideas: **Equivalence**, **Reduction**, **Deciders** and **Accelerated Simulation**.
 
-> **Note**: brackets `()` are used just for highlighting changes. They have no effect on the program.
+> **Note**: Brackets `()` are used just for highlighting changes. They have no effect on the program.
 
 ## Equivalence Rules
 

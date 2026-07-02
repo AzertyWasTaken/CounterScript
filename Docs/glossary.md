@@ -3,7 +3,7 @@
 ## Core Concepts
 
 - **Busy Beaver**: For Turing machines, **BB(n)** is the maximum number of steps any n-state halting machine takes.
-  > **Note**: in this repo, BB(n) is referenced only for comparison.
+  > **Note**: In this repo, BB(n) is referenced only for comparison.
 
 - **Busy Beaver for CounterScript**: For CounterScript programs, **BBCS(n)** is the largest score a program of length **n** can have when it halts.
 
