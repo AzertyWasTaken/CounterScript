@@ -48,7 +48,7 @@ An **holdout** is an undecided program: we do not yet know if it halts or not.
 
 | BBCS(n) | Holdouts |
 | - | - |
-| 11 | 47 |
+| 11 | 35 |
 | 12 | ~~477~~ |
 | 13 | ~~> 535~~ |
 

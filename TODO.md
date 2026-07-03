@@ -14,19 +14,19 @@ This file is a shared task-board. When editing, only:
 
 ### BBCS(10) default
 
-- Total: 3108
-- Halted: 2142
-- Nonhalted: 966
+- Total: 3070
+- Halted: 2128
+- Nonhalted: 942
 - Holdout: 0
-- Duration: 1.6s
+- Duration: 1.7s
 
 ### BBCS(11) default
 
-- Total: 20492
-- Halted: 12915
-- Nonhalted: 7530
-- Holdout: 47
-- Duration: 26s
+- Total: 19812
+- Halted: 12585
+- Nonhalted: 7192
+- Holdout: 35
+- Duration: 27s
 
 ## Enumeration
 
@@ -38,9 +38,12 @@ This file is a shared task-board. When editing, only:
 - [x] Switch to objects (analyzer)
 - [x] Create `is equal to n` type (analyzer)
 - [x] Create `is at least n` type (analyzer)
-- [ ] Loop var argument (is at least 1)
+- [x] Add `isEqualToSelfAndIsGreaterThanZero`
+- [ ] Add `inc` key in `isEqualToSelf`
+- [ ] Add `dec` key in `isEqualToSelf`
+- [ ] Replace `isEqualToSelfAndIsGreaterThanZero` by a `atLeast` key in `isEqualToSelf`
 - [ ] Merge analyzer with `areVarsOrdered.js`
-  - [ ] Use last loop history
+  - [ ] Loop history and allowed vars list
 
 ### Optimize
 
