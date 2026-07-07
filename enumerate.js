@@ -4,11 +4,7 @@ import {execute, cloneStack, getFrame, getInstruction} from "./execute.js";
 import {Counters} from "./counters.js";
 import {Prune} from "./pruner.js";
 import {NextState} from "./nextState.js";
-
-export const CONFIG = {
-    MAX_LENGTH: 11,
-    MAX_STEPS: 100,
-}
+import {CONFIG} from "./main.js";
 
 // Generate instructions
 // ================================================================

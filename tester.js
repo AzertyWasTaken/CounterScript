@@ -75,11 +75,17 @@ function testAnalyzeLoop() {
     // Should NOT be pruned
     test(analyzeLoop, "A++; A++; B--;");
     test(analyzeLoop, "while A {A--;} A++; A++;");
-    test(analyzeLoop, "A++; while B {B--; A++;}");
+    test(analyzeLoop, "A++; A++; while B {B--; A++;}");
     test(analyzeLoop, "A++; B++; B++; while A {A--; C++;}");
     test(analyzeLoop, "A++; while A {while B {B--;} A--;}");
-    test(analyzeLoop, "while A {A--; B++; B++;} while B {A++; B--;}");
+    test(analyzeLoop, "A--; while B {B--; A--; A++; A++;}", 1);
+    test(analyzeLoop, "A++; while B {B--; A--; A++; A++;}", 1);
+    test(analyzeLoop, "A++; A++; B++; while A {A--; B++; B++;}");
+    test(analyzeLoop, "while A {A--; B++; B++;} while B {A++; B--;}", 0);
     test(analyzeLoop, "while A {A--; B++;} while B {A++; A++; B--;} A--;");
+    test(analyzeLoop, "while A {A--; B++;} while B {A++; A++; B--;} A--;", 0);
+    test(analyzeLoop, "while A {A--;} A++; A++; B++; while A {A--; B--;}", 0);
+    test(analyzeLoop, "A++; A++; while A {A--; B++;} while B {A++; A++; B--;} A--;", 0);
 
     // Should be pruned
     test(analyzeLoop, "while A {A--; B++;} A--;");

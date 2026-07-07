@@ -5,7 +5,7 @@ import {isLoopNonhalting} from "./isLoopNonhalting.js";
 import {areVarsOrdered} from "./areVarsOrdered.js";
 import {filterLoop} from "./analyzeLoop.js";
 import {scanVars, hasUndefinedLoop} from "./scanner.js";
-import {CONFIG} from "./enumerate.js";
+import {CONFIG} from "./main.js";
 import {unparse} from "./parser.js";
 
 // Check if a loop is unecessary nested

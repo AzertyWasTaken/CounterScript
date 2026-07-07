@@ -3,6 +3,14 @@ import {log} from "./log.js";
 import {enumerate} from "./enumerate.js";
 import {unparse, parseArea} from "./parser.js";
 
+// Config
+// ================================================================
+
+export const CONFIG = {
+    MAX_LENGTH: 10,
+    MAX_STEPS: 100,
+}
+
 const LOG = {
     CHAMPION: true,
     HALTED: false,
@@ -11,8 +19,11 @@ const LOG = {
     SHOW_STATUS: false
 }
 
-const AREA = "A+ wA{ A-";
+const AREA = "A+ A+";
 const AREA_ENABLED = false;
+
+// Initialize
+// ================================================================
 
 const count = {
     total: 0,
@@ -30,6 +41,9 @@ function logProgram(status, program, ...arg) {
     logArray.push(...arg);
     log(...logArray);
 }
+
+// Main function
+// ================================================================
 
 for (const [halted, program, state] of enumerate(AREA_ENABLED ? parseArea(AREA) : [])) {
     if (halted === true) {

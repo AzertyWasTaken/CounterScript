@@ -1,6 +1,6 @@
 "use strict";
 import {executeBasicInstr} from "./execute.js";
-import {CONFIG} from "./enumerate.js";
+import {CONFIG} from "./main.js";
 
 function maxVarsCount(length) {
     return Math.floor((length + 1) / 3);
