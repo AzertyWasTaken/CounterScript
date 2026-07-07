@@ -14,19 +14,19 @@ This file is a shared task-board. When editing, only:
 
 ### BBCS(10) default
 
-- Total: 3070
-- Halted: 2128
-- Nonhalted: 942
+- Total: 2872
+- Halted: 2120
+- Nonhalted: 752
 - Holdout: 0
 - Duration: 1.7s
 
 ### BBCS(11) default
 
-- Total: 19812
-- Halted: 12585
-- Nonhalted: 7192
-- Holdout: 35
-- Duration: 27s
+- Total: 18542
+- Halted: 12478
+- Nonhalted: 6057
+- Holdout: 7
+- Duration: 26s
 
 ## Enumeration
 
@@ -35,13 +35,15 @@ This file is a shared task-board. When editing, only:
 - [x] Enumerate BBCS(12)
 - [x] Fix `isLoopNonhalting.js` and enumeration bugs
 - [x] Loop structure analyzer
-- [x] Switch to objects (analyzer)
-- [x] Create `is equal to n` type (analyzer)
-- [x] Create `is at least n` type (analyzer)
-- [x] Add `isEqualToSelfAndIsGreaterThanZero`
-- [ ] Add `inc` key in `isEqualToSelf`
-- [ ] Add `dec` key in `isEqualToSelf`
-- [ ] Replace `isEqualToSelfAndIsGreaterThanZero` by a `atLeast` key in `isEqualToSelf`
+
+### Loop analyzer
+
+- [x] Switch to objects
+- [x] Create `is equal to n` type
+- [x] Create `is at least n` type
+- [x] Add `isEqualToSelfAndIsPositive`
+- [x] Add `inc` and `dec` keys in `isEqualToSelf`
+- [ ] Replace `isEqualToSelfAndIsPositive` by a `isPositive` boolean key in `isEqualToSelf`
 - [ ] Merge analyzer with `areVarsOrdered.js`
   - [ ] Loop history and allowed vars list
 
@@ -52,30 +54,30 @@ This file is a shared task-board. When editing, only:
 - [x] Base enumerator without nested generators
 - [x] TNF enumerator without nested generators
 - [ ] Memoize while-loops states
-  - [ ] Each loop may have a `analysis` property with `type: state`
-  - [ ] Memoize only when the loop has no undefined values
-  - [ ] Restart loop analysis when a nested undefined loop body is generated
-  - [ ] `filterLoop` must take an analysis
-  - [ ] memoize function must take the whole loop
-  - [ ] program stack must have the parent loop
 
-### Test & Documentation
+### Memoize loops
 
-- [x] Enumerate comparator in `tester.js`
-- [x] Library module for counter methods
+- [ ] Program stack must store the parent loop
+- [ ] Each loop may have a `analysis` property with `type: state`
+- [ ] New function `isLoopValid` that check if a program is valid
+- [ ] Memoized `filterLoop` function must take the whole loop
+- [ ] Memoize only when the loop has no undefined values
+- [ ] Restart loop analysis when a nested undefined loop body is generated
+
+### Test & documentation
+
 - [x] Parsable area enum config
-- [x] Generalized scan programs function
 - [x] Option to hide programs status in enumeration output
 - [x] Split `README.js` into a docs folder & add a sections table
 - [x] Improve glossary
-- [x] Table of methods for `nextState`
-- [x] Maximum execution steps config in `main.js`
 - [x] Document to explain TNF
 - [x] Comment `Prune` methods
 - [x] Split `getProgData.js`
 - [x] Revamp `tester.js`
 - [x] Explain how stacks work in TNF document
 - [x] Comment `analyzeLoop.js`
+- [x] Group configs in the same file
+- [ ] Array bulk test
 - [ ] Undefined loop parser `while # {...}`
 - [ ] Function to reuse call stack appends from `execute.js`
 - [ ] Function to append instructions
@@ -95,6 +97,8 @@ This file is a shared task-board. When editing, only:
 - Partial area enumeration (split while-loop and other instr)
 - Just-in-time `areVarsOrdered`
 - Just-in-time `hasRowWhileVars`
+- Enumerate comparator in `tester.js`
+- Maximum execution steps config in `main.js`
 
 ## Website
 
