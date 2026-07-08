@@ -5,10 +5,9 @@
  * Abstract values represent possible runtime states:
  * - t="isEqualTo", v=<int>: counter is def equal to `int`
  * - t="isAtLeast", v=<int>: counter is at least `int`
- * - t="isEqualToSelf", d=<int>, i=<int>:
- *   counter value decreases by `int` then increases by `int`
- * - t="isEqualToSelfAndIsPositive":
- *   counter value does not change and is greater than 0
+ * - t="isEqualToSelf", d=<int>, i=<int> p=<bool>:
+ *   counter value decreases by `int` then increases by `int`,
+ *   if p is true, self is positive
  * 
  * Return analysis result, or null if:
  * - Proven non-halting
@@ -42,8 +41,8 @@ function isPositive(value) {
 function getRange(value) {
     if (value.t === "isAtLeast") return value.v;
     if (value.t === "isEqualTo") return value.v;
-    if (value.t === "isEqualToSelf") return value.i;
-    if (value.t === "isEqualToSelfAndIsPositive") return 1;
+    if (value.t === "isEqualToSelf") return value.i
+    + (value.p && value.d === 0 ? 1 : 0);
 }
 
 // Check if `value` can reach 0 when iterated
@@ -75,8 +74,7 @@ function loopRepeatCount(headValue, bodyValue) {
 
 // Check if `value` cannot change the value
 function isStatic(value) {
-    return value.t === "isEqualToSelf" && value.d === 0 && value.i === 0
-    || value.t === "isEqualToSelfAndIsPositive";
+    return value.t === "isEqualToSelf" && value.d === 0 && value.i === 0;
 }
 
 // States updater
@@ -103,12 +101,9 @@ function basicInstr(value, d, i) {
         return {
             t: "isEqualToSelf",
             d: value.d + Math.max(d - value.i, 0),
-            i: Math.max(value.i - d, 0) + i
+            i: Math.max(value.i - d, 0) + i,
+            p: value.p
         };
-    }
-
-    if (value.t === "isEqualToSelfAndIsPositive") {
-        return {t: "isEqualToSelf", d: d, i: i};
     }
 }
 
@@ -152,7 +147,7 @@ function loopInstr(headValue, bodyValue, repeatCount) {
 }
 
 function loopBody(state, bodyState, repeatCount) {
-    // If body can always terminate with "true", propagate upward (should ignore other keys)
+    // Default value is unknown if a loop body is unknown (ignore other keys)
     if (bodyState.def.t !== "isEqualToSelf") state.def = bodyState.def;
 
     const maxVarId = Math.max(state.eq.length, bodyState.eq.length);
@@ -173,9 +168,9 @@ export function analyzeLoop(program, whileVar) {
     if (!program) return {eq: [], def: {t: "isAtLeast", v: 0}};
 
     // State does not change by default
-    const state = {eq: [], def: {t: "isEqualToSelf", d: 0, i: 0}};
+    const state = {eq: [], def: {t: "isEqualToSelf", d: 0, i: 0, p: false}};
     if (Number.isInteger(whileVar))
-        setValue(state, whileVar, {t: "isEqualToSelfAndIsPositive"});
+        setValue(state, whileVar, {t: "isEqualToSelf", d: 0, i: 0, p: true});
 
     for (const instr of program) {
         if (instr.type === "inc") {

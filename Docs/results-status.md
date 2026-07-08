@@ -11,7 +11,9 @@ This section summarizes the **Busy Beaver** results for **CounterScript** (BBCS)
 
 ## Lower bounds
 
-For readability purposes, sequences containing `#++` repeated `n` times in a row are replaced by `#+=n`.
+A list of lower bounds found by my script. For better lower bounds including designed programs, check the CounterScript page on the Busy Beaver wiki: <https://wiki.bbchallenge.org/wiki/CounterScript#BBCS>.
+
+> **Note**: for readability purposes, sequences containing `#++` repeated `n` times in a row are replaced by `#+=n`.
 
 | BBCS(n) | Value | Champion |
 | - | - | - |
@@ -48,8 +50,8 @@ An **holdout** is an undecided program: we do not yet know if it halts or not.
 
 | BBCS(n) | Holdouts |
 | - | - |
-| 11 | 7 |
-| 12 | 169 |
+| 11 | 4 |
+| 12 | 150 |
 | 13 | ~~> 535~~ |
 
 For the detailed list, see the repo’s holdout artifacts (tracked in the `Holdouts/` directory).
