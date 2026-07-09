@@ -1,45 +1,14 @@
 "use strict";
-import {log} from "./log.js";
-import {parse, unparse} from "./parser.js";
+import {log} from "../log.js";
+import {parse, unparse} from "../parser.js";
 import {Counters} from "./counters.js";
-
-// Helpers
-// ================================================================
-
-export function getCtx(program) {
-    return {vars: [], steps: 0, stack: [{block: program, pc: 0}]};
-}
+import {Stack} from "./exeStack.js";
 
 // Mutate a to a.intersection(b)
 function intersect(a, b) {
     a.forEach((i) => {
         if (!b.has(i)) a.delete(i);
     })
-}
-
-// Clone every keys of `stack` items except block
-export function cloneStack(stack) {
-    const clone = [];
-
-    for (const item of stack) {
-        clone.push({
-            block: item.block,
-            pc: item.pc,
-            loopVar: item.loopVar,
-            posVars: new Set(item.posVars),
-            prevVars: [...item.prevVars],
-        });
-    }
-
-    return clone;
-}
-
-export function getFrame(ctx) {
-    return ctx.stack.at(-1);
-}
-
-export function getInstruction(frame) {
-    return frame.block[frame.pc];
 }
 
 // Deciders
@@ -81,15 +50,13 @@ function handleProgramEnd(config, ctx, frame) {
                 return false;
 
         // Go to next iteration
-        frame.pc = 0;
-        frame.posVars = Counters.getPosSet(ctx.vars);
-        frame.prevVars = [...ctx.vars];
+        Stack.updateFrame(frame, ctx.vars);
     } else {
         // End the loop
         ctx.stack.pop();
         if (ctx.stack.length === 0) return true;
 
-        const prevFrame = getFrame(ctx);
+        const prevFrame = Stack.getFrame(ctx);
         prevFrame.pc++;
 
         if (prevFrame.posVars)
@@ -105,19 +72,12 @@ function executeWhileInstruction(config, ctx, frame, instr) {
 
     if (!instr.body) return undefined;
 
-    ctx.stack.push({
-        block: instr.body,
-        pc: 0,
-        loopVar: instr.var,
-        posVars: Counters.getPosSet(ctx.vars),
-        prevVars: [...ctx.vars],
-    });
-
+    ctx.stack.push(Stack.newFrame(instr.body, instr.var, ctx.vars));
     // Keep running with new frame
     return true;
 }
 
-export function executeBasicInstruction(vars, instr, frame = {}) {
+export function executeBasicInstr(vars, instr, frame = {}) {
     if (instr.type === "inc") {
         Counters.inc(vars, instr.var);
     }
@@ -138,14 +98,13 @@ export function executeBasicInstruction(vars, instr, frame = {}) {
 // ================================================================
 
 export function executeNext(config, ctx) {
-    // log("State:", ctx);
-    const frame = getFrame(ctx);
+    const frame = Stack.getFrame(ctx);
 
     // Check if pc have reached the end of the program
     if (frame.pc >= frame.block.length) {
         return handleProgramEnd(config, ctx, frame);
     } else {
-        const instr = getInstruction(frame);
+        const instr = Stack.getInstruction(frame);
 
         // Execute the instruction
         if (instr.type === "while") {
@@ -154,7 +113,7 @@ export function executeNext(config, ctx) {
             // Skip loop if it do not run
             if (status === false) frame.pc++;
         } else {
-            executeBasicInstruction(ctx.vars, instr, frame);
+            executeBasicInstr(ctx.vars, instr, frame);
             frame.pc++;
         }
 
@@ -165,7 +124,6 @@ export function executeNext(config, ctx) {
 // Execution mutates `ctx`
 // Increment step counts when a while-loop iteration is completed
 export function execute(config, ctx) {
-    // log("Init:", ctx.stack);
     if (ctx.stack.length === 0) return [true, ctx];
 
     while (ctx.steps < config.maxSteps) {
@@ -179,5 +137,5 @@ export function execute(config, ctx) {
 }
 
 export function run(program, config = {maxSteps: 10000, deciders: false}) {
-    return execute(config, getCtx(program));
+    return execute(config, Stack.getCtx(program));
 }

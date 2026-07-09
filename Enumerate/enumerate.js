@@ -1,10 +1,11 @@
 ﻿"use strict";
-import {log} from "./log.js";
-import {execute, cloneStack, getFrame, getInstruction} from "./execute.js";
-import {Counters} from "./counters.js";
+import {log} from "../log.js";
+import {Counters} from "../Execute/counters.js";
 import {Prune} from "./pruner.js";
 import {NextState} from "./nextState.js";
-import {CONFIG} from "./main.js";
+import {Stack} from "../Execute/exeStack.js";
+import {CONFIG} from "../main.js";
+import {execute} from "../Execute/execute.js";
 
 // Generate instructions
 // ================================================================
@@ -73,23 +74,11 @@ function* genWhileLoop(stack, state) {
 // Run loop body
 // ================================================================
 
-// Create a new `callStack` frame so the interpreter can execute the loop.
-function appCallStack(callStack, frame, state) {
-    callStack.push({
-        block: frame.program,
-        pc: 0,
-        loopVar: frame.loopVar,
-        // Cache positional infos used by deciders.
-        posVars: Counters.getPosSet(state.vars),
-        prevVars: [...state.vars]
-    });
-}
-
 function exeLoop(frame, state) {
-    const callStack = cloneStack(frame.callStack);
+    const callStack = Stack.cloneStack(frame.callStack);
 
     if (!Counters.isZero(state.vars, frame.loopVar))
-        appCallStack(callStack, frame, state);
+        callStack.push(Stack.newFrame(frame.program, frame.loopVar, state.vars));
 
     // Execute the loop if the loop condition still holds.
     return execute({maxSteps: CONFIG.MAX_STEPS, deciders: true}, {
@@ -115,7 +104,7 @@ function* runLoopBody(stack, state) {
     else if (halted === undefined) {
         // Execution is "in progress" inside the stack: expand the next loop.
         // Instruction that is pointed to by the top frame's pc.
-        const loopInstr = getInstruction(getFrame(exeState));
+        const loopInstr = Stack.getInstruction(Stack.getFrame(exeState));
         loopInstr.body = [];
 
         stack.push({
@@ -132,7 +121,11 @@ function* runLoopBody(stack, state) {
     else {
         // Terminal case: no more instructions left; yield final program/state.
         if (!Prune.holdout(stack)) {
-            yield* yieldProgram(halted, stack[0].program, NextState.holdout(state, exeState));
+            yield* yieldProgram(
+                halted,
+                stack[0].program,
+                NextState.holdout(state, exeState)
+            );
         }
     }
 

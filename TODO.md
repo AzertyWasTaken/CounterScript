@@ -14,18 +14,18 @@ This file is a shared task-board. When editing, only:
 
 ### BBCS(10) default
 
-- Total: 2872
+- Total: 2850
 - Halted: 2120
-- Nonhalted: 752
+- Nonhalted: 730
 - Holdout: 0
 - Duration: 1.7s
 
 ### BBCS(11) default
 
-- Total: 18542
+- Total: 18391
 - Halted: 12478
-- Nonhalted: 6057
-- Holdout: 7
+- Nonhalted: 5909
+- Holdout: 4
 - Duration: 26s
 
 ## Enumeration
@@ -43,7 +43,8 @@ This file is a shared task-board. When editing, only:
 - [x] Create `is at least n` type
 - [x] Add `isEqualToSelfAndIsPositive`
 - [x] Add `inc` and `dec` keys in `isEqualToSelf`
-- [ ] Replace `isEqualToSelfAndIsPositive` by a `isPositive` boolean key in `isEqualToSelf`
+- [x] Replace `isEqualToSelfAndIsPositive` by a `isPositive` boolean key in `isEqualToSelf`
+- [ ] Decide multiperiod cyclers
 - [ ] Merge analyzer with `areVarsOrdered.js`
   - [ ] Loop history and allowed vars list
 
@@ -77,6 +78,7 @@ This file is a shared task-board. When editing, only:
 - [x] Explain how stacks work in TNF document
 - [x] Comment `analyzeLoop.js`
 - [x] Group configs in the same file
+- [ ] Refractor files and add folders
 - [ ] Array bulk test
 - [ ] Undefined loop parser `while # {...}`
 - [ ] Function to reuse call stack appends from `execute.js`
@@ -84,21 +86,15 @@ This file is a shared task-board. When editing, only:
 
 ### E/Ideas
 
-- Decide multiperiod cyclers
-- `enumerate_TNFnonRecursiveGen`
-- Limit counters count
 - `isInLoop` argument for pruning functions
 - `isLoopNonHalting` auto test
 - Early detect programs with useless counters (each must have inc, dec and while loop)
 - Remove equivalence `A++; while A {while A {...} ... w/out A++}`
 - Remove equivalence `while A {A--; B++;} while B {A++; A++; B--;}`
-- head-body-tail equation storage trio
-- Refractor files and add folders
 - Partial area enumeration (split while-loop and other instr)
 - Just-in-time `areVarsOrdered`
 - Just-in-time `hasRowWhileVars`
 - Enumerate comparator in `tester.js`
-- Maximum execution steps config in `main.js`
 
 ## Website
 

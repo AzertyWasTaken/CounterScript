@@ -1,6 +1,6 @@
 "use strict";
 import {log} from "./log.js";
-import {enumerate} from "./enumerate.js";
+import {enumerate} from "./Enumerate/enumerate.js";
 import {unparse, parseArea} from "./parser.js";
 
 // Config

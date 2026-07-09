@@ -1,9 +1,10 @@
 "use strict";
 import {log, strArray, strObject} from "../log.js"
 import {parse} from "../parser.js";
-import {executeNext, getCtx, getFrame, getInstruction} from "../execute.js";
+import {executeNext} from "../Execute/execute.js";
 import {initLineNumbers} from "./lineNumbers.js";
 import {renderCounters} from "./renderCounters.js";
+import {Stack} from "../Execute/exeStack.js";
 
 const el = {
     btnReset: document.getElementById("btn-reset"),
@@ -150,7 +151,7 @@ function compile() {
 
     parsedProgram = parsed;
 
-    ctx = getCtx(parsedProgram);
+    ctx = Stack.getCtx(parsedProgram);
     halted = false;
     steps = 0;
 
@@ -162,8 +163,7 @@ function compile() {
 function nextStep() {
     let res;
     while (res !== true) {
-        const frame = getFrame(ctx);
-        const instr = getInstruction(frame);
+        const instr = Stack.getInstruction(Stack.getFrame(ctx));
 
         res = executeNext(config, ctx);
         if (instr && instr.type !== "while") break;

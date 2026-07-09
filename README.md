@@ -9,6 +9,10 @@ This project studies the Busy Beaver function for **CounterScript**, a minimal c
 
 > **Note**: some informations may be outdated: feel free to fix them if you find any.
 
+## Wiki page
+
+- [Busy Beaver wiki page](https://wiki.bbchallenge.org/wiki/CounterScript)
+
 ## Documentation
 
 - [Glossary](docs/glossary.md)

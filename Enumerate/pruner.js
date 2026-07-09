@@ -1,12 +1,11 @@
 "use strict";
-import {log} from "./log.js";
-import {Counters} from "./counters.js";
+import {Counters} from "../Execute/counters.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
 import {areVarsOrdered} from "./areVarsOrdered.js";
 import {filterLoop} from "./analyzeLoop.js";
 import {scanVars, hasUndefinedLoop} from "./scanner.js";
-import {CONFIG} from "./main.js";
-import {unparse} from "./parser.js";
+import {CONFIG} from "../main.js";
+// Methods to prune programs during or after enumeration
 
 // Check if a loop is unecessary nested
 function isLoopNested(body) {

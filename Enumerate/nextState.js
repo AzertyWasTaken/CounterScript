@@ -1,6 +1,7 @@
 "use strict";
-import {executeBasicInstr} from "./execute.js";
-import {CONFIG} from "./main.js";
+import {executeBasicInstr} from "../Execute/execute.js";
+import {CONFIG} from "../main.js";
+// Methods to update enumeration state
 
 function maxVarsCount(length) {
     return Math.floor((length + 1) / 3);
