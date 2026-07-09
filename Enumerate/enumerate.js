@@ -1,11 +1,11 @@
 ﻿"use strict";
 import {log} from "../log.js";
-import {Counters} from "../Execute/counters.js";
+import {CONFIG} from "../main.js";
 import {Prune} from "./pruner.js";
 import {NextState} from "./nextState.js";
-import {Stack} from "../Execute/exeStack.js";
-import {CONFIG} from "../main.js";
 import {execute} from "../Execute/execute.js";
+import {Stack} from "../Execute/exeStack.js";
+import {Counters} from "../Execute/counters.js";
 
 // Generate instructions
 // ================================================================
