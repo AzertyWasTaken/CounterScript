@@ -3,23 +3,6 @@ import {Counters} from "./counters.js";
 // Methods related to execution stack and frames
 
 export const Stack = {
-    // Clone every keys of `stack` items except block
-    cloneStack(stack) {
-        const clone = [];
-
-        for (const item of stack) {
-            clone.push({
-                block: item.block,
-                pc: item.pc,
-                loopVar: item.loopVar,
-                posVars: new Set(item.posVars),
-                prevVars: [...item.prevVars],
-            });
-        }
-
-        return clone;
-    },
-
     getCtx(program) {
         return {
             vars: [],
@@ -36,6 +19,25 @@ export const Stack = {
         return frame.block[frame.pc];
     },
 
+    // Clone every keys of `stack` items except block
+    cloneStack(stack) {
+        const clone = [];
+
+        for (const item of stack) {
+            clone.push({
+                block: item.block,
+                pc: item.pc,
+                loopVar: item.loopVar,
+                posVars: new Set(item.posVars),
+                prevVars: [...item.prevVars],
+                prevPrevVars: item.prevPrevVars === null
+                ? null : [...item.prevPrevVars],
+            });
+        }
+
+        return clone;
+    },
+
     // New frame to append when a loop is executed
     newFrame(program, loopVar, vars) {
         return {
@@ -43,7 +45,8 @@ export const Stack = {
             pc: 0,
             loopVar: loopVar,
             posVars: Counters.getPosSet(vars),
-            prevVars: [...vars]
+            prevVars: [...vars],
+            prevPrevVars: null
         };
     },
 
@@ -51,6 +54,7 @@ export const Stack = {
     updateFrame(frame, vars) {
         frame.pc = 0;
         frame.posVars = Counters.getPosSet(vars);
+        frame.prevPrevVars = frame.prevVars;
         frame.prevVars = [...vars];
     }
 }

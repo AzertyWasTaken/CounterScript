@@ -1,6 +1,7 @@
 "use strict";
 import {log} from "../log.js";
 import {parse, unparse} from "../parser.js";
+import {isTransCycler} from "./decider.js";
 import {Counters} from "./counters.js";
 import {Stack} from "./exeStack.js";
 
@@ -9,28 +10,6 @@ function intersect(a, b) {
     a.forEach((i) => {
         if (!b.has(i)) a.delete(i);
     })
-}
-
-// Deciders
-// ================================================================
-
-function isTransCycler(currVars, prevVars, posVars) {
-    const maxLength = Math.max(currVars.length, prevVars.length);
-
-    for (let i = 0; i < maxLength; i++) {
-        const currVal = Counters.get(currVars, i);
-        const prevVal = Counters.get(prevVars, i);
-
-        if (posVars.has(i)) {
-            // Other variables must not decrease
-            if (currVal < prevVal) return false;
-        } else {
-            // Variables that became zero must be equal
-            if (currVal !== prevVal) return false;
-        }
-    }
-
-    return true;
 }
 
 // Execute instructions
@@ -45,9 +24,10 @@ function handleProgramEnd(config, ctx, frame) {
         && !Counters.isZero(ctx.vars, frame.loopVar)
     ) {
         // Cycle detection (only if enabled)
-        if (config.deciders)
-            if (isTransCycler(ctx.vars, frame.prevVars, frame.posVars))
+        if (config.deciders) {
+            if (isTransCycler(ctx.vars, frame.prevVars, frame.prevPrevVars, frame.posVars))
                 return false;
+        }
 
         // Go to next iteration
         Stack.updateFrame(frame, ctx.vars);
