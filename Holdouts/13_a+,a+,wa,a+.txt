@@ -1,75 +1,15 @@
-A++; A++; while A {A++; A++; A++; while A {A--; B++;} while B {A++; B--;} A--;}
-A++; A++; while A {A++; A++; B--; while A {A--; B++;} while B {A++; B--;} A--;}
-A++; A++; while A {A++; A++; B++; while A {A--; B++;} while B {A++; B--;} A--;}
-A++; A++; while A {A++; A++; while A {A--; B++;} A++; while B {A++; B--;} A--;}
-A++; A++; while A {A++; A++; while A {A--; B++;} B++; while B {A++; B--;} A--;}
-A++; A++; while A {A++; A++; while A {A--; B++;} while B {A++; A++; B--;} A--;}
-A++; A++; while A {A++; A++; while A {A--; B++;} while B {A++; B--;} A--; B++;}
-A++; A++; while A {A++; A++; while A {A--; B++;} while B {while B {A++; B--;} A--;}}
-A++; A++; while A {A++; A++; while A {A--; B++; B++;} while B {A++; B--;} A--;}
-A++; A++; while A {A++; B--; B++; while A {A--; B++;} while B {A++; B--;} A--;}
-A++; A++; while A {A++; B--; while A {A--; B++;} A++; while B {A++; B--;} A--;}
-A++; A++; while A {A++; B--; while A {A--; B++;} B++; while B {A++; B--;} A--;}
-A++; A++; while A {A++; B--; while A {A--; B++;} while B {A++; A++; B--;} A--;}
-A++; A++; while A {A++; B--; while A {A--; B++; B++;} while B {A++; B--;} A--;}
-A++; A++; while A {A++; B++; B++; while A {A--; B++;} while B {A++; B--;} A--;}
-A++; A++; while A {A++; B++; while A {A--; B++;} A++; while B {A++; B--;} A--;}
-A++; A++; while A {A++; B++; while A {A--; B++;} B++; while B {A++; B--;} A--;}
-A++; A++; while A {A++; B++; while A {A--; B++;} while B {A++; A++; B--;} A--;}
-A++; A++; while A {A++; B++; while A {A--; B++;} while B {A++; B--;} A--; B++;}
-A++; A++; while A {A++; B++; while A {A--; B++;} while B {while B {A++; B--;} A--;}}
-A++; A++; while A {A++; B++; while A {A--; B++; B++;} while B {A++; B--;} A--;}
 A++; A++; while A {A++; B++; while A {A--; C++;} while B {B--; while C {A++; C--;}}}
-A++; A++; while A {A++; B++; while B {A--; while B {B--; C++;}} while C {B++; C--;}}
-A++; A++; while A {A++; B++; while B {A++; B--; C++;} A--; while C {B++; C--;}}
 A++; A++; while A {A++; B++; while B {A++; B--; C++;} while C {A--; B++; C--;}}
-A++; A++; while A {A++; B++; while B {B--; C++;} while C {A--; while C {B++; C--;}}}
-A++; A++; while A {A++; B++; while B {B--; C++;} while C {A++; B++; C--;} A--;}
 A++; A++; while A {A++; B++; while B {B--; while A {A--; C++;}} while C {A++; C--;}}
 A++; A++; while A {A++; B++; while B {B--; while A {A--; C++;} while C {A++; C--;}}}
 A++; A++; while A {A++; B++; while B {while A {A--; B--; C++;} while C {A++; C--;}}}
-A++; A++; while A {A++; B++; while B {while A {A--; B++;} while B {A++; B--;}} A--;}
-A++; A++; while A {A++; B++; while B {while A {A--; B++;} while B {A++; B--;} A--;}}
 A++; A++; while A {A++; B++; while B {while A {A--; C++;} while C {A++; B--; C--;}}}
-A++; A++; while A {A++; while A {A--; B--; B++; B++;} while B {A++; B--;} A--;}
-A++; A++; while A {A++; while A {A--; B++;} A++; A++; while B {A++; B--;} A--;}
-A++; A++; while A {A++; while A {A--; B++;} A++; B++; while B {A++; B--;} A--;}
-A++; A++; while A {A++; while A {A--; B++;} A++; while B {A++; A++; B--;} A--;}
-A++; A++; while A {A++; while A {A--; B++;} A++; while B {A++; B--;} A--; B++;}
-A++; A++; while A {A++; while A {A--; B++;} A++; while B {while B {A++; B--;} A--;}}
-A++; A++; while A {A++; while A {A--; B++;} B--; while B {A++; A++; B--;} A--;}
-A++; A++; while A {A++; while A {A--; B++;} B++; B++; while B {A++; B--;} A--;}
-A++; A++; while A {A++; while A {A--; B++;} B++; while B {A++; A++; B--;} A--;}
-A++; A++; while A {A++; while A {A--; B++;} B++; while B {A++; B--;} A--; B++;}
-A++; A++; while A {A++; while A {A--; B++;} B++; while B {while B {A++; B--;} A--;}}
-A++; A++; while A {A++; while A {A--; B++;} while B {A--; A++; A++; B--;} A--;}
-A++; A++; while A {A++; while A {A--; B++;} while B {A++; A++; A++; B--;} A--;}
-A++; A++; while A {A++; while A {A--; B++;} while B {A++; A++; B--;} A--; A--;}
-A++; A++; while A {A++; while A {A--; B++;} while B {A++; A++; B--;} A--; B++;}
-A++; A++; while A {A++; while A {A--; B++;} while B {A++; B--;} A--; B++; B++;}
-A++; A++; while A {A++; while A {A--; B++;} while B {A++; while B {A++; B--;}} A--;}
-A++; A++; while A {A++; while A {A--; B++;} while B {A++; while B {A++; B--;} A--;}}
 A++; A++; while A {A++; while A {A--; B++;} while B {B--; while C {A++; C--;} C++;}}
-A++; A++; while A {A++; while A {A--; B++;} while B {B++; while B {A++; B--;}} A--;}
-A++; A++; while A {A++; while A {A--; B++;} while B {B++; while B {A++; B--;} A--;}}
-A++; A++; while A {A++; while A {A--; B++;} while B {while B {A++; A++; B--;} A--;}}
-A++; A++; while A {A++; while A {A--; B++;} while B {while B {A++; B--;} A--;} B++;}
-A++; A++; while A {A++; while A {A--; B++;} while B {while B {A++; B--;} A++;} A--;}
-A++; A++; while A {A++; while A {A--; B++;} while B {while C {A++; C--;} B--; C++;}}
-A++; A++; while A {A++; while A {A--; B++; B++;} A++; while B {A++; B--;} A--;}
-A++; A++; while A {A++; while A {A--; B++; B++;} B--; while B {A++; B--;} A--;}
-A++; A++; while A {A++; while A {A--; B++; B++;} B++; while B {A++; B--;} A--;}
-A++; A++; while A {A++; while A {A--; B++; B++;} while B {A++; A++; B--;} A--;}
-A++; A++; while A {A++; while A {A--; B++; B++;} while B {A++; B--;} A--; A--;}
-A++; A++; while A {A++; while A {A--; B++; B++;} while B {A++; B--;} A--; B++;}
-A++; A++; while A {A++; while A {A--; B++; B++;} while B {while B {A++; B--;} A--;}}
-A++; A++; while A {A++; while A {A--; B++; B++; B++;} while B {A++; B--;} A--;}
+A++; A++; while A {A++; while A {A--; B++;} while B {while C {A++; B--; C--;} C++;}}
 A++; A++; while A {A++; while A {A--; B++; C++;} while B {B--; while C {A++; C--;}}}
 A++; A++; while A {A++; while A {A--; B++; C++;} while C {C--; while B {A++; B--;}}}
+A++; A++; while A {A++; while A {A--; while A {A--; B++;} while B {A++; A++; B--;}}}
+A++; A++; while A {A++; while A {A--; while A {A--; B++; B++;} while B {A++; B--;}}}
 A++; A++; while A {A++; while A {A--; while B {B--; C++;} B++;} while C {A++; C--;}}
-A++; A++; while A {A++; while A {A++; while A {A--; B++;}} while B {A++; B--;} A--;}
-A++; A++; while A {A++; while A {B++; while A {A--; B++;}} while B {A++; B--;} A--;}
-A++; A++; while A {A++; while A {while A {A--; B++;} B++;} while B {A++; B--;} A--;}
-A++; A++; while A {A++; while A {while A {A--; B++;} while B {A++; A++; B--;} A--;}}
-A++; A++; while A {A++; while A {while A {A--; B++; B++;} while B {A++; B--;} A--;}}
-A++; A++; while A {A++; while A {while B {B--; C++;} A--; B++;} while C {A++; C--;}}
+A++; A++; while A {A++; while A {while A {A--; B++;} B--; while B {A++; A++; B--;}}}
+A++; A++; while A {A++; while A {while B {A--; B--; C++;} B++;} while C {A++; C--;}}

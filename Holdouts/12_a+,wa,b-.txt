@@ -1,3 +1,1 @@
-A++; while A {B--; B++; B++; B++; while A {A--; B--;} while B {A++; B--;}}
 A++; while A {B--; C++; while C {A++; B++; C--;} while B {A--; B--; C++;}}
-A++; while A {B--; while A {A--; B++;} A++; A++; A++; while B {A--; B--;}}
