@@ -20,6 +20,17 @@ function encodeInstr(obj) {
 }
 
 export const NextState = {
+    default(defArea) {
+        return {
+            vars: [],
+            steps: 0,
+            progLength: 0,
+            maxVar: 0,
+            minInstr: 0,
+            area: defArea
+        };
+    },
+
     basicInstr(state, instr) {
         return {
             ...state,

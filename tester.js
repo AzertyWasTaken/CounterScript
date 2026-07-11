@@ -1,10 +1,10 @@
 "use strict";
 import {log} from "./log.js";
-import {analyzeLoop as backwardAnalyzeLoop} from "./isLoopNonhalting.js";
 import {parse, unparse, parseArea} from "./parser.js";
-import {run, execute} from "./execute.js";
-import {areVarsOrdered} from "./areVarsOrdered.js"
-import {analyzeLoop} from "./analyzeLoop.js";
+import {run, execute} from "./Execute/execute.js";
+import {analyzeLoop as backwardAnalyzeLoop} from "./Enumerate/isLoopNonhalting.js";
+import {areVarsOrdered} from "./Enumerate/areVarsOrdered.js"
+import {analyzeLoop} from "./Enumerate/analyzeLoop.js";
 
 // Helper functions
 // ================================================================

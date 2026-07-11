@@ -200,13 +200,6 @@ export function enumerate(area = []) {
             loopVar: null,
             callStack: null
         }],
-        {
-            vars: [],
-            steps: 0,
-            progLength: 0,
-            maxVar: 0,
-            minInstr: 0,
-            area: area
-        }
+        NextState.default(area)
     );
 }
