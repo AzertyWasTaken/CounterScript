@@ -2,7 +2,6 @@
 import {log} from "./log.js";
 import {parse, unparse, parseArea} from "./parser.js";
 import {run, execute} from "./Execute/execute.js";
-import {analyzeLoop as backwardAnalyzeLoop} from "./Enumerate/isLoopNonhalting.js";
 import {areVarsOrdered} from "./Enumerate/areVarsOrdered.js"
 import {analyzeLoop} from "./Enumerate/analyzeLoop.js";
 
@@ -10,57 +9,14 @@ import {analyzeLoop} from "./Enumerate/analyzeLoop.js";
 // ================================================================
 
 // Quick test for functions that take a program as its first argument
-function test(callback, program, ...arg) {
-    log(callback(parse(program)[0], ...arg));
+function test(callback, progList) {
+    for (const [program, ...arg] of progList) {
+        log(callback(parse(program)[0], ...arg));
+    }
 }
 
 // Tester functions
 // ================================================================
-
-function testBackwardAnalyzeLoop() {
-    // Halting loops
-    test(backwardAnalyzeLoop, "A++; while A {A--; B--;}", 1);
-    test(backwardAnalyzeLoop, "A--; while B {A++; B--;}", 0);
-    test(backwardAnalyzeLoop, "A--; B++; while B {B--;}", 0);
-    test(backwardAnalyzeLoop, "A--; B--; while B {B--; A++;} B++;", 0);
-
-    // Fixed loops
-    test(backwardAnalyzeLoop, "A++; A++; B++;", 2);
-    test(backwardAnalyzeLoop, "while B {A++; B--;} while A {A--; B++;}", 2);
-
-    // Nonhalting loops
-    test(backwardAnalyzeLoop, "A++; A++;", 0);
-    test(backwardAnalyzeLoop, "A++; B--; B++; B++;", 1);
-    test(backwardAnalyzeLoop, "A++; while A {A--; B++;}", 1);
-    test(backwardAnalyzeLoop, "A++; B--; while A {A--; B++; B++;}", 1);
-    test(backwardAnalyzeLoop, "A--; B++; while B {A++; B--;}", 0);
-    test(backwardAnalyzeLoop, "A--; B++; C++; while B {A++; B--;} B++;", 0);
-    test(backwardAnalyzeLoop, "A++; while A {A--; B++;} while B {A++; B--;}", 0);
-    test(backwardAnalyzeLoop, "while A {A--; B++; B++;} while B {A++; B--;}", 0);
-    test(backwardAnalyzeLoop, "while A {A--; B++; B++;} while B {A++; A++; B--;} A--;", 0);
-}
-
-function testRun() {
-    // Halting programs
-    test(run, "A++; A++; while A {A--; B++; B++;}", {maxSteps: 10, deciders: true});
-    test(run, "A++; A++; A++; while A {A--; B++; while B {B--; C++; C++;} while C {B++; C--;}}", {maxSteps: 100, deciders: true})
-    test(run, "A++; while A {A++; B++; while B {A--; A--; B--;}}", {maxSteps: 10, deciders: true});
-
-    // Nonhalting programs
-    test(run, "A++; while A {A--; A++;}", {maxSteps: 10, deciders: false});
-    test(run, "A++; while A {A--; A++;}", {maxSteps: 10, deciders: true});
-    test(run, "A++; A++; B++; while A {while B {A--; B--;}}", {maxSteps: 10, deciders: true});
-    test(run, "A++; while A {A--; B++; while B {A++; A++; B--;}}", {maxSteps: 10, deciders: true});
-    test(run, "A++; while A {while A {A--; B++; B++;} while B {A++; B--;}}", {maxSteps: 10, deciders: true});
-    test(run, "A++; A++; while A {while A {A--; B++; B++;} while B {A++; B--;} A--;}", {maxSteps: 10, deciders: true})
-}
-
-function testAreVarsOrdered() {
-    test(areVarsOrdered, "while A {A--; B++;} A--;");
-    test(areVarsOrdered, "while A {A--; B++;} while C {C--; D++;}");
-    test(areVarsOrdered, "C++; while A {A--; B++;}");
-    test(areVarsOrdered, "C++; while A {A--; B++;} C++;");
-}
 
 function testUnparse() {
     log(unparse([{type: "inc", var: 0}, {type: "while", var: 0, body: [
@@ -71,35 +27,60 @@ function testUnparse() {
     ]}]));
 }
 
-function testAnalyzeLoop() {
+const TEST_RUN = [
+    // Halting programs
+    ["A++; A++; while A {A--; B++; B++;}", {maxSteps: 10, deciders: true}],
+    ["A++; while A {A++; B++; while B {A--; A--; B--;}}", {maxSteps: 10, deciders: true}],
+    ["A++; A++; A++; while A {A--; B++; while B {B--; C++; C++;} while C {B++; C--;}}", {maxSteps: 100, deciders: true}],
+
+    // Nonhalting programs
+    ["A++; while A {A--; A++;}", {maxSteps: 10, deciders: false}],
+    ["A++; while A {A--; A++;}", {maxSteps: 10, deciders: true}],
+    ["A++; A++; B++; while A {while B {A--; B--;}}", {maxSteps: 10, deciders: true}],
+    ["A++; while A {A--; B++; while B {A++; A++; B--;}}", {maxSteps: 10, deciders: true}],
+    ["A++; while A {while A {A--; B++; B++;} while B {A++; B--;}}", {maxSteps: 10, deciders: true}],
+    ["A++; A++; while A {while A {A--; B++; B++;} while B {A++; B--;} A--;}", {maxSteps: 10, deciders: true}],
+];
+
+const TEST_ARE_VARS_ORDERED = [
+    // true
+    ["while A {A--; B++;} A--;"],
+    ["while A {A--; B++;} while C {C--; D++;}"],
+    ["C++; while A {A--; B++;}"],
+
+    // false
+    ["C++; while A {A--; B++;} C++;"],
+    ["A++; B++; while A {A--; C--;} B--;"],
+]
+
+const TEST_ANALYZE_LOOP = [
     // Should NOT be pruned
-    test(analyzeLoop, "A++; A++; B--;");
-    test(analyzeLoop, "while A {A--;} A++; A++;");
-    test(analyzeLoop, "A++; A++; while B {B--; A++;}");
-    test(analyzeLoop, "A++; B++; B++; while A {A--; C++;}");
-    test(analyzeLoop, "A++; while A {while B {B--;} A--;}");
-    test(analyzeLoop, "A--; while B {B--; A--; A++; A++;}", 1);
-    test(analyzeLoop, "A++; while B {B--; A--; A++; A++;}", 1);
-    test(analyzeLoop, "A++; A++; B++; while A {A--; B++; B++;}");
-    test(analyzeLoop, "while A {A--; B++; B++;} while B {A++; B--;}", 0);
-    test(analyzeLoop, "while A {A--; B++;} while B {A++; A++; B--;} A--;");
-    test(analyzeLoop, "while A {A--; B++;} while B {A++; A++; B--;} A--;", 0);
-    test(analyzeLoop, "while A {A--;} A++; A++; B++; while A {A--; B--;}", 0);
-    test(analyzeLoop, "A++; A++; while A {A--; B++;} while B {A++; A++; B--;} A--;", 0);
+    ["A++; A++; B--;"],
+    ["while A {A--;} A++; A++;"],
+    ["A++; A++; while B {B--; A++;}"],
+    ["A++; B++; B++; while A {A--; C++;}"],
+    ["A++; while A {while B {B--;} A--;}"],
+    ["A--; while B {B--; A--; A++; A++;}", 1],
+    ["A++; while B {B--; A--; A++; A++;}", 1],
+    ["A++; A++; B++; while A {A--; B++; B++;}"],
+    ["while A {A--; B++; B++;} while B {A++; B--;}", 0],
+    ["while A {A--; B++;} while B {A++; A++; B--;} A--;"],
+    ["while A {A--; B++;} while B {A++; A++; B--;} A--;", 0],
+    ["while A {A--;} A++; A++; B++; while A {A--; B--;}", 0],
+    ["A++; A++; while A {A--; B++;} while B {A++; A++; B--;} A--;", 0],
 
     // Should be pruned
-    test(analyzeLoop, "while A {A--; B++;} A--;");
-    test(analyzeLoop, "while A {A--; while B {B++;}}");
-    test(analyzeLoop, "A++; while A {B++; while A {A--;}}");
-}
+    ["while A {A--; B++;} A--;"],
+    ["while A {A--; while B {B++;}}"],
+    ["A++; while A {B++; while A {A--;}}"],
+];
 
 // Init
 // ================================================================
 
-testAnalyzeLoop();
-// testBackwardAnalyzeLoop();
-// testAreVarsOrdered();
 // testUnparse();
+// test(run, TEST_RUN);
+// test(areVarsOrdered, TEST_ARE_VARS_ORDERED);
+test(analyzeLoop, TEST_ANALYZE_LOOP);
 // log(parse("A++; while A {while A {A--; B++;} while B {A++; B--; foo++;} A--;}"));
 // log(parseArea("A+ wa{ B- wB{ B- A+ }"));
-// testRun();
