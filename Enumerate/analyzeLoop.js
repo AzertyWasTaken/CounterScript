@@ -88,7 +88,7 @@ function iteratedAddSub(d, i, r) {
     return [d, i];
 }
 
-function basicInstr(value, d, i) {
+export function basicInstr(value, d, i) {
     if (value.t === "isEqualTo") {
         return {t: "isEqualTo", v: Math.max(value.v - d, 0) + i};
     }
@@ -163,14 +163,21 @@ function loopBody(state, bodyState, repeatCount) {
 // Analyzer
 // ================================================================
 
+export function defaultState(loopVar) {
+    const state = {eq: [], def: {t: "isEqualToSelf", d: 0, i: 0, p: false}};
+
+    if (Number.isInteger(loopVar))
+        setValue(state, loopVar, {t: "isEqualToSelf", d: 0, i: 0, p: true});
+
+    return state;
+}
+
 export function analyzeLoop(program, whileVar) {
     // Undefined program state is unknown
     if (!program) return {eq: [], def: {t: "isAtLeast", v: 0}};
 
     // State does not change by default
-    const state = {eq: [], def: {t: "isEqualToSelf", d: 0, i: 0, p: false}};
-    if (Number.isInteger(whileVar))
-        setValue(state, whileVar, {t: "isEqualToSelf", d: 0, i: 0, p: true});
+    const state = defaultState(whileVar);
 
     for (const instr of program) {
         if (instr.type === "inc") {

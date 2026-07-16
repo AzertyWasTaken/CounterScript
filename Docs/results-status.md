@@ -51,12 +51,12 @@ An **holdout** is an undecided program: we do not yet know if it halts or not.
 | BBCS(n) | Holdouts |
 | - | - |
 | 11 | 1 |
-| 12 | 150 |
-| 13 | ~~> 535~~ |
+| 12 | ~~134~~ |
+| 13 | ~~≥ 300~~ |
 
 For the detailed list, see the repo’s holdout artifacts (tracked in the `Holdouts/` directory).
 
-> **Note**: due to a bug that occured during enumeration, all BBCS(13) holdouts lists are currently inaccurate.
+> **Note**: `BBCS(12)` and `BBCS(13)` holdouts list might have missing holdouts.
 
 ## Difficulty notes
 

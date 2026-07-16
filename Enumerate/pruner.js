@@ -1,19 +1,13 @@
 "use strict";
 import {Counters} from "../Execute/counters.js";
+import {CONFIG} from "../main.js";
 import {isLoopNonhalting} from "./isLoopNonhalting.js";
 import {areVarsOrdered} from "./areVarsOrdered.js";
 import {filterLoop} from "./analyzeLoop.js";
 import {scanVars, hasUndefinedLoop} from "./scanner.js";
-import {CONFIG} from "../main.js";
+import {isLoopNested} from "./isLoopNested.js";
+
 // Methods to prune programs during or after enumeration
-
-// Check if a loop is unecessary nested
-function isLoopNested(body) {
-    if (!body) return null;
-    return body.length === 1
-    && body[0].type === "while";
-}
-
 export const Prune = {
     // Prune completed programs
     program(halted, program, state) {
@@ -54,20 +48,21 @@ export const Prune = {
     newLoopBody(stack, state) {
         const frame = stack.at(-1);
         const program = frame.program;
+        const loopVar = frame.loopVar;
 
         // Check if the program is a root while-loop
         if (stack.length <= 2) {
             // Check if loop cannot repeat twice
-            if (Counters.isZero(state.vars, frame.loopVar)) return true;
+            if (Counters.isZero(state.vars, loopVar)) return true;
 
             const tailLength = CONFIG.MAX_LENGTH - state.progLength;
             if (tailLength > 0 && tailLength < 4) return true;
         }
         // Nonhalting loop bodies (do not have to decide nested loops)
-        return isLoopNested(program)
-        || isLoopNonhalting(program, frame.loopVar)
+        return isLoopNested(program, new Set([loopVar]))
+        || isLoopNonhalting(program, loopVar)
         || !areVarsOrdered(program)
-        || filterLoop(program, frame.loopVar);
+        || filterLoop(program, loopVar);
     },
 
     // Prune loop bodies (when a nested body is generated)
@@ -76,10 +71,12 @@ export const Prune = {
 
         for (const item of callStack) {
             const program = item.block;
+            const loopVar = item.loopVar;
             if (
-                isLoopNonhalting(program, item.loopVar)
+                isLoopNested(program, new Set([loopVar]))
+                || isLoopNonhalting(program, loopVar)
                 || !areVarsOrdered(program)
-                || filterLoop(program, item.loopVar)
+                || filterLoop(program, loopVar)
             )
             return true;
         }
@@ -90,11 +87,12 @@ export const Prune = {
     holdout(stack) {
         for (const frame of stack.slice(1)) {
             const program = frame.program;
+            const loopVar = frame.loopVar;
             if (
-                isLoopNested(program)
-                || isLoopNonhalting(program, frame.loopVar)
+                isLoopNested(program, new Set([loopVar]))
+                || isLoopNonhalting(program, loopVar)
                 || !areVarsOrdered(program)
-                || filterLoop(program, frame.loopVar)
+                || filterLoop(program, loopVar)
             )
             return true;
         }

@@ -12,23 +12,27 @@ Rules that identify **structurally different programs** (up to renaming/ordering
 
 - Example: `A++; while A {A--; B++;} (D++;)` to `A++; while A {A--; B++;} (C++;)`
 
-Replace counter names by id integer. When a new counter is declared, it uses the first undeclared id.
+Replace counter names by id integers. When a new counter is declared, it uses the first undeclared id.
 
 ### Ordered Counters Id for Basic Instructions
 
 - Example: `A++; (B++;) A++;` to `A++; A++; (B++;)`
 
-In every loopless sequence, instruction counter ids must be in ascending order.
+In every loopless sequence, instruction counters ids must be in ascending order.
+
+---
 
 - Example: `A++; while A {A--; (B++;)} (C++;)` to `A++; (B++;) while A {A--; (C++;)}`
 
-If a `while #` loop never change the value of `#` then `#--` and `#++` must **not** succeed the loop until appearing in a loop body.
+If a `while #` loop never change the value of `#` then `#--` and `#++` must **not** succeed the loop until appearing in a following loop body.
 
 ### Tree Normal Form
 
 - Example: `A++; while A {A++;} (A--;)` to `A++; while A {A++;}`
 
 Normalizes certain loop patterns during enumeration to avoid generating equivalent candidates. During enumeration, if the generated program does not halt, stop generating further.
+
+---
 
 - Example: `A++; while A {while B {(A++; B--;)} A++;}` to `A++; while A {while B {} A++;}`
 
@@ -48,7 +52,7 @@ Rules that **rewrite** programs into a smaller / more canonical form (while pres
 
 - Example: `(A++; A--;) B++;` to `B++;`
 
-In every **loopless** sequence, `#--` must precede `#++`. This prevents instructions cancelling each other.
+In every **loopless** sequence, `#--` must precede `#++`. This prevents instructions from cancelling each other.
 
 ### Counters Usefulness
 
@@ -58,29 +62,63 @@ For each `#++`, the program must also contain a `while #`.
 
 Exception: if a program is halting, an additional counter containing only increments can be allowed to improve its score (e.g. `A++; A++; A++; while A {A--; B++; B++; B++;}`).
 
+Completed programs of length `n` must have at most `floor((n + 1) / 3)` counters.
+
+For each counter `#`, the program must have `#++`, `#--` and `while #`. One of counters can have only the `#++`. At least a counter must have two `#++` so loops can run twice.
+
 ### Counters Declaration
 
 - Example: `A++; (B--;) while A {A--; B++;}` to `A++; while A {A--; B++;}`
 
 Any new counters `#` outside of loops must be declared with `#++`.
 
-- Example: `A++; while A {A--; B++; while B {B--;}}`
-
-Completed programs of length `n` must have at most `floor((n + 1) / 3)` counters.
-
 ### Nested Loops
 
-- Example: `A++; while A {while B {(A--;) B--;}}` to `A++; while A {(A--;) while B {B--;}}
+- Example: `A++; while A {(while A {A--; B--;})}` to `A++; while A {(A--; B--;)}`
 
-Any `while #` loop must not contain a single `while #_2` loop with no other instructions outside of `while #_2` body.
+Any `while #` loop must not contain a single `while #` loop with no other instructions outside of that loop.
+
+---
+
+- Example: `while A {while B {(while A {...})}}` to `while A {while B {...}}`
+
+Avoid cyclic nesting of single-instruction loops.
+
+Condider the function `while A {while B {while A {...}}}`:
+
+- `while B` must repeat at least once else `A` never reaches 0.
+- `while B` cannot repeat more than once because `A = 0` when it ends, thus ending the first `while A`.
+
+---
+
+- Example: `while A {while B {(A--;) B--; C++;}}` to `while A {(A--;) while B {B--; C++;}}`
+
+`while # {while #_2 {...}}` body must have a `while #` loop.
+
+The mandoatory `#--` can be moved outside of `while #_2` since `while #_2` body does not depend of `#--`.
+
+> **Note**: It may have for effect to make `while A` iterate multiple times.
 
 ### Loops Usefulness
 
 - Example: `A++; while A {A--: B++;} (while A {A--; C++;})` to `A++; while A {A--: B++;}`
 
-Avoid multiple `while #` in a row if there are no `#++` between.
+Do not push `while #` if it is proven that it never executes.
+A `while #` never execute if it is proven that `#` is always 0.
+`#` is always 0 when a `while #` end. It lasts until `#` may be incremented.
 
-- Example: `A++; (while A {A++; while A {A--; B++;} B++;})` to `A++; A++; (while A {A--; B++;} B++;)`
+The rule also applies with `#--`.
+
+---
+
+- Example: `while A {A--:} A++; (while A {B++; while A {A--; C++;}})` to `A++; while A {A--: B++;}`
+
+Do not push `while #` if it is proven that it repeats exactly once. These loops can be inlined.
+A `while #` repeats once if it is proven that `#` is always greater than 0 at start and is equal to 0 at end.
+
+---
+
+- Example: `A++; (while A {A++; while A {A--; B++;} B++;})` to `A++; (A++; while A {A--; B++;} B++;)`
 
 Root loops must repeat at least twice.
 
@@ -96,23 +134,22 @@ A **decider** proves a program **does not halt**.
 
 ### Loop Structure
 
-- Example: `A++; while A {A++; B--;}`
-
-Every `while #` must have a `#--` in its body.
-
 - Example: `A++; while A {A--; A++;}`
 
-Inside each while `#`, every occurrence of `#++` must be followed by `#--` before the loop body end.
+Monitor counters evolution during an iteration.
 
-- Example: `A++; while A {A++; while A {A--; B++;} while B {A++; B--;}}`
+A `while #` loop is nonhalting if at the end of every iterations:
 
-For each `while #_2` within `while #`, if `#` is always greater than 0 when `while #_2` body executes, then check if `#_2` is also greater than 0 before reaching `while #_2`.
+- `#` is greater than 0.
+- `#` is equal to itself.
 
 ### Cyclers
 
 - Example: `A++; while A {while A {A--; B++;} while B {A++; B--;}}`
 
-Decide programs as nonhalting if every counter keeps the same value at the next loop iteration.
+Decide programs as nonhalting if every counter keeps the same value at a future loop iteration.
+
+---
 
 - Example: `A++; while A {A++; A++; B++; while B {A--; B--;}}`
 

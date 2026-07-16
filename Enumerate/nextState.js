@@ -1,7 +1,6 @@
 "use strict";
 import {executeBasicInstr} from "../Execute/execute.js";
 import {CONFIG} from "../main.js";
-// Methods to update enumeration state
 
 function maxVarsCount(length) {
     return Math.floor((length + 1) / 3);
@@ -19,6 +18,7 @@ function encodeInstr(obj) {
     + (obj.type === "dec" ? 0 : 1);
 }
 
+// Methods to update enumeration state
 export const NextState = {
     default(defArea) {
         return {

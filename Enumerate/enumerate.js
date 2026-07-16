@@ -3,6 +3,7 @@ import {log} from "../log.js";
 import {CONFIG} from "../main.js";
 import {Prune} from "./pruner.js";
 import {NextState} from "./nextState.js";
+import {NextStack} from "./nextStack.js";
 import {execute} from "../Execute/execute.js";
 import {Stack} from "../Execute/exeStack.js";
 import {Counters} from "../Execute/counters.js";
@@ -48,11 +49,7 @@ function* appWhileLoop(stack, state, instr) {
     if (!Counters.isZero(state.vars, instr.var)) {
         instr.body = [];
 
-        stack.push({
-            program: instr.body,
-            loopVar: instr.var,
-            callStack: []
-        });
+        stack.push(NextStack.frame(instr, []));
         yield* nextInstr(stack, NextState.loopVar(state, instr, 0));
         stack.pop();
     } else {
@@ -107,11 +104,7 @@ function* runLoopBody(stack, state) {
         const loopInstr = Stack.getInstruction(Stack.getFrame(exeState));
         loopInstr.body = [];
 
-        stack.push({
-            program: loopInstr.body,
-            loopVar: loopInstr.var,
-            callStack: exeState.stack
-        });
+        stack.push(NextStack.frame(loopInstr, exeState.stack));
         yield* nextInstr(stack, NextState.loopBody(state, exeState, 1));
         stack.pop();
 
@@ -195,11 +188,7 @@ function* nextInstr(stack, state) {
 export function enumerate(area = []) {
     // `area` is mutable for better time performances
     return nextInstr(
-        [{
-            program: [],
-            loopVar: null,
-            callStack: null
-        }],
+        NextStack.default(),
         NextState.default(area)
     );
 }
