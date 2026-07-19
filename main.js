@@ -1,6 +1,6 @@
 "use strict";
 import {log} from "./log.js";
-import {enumerate} from "./Enumerate/enumerate.js";
+import {enumerate} from "./Enumerate/enumerator.js";
 import {unparse, parseArea} from "./parser.js";
 
 // Config
@@ -19,7 +19,7 @@ const LOG = {
     SHOW_STATUS: false
 }
 
-const AREA = "A+ A+";
+const AREA = "A+ wA{ A+";
 const AREA_ENABLED = false;
 
 // Initialize
@@ -47,7 +47,10 @@ function logProgram(status, program, ...arg) {
 
 for (const [halted, program, state] of enumerate(AREA_ENABLED ? parseArea(AREA) : [])) {
     if (halted === true) {
-        const score = Math.max(0, ...Object.values(state.vars));
+        const score = state.vars.reduce(
+            (best, value) => Math.max(best, value ?? 0),
+            0
+        );
 
         if (score > record) {
             if (LOG.CHAMPION)

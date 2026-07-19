@@ -2,8 +2,8 @@
 import {log} from "./log.js";
 import {parse, unparse, parseArea} from "./parser.js";
 import {run, execute} from "./Execute/execute.js";
-import {areVarsOrdered} from "./Enumerate/areVarsOrdered.js"
-import {analyzeLoop} from "./Enumerate/analyzeLoop.js";
+import {areVarsOrdered} from "./Pruning/areVarsOrdered.js"
+import {analyzeLoop} from "./Pruning/analyzeLoop.js";
 
 // Helper functions
 // ================================================================

@@ -100,9 +100,9 @@ export const Prune = {
     },
 
     // Prune root loop bodies that have undefined loop bodies
-    undefinedLoop(halted, stack, frame) {
+    undefinedLoop(halted, stack) {
         return halted === true
         && stack.length <= 2
-        && hasUndefinedLoop(frame.program);
+        && hasUndefinedLoop(stack.at(-1).program);
     },
 }

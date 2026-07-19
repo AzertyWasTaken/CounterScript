@@ -14,19 +14,19 @@ This file is a shared task-board. When editing, only:
 
 ### BBCS(10) default
 
-- Total: 2850
+- Total: 2921
 - Halted: 2120
-- Nonhalted: 730
+- Nonhalted: 801
 - Holdout: 0
-- Duration: 1.7s
+- Duration: 1.8s
 
 ### BBCS(11) default
 
-- Total: 18391
-- Halted: 12478
-- Nonhalted: 5909
-- Holdout: 4
-- Duration: 26s
+- Total: 19192
+- Halted: 12508
+- Nonhalted: 6683
+- Holdout: 1
+- Duration: 30s
 
 ## Enumeration
 
@@ -35,6 +35,7 @@ This file is a shared task-board. When editing, only:
 - [x] Enumerate BBCS(12)
 - [x] Fix `isLoopNonhalting.js` and enumeration bugs
 - [x] Loop structure analyzer
+- [x] Filter out 2-period cyclers in BBCS(12)
 
 ### Loop analyzer
 
@@ -44,45 +45,12 @@ This file is a shared task-board. When editing, only:
 - [x] Add `isEqualToSelfAndIsPositive`
 - [x] Add `inc` and `dec` keys in `isEqualToSelf`
 - [x] Replace `isEqualToSelfAndIsPositive` by a `isPositive` boolean key in `isEqualToSelf`
-- [ ] Decide multiperiod cyclers
+- [x] Decide 2-period cyclers
+- [x] Fix nested loops decider
 - [ ] Merge analyzer with `areVarsOrdered.js`
   - [ ] Loop history and allowed vars list
-
-### Optimize
-
-- [x] Remove `enumerator.js` strict loop length
-- [x] Break down `enumerate.js` functions
-- [x] Base enumerator without nested generators
-- [x] TNF enumerator without nested generators
-- [ ] Memoize while-loops states
-
-### Memoize loops
-
-- [ ] Program stack must store the parent loop
-- [ ] Each loop may have a `analysis` property with `type: state`
-- [ ] New function `isLoopValid` that check if a program is valid
-- [ ] Memoized `filterLoop` function must take the whole loop
-- [ ] Memoize only when the loop has no undefined values
-- [ ] Restart loop analysis when a nested undefined loop body is generated
-
-### Test & documentation
-
-- [x] Parsable area enum config
-- [x] Option to hide programs status in enumeration output
-- [x] Split `README.js` into a docs folder & add a sections table
-- [x] Improve glossary
-- [x] Document to explain TNF
-- [x] Comment `Prune` methods
-- [x] Split `getProgData.js`
-- [x] Revamp `tester.js`
-- [x] Explain how stacks work in TNF document
-- [x] Comment `analyzeLoop.js`
-- [x] Group configs in the same file
-- [ ] Refractor files and add folders
-- [ ] Array bulk test
-- [ ] Undefined loop parser `while # {...}`
-- [ ] Function to reuse call stack appends from `execute.js`
-- [ ] Function to append instructions
+- [ ] Nonhalting function that depend of starting counters
+- [ ] Ignore `while # {#--;}` if `#` is proven to be 2 or less
 
 ### E/Ideas
 
@@ -95,6 +63,50 @@ This file is a shared task-board. When editing, only:
 - Just-in-time `areVarsOrdered`
 - Just-in-time `hasRowWhileVars`
 - Enumerate comparator in `tester.js`
+- Decide multi-period cyclers
+
+## Optimize
+
+- [x] Remove `enumerator.js` strict loop length
+- [x] Break down `enumerate.js` functions
+- [x] Base enumerator without nested generators
+- [x] TNF enumerator without nested generators
+
+### Just-in-time while-loops states
+
+- [ ] New eq state param to stack
+- [ ] Update stack during enumeration
+- [ ] Filter out unused intructions
+- [ ] Check loop nonhalting at end
+- [ ] Disable when/after empty loop is filled
+- [ ] Methods for enum stack
+
+## Tests
+
+- [x] Parsable area enum config
+- [x] Option to hide programs status in enumeration output
+- [x] Split `getProgData.js`
+- [x] Revamp `tester.js`
+- [x] Group configs in the same file
+- [x] Refractor files and add folders
+- [x] Array bulk test
+- [x] Function to reuse call stack appends from `execute.js`
+- [x] New script for managing enumeration stack
+- [x] Function to append instructions
+- [ ] Rename functions, variables and scripts
+- [ ] Undefined loops parser `while # undefined`
+
+## Documentation
+
+- [x] Split `README.js` into a docs folder & add a sections table
+- [x] Improve glossary
+- [x] Document to explain TNF
+- [x] Comment `Prune` methods
+- [x] Explain how stacks work in TNF document
+- [x] Comment `analyzeLoop.js`
+- [x] Review `search-techniques.md` & add proofs
+- [x] Add loop structure decider in `search-techniques.md`
+- [ ] Include results for manually designed champions and cryptids
 
 ## Website
 
@@ -110,6 +122,7 @@ This file is a shared task-board. When editing, only:
 - [x] Full speed execution
 - [x] Stop executing when while web page window is closed
 - [x] Refractor main script
+- [x] Fix empty loops crash bug
 - [ ] Add macros parser
 - [ ] Undo step option
   - [ ] States history object

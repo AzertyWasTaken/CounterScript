@@ -20,14 +20,13 @@ function encodeInstr(obj) {
 
 // Methods to update enumeration state
 export const NextState = {
-    default(defArea) {
+    default() {
         return {
             vars: [],
             steps: 0,
             progLength: 0,
             maxVar: 0,
-            minInstr: 0,
-            area: defArea
+            minInstr: 0
         };
     },
 
