@@ -7,7 +7,7 @@ import {unparse, parseArea} from "./parser.js";
 // ================================================================
 
 export const CONFIG = {
-    MAX_LENGTH: 10,
+    MAX_LENGTH: 12,
     MAX_STEPS: 100,
 }
 
@@ -19,8 +19,8 @@ const LOG = {
     SHOW_STATUS: false
 }
 
-const AREA = "A+ wA{ A+";
-const AREA_ENABLED = false;
+const AREA = "A+ wA{ B+ wB{";
+const AREA_ENABLED = true;
 
 // Initialize
 // ================================================================

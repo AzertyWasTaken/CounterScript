@@ -12,21 +12,13 @@ This file is a shared task-board. When editing, only:
 
 - `A++; while A {A++; while B {A--; B--; C++;} while C {B++; C--; while B {B--; D++; D++; D++;} while D {D--; B++;}} C++;}`
 
-### BBCS(10) default
+### BBCS(12) `A+ wA{ B+ wB{`
 
-- Total: 2921
-- Halted: 2120
-- Nonhalted: 801
-- Holdout: 0
-- Duration: 1.8s
-
-### BBCS(11) default
-
-- Total: 19192
-- Halted: 12508
-- Nonhalted: 6683
-- Holdout: 1
-- Duration: 30s
+- Total: 3130
+- Halted: 200
+- Nonhalted: 2910
+- Holdout: 20
+- Duration: 11.5s
 
 ## Enumeration
 
