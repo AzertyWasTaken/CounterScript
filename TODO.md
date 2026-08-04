@@ -1,128 +1,115 @@
 # TODO
 
-<!-- AGENT-SAFE START -->
-This file is a shared task-board. When editing, only:
+## Current baseline
 
-- Add new items
-- Update checkboxes/status lines
-- Do NOT delete headings or existing bullet ideas
-<!-- AGENT-SAFE END -->
+BBCS(12) `A+ wA{ B+ wB{`:
 
-## Reference (for tests)
+- Total: 2244 (3130)
+- Halted: 137 (200)
+- Nonhalted: 2087 (2910)
+- Holdout: 20 (20)
 
-- `A++; while A {A++; while B {A--; B--; C++;} while C {B++; C--; while B {B--; D++; D++; D++;} while D {D--; B++;}} C++;}`
+## Update log
 
-### BBCS(12) `A+ wA{ B+ wB{`
+### L/Enumeration
 
-- Total: 3130
-- Halted: 200
-- Nonhalted: 2910
-- Holdout: 20
-- Duration: 11.5s
-
-## Enumeration
-
-- [x] Prune short loop tails
-- [x] Maximum counters count pruning
-- [x] Enumerate BBCS(12)
-- [x] Fix `isLoopNonhalting.js` and enumeration bugs
 - [x] Loop structure analyzer
-- [x] Filter out 2-period cyclers in BBCS(12)
-
-### Loop analyzer
-
-- [x] Switch to objects
-- [x] Create `is equal to n` type
-- [x] Create `is at least n` type
-- [x] Add `isEqualToSelfAndIsPositive`
-- [x] Add `inc` and `dec` keys in `isEqualToSelf`
-- [x] Replace `isEqualToSelfAndIsPositive` by a `isPositive` boolean key in `isEqualToSelf`
+- [x] Create `loopAnalyzer.js`
 - [x] Decide 2-period cyclers
 - [x] Fix nested loops decider
-- [ ] Merge analyzer with `areVarsOrdered.js`
-  - [ ] Loop history and allowed vars list
-- [ ] Nonhalting function that depend of starting counters
-- [ ] Ignore `while # {#--;}` if `#` is proven to be 2 or less
+- [x] Just-in-time while-loops states
 
-### E/Ideas
+### L/Documentation
 
-- `isInLoop` argument for pruning functions
-- `isLoopNonHalting` auto test
-- Early detect programs with useless counters (each must have inc, dec and while loop)
-- Remove equivalence `A++; while A {while A {...} ... w/out A++}`
-- Remove equivalence `while A {A--; B++;} while B {A++; A++; B--;}`
-- Partial area enumeration (split while-loop and other instr)
-- Just-in-time `areVarsOrdered`
-- Just-in-time `hasRowWhileVars`
-- Enumerate comparator in `tester.js`
-- Decide multi-period cyclers
-
-## Optimize
-
-- [x] Remove `enumerator.js` strict loop length
-- [x] Break down `enumerate.js` functions
-- [x] Base enumerator without nested generators
-- [x] TNF enumerator without nested generators
-
-### Just-in-time while-loops states
-
-- [ ] New eq state param to stack
-- [ ] Update stack during enumeration
-- [ ] Filter out unused intructions
-- [ ] Check loop nonhalting at end
-- [ ] Disable when/after empty loop is filled
-- [ ] Methods for enum stack
-
-## Tests
-
-- [x] Parsable area enum config
+- [x] Include results for manually designed champions
 - [x] Option to hide programs status in enumeration output
-- [x] Split `getProgData.js`
-- [x] Revamp `tester.js`
-- [x] Group configs in the same file
-- [x] Refractor files and add folders
-- [x] Array bulk test
-- [x] Function to reuse call stack appends from `execute.js`
+- [x] Revamp `tester.js` (array bulk test)
+- [x] Move group configs in the same file
 - [x] New script for managing enumeration stack
-- [x] Function to append instructions
-- [ ] Rename functions, variables and scripts
-- [ ] Undefined loops parser `while # undefined`
+- [x] Function to append instructions `enumAction.js`
+- [x] Extract properties methods from `analyzeLoop.js`
+- [x] Area test mode analysis
+- [x] Revamp `TODO.md`
+- [x] Project overview `README.md`
+- [x] Update general documentation
+- [x] Create `AGENTS.md`
+- [x] Replace difficulty table with a more complete analysis
+- [x] "Is greater or equal to self" value `loopAnalyzer.js`
 
-## Documentation
-
-- [x] Split `README.js` into a docs folder & add a sections table
-- [x] Improve glossary
-- [x] Document to explain TNF
-- [x] Comment `Prune` methods
-- [x] Explain how stacks work in TNF document
-- [x] Comment `analyzeLoop.js`
-- [x] Review `search-techniques.md` & add proofs
-- [x] Add loop structure decider in `search-techniques.md`
-- [ ] Include results for manually designed champions and cryptids
-
-## Website
+### L/Website
 
 - [x] Show error messages
 - [x] Add comments
 - [x] Text editor line numbers
-- [x] Display compiled program
+- [x] Display compiled programs
 - [x] Run step by step
-- [x] Option to change run speed (slider)
-- [x] Run/Pause button
-- [x] Step button
-- [x] Show steps count
-- [x] Full speed execution
-- [x] Stop executing when while web page window is closed
-- [x] Refractor main script
 - [x] Fix empty loops crash bug
-- [ ] Add macros parser
-- [ ] Undo step option
-  - [ ] States history object
+
+## Enumeration
+
+- [ ] Enumerate BBCS(12) again
+- [ ] Merge `enumActions.js` and `nextState.js` and undo state for better time performances
+
+### Fix bug related to undefined loops and loopAnalyzer
+
+File: `enumActions.js`
+
+The bug is caused by loop state analysis merging skipping a level when a previously undefined loop is completed.
+
+1. When an undefined loop is generated, keep the previous frame and label it as finished.
+2. When the previously undefined loop generation ends, update intermediate frames with new analysis then check pruning.
+
+### Just-in-time pruning `areVarsOrdered.js`
+
+- [ ] Create `stack` param to store allowed counters list
+
+### "Is equal to var" value `loopAnalyzer.js`
+
+- [ ] Plan comment
+- [ ] Update props functions
+
+## Undefined loops parser
+
+For `while # {undefined}`.
+
+- [ ] Parser
+- [ ] Unparser
+
+## Testing
+
+- [ ] Count pruned programs
+- [ ] Count nextInstr calls
+
+## Website
+
 - [ ] Auto programs coloring
 - [ ] Color selected line
 
-### W/Ideas
+### Add macros parser
 
+Convert macros to a serie of standard instructions.
+
+- [ ] `A+=n`
+- [ ] `A>>B`
+
+### Undo step option
+
+- [ ] States history object
+
+## Ideas
+
+### I/Enumeration
+
+- Early detect programs with useless counters (each must have inc, dec and while loop)
+- Remove multiplication equivalence `while A {A--; B++;} while B {A++; A++; B--;}`
+- Enumerate comparator in `tester.js`
+- Decide multi-period cyclers
+- Ignore `while # {#--;}` if `#` is proven to be 2 or less
+- Nonhalting function that depend of starting counters
+
+### I/Website
+
+- Presets programs
 - Visualize running program
 - Search and replace
 - Accelerated simulation (auto multiply/transfer counters)
