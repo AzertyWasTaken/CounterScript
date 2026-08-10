@@ -6,7 +6,12 @@ Tree Normal Form (TNF) enumeration builds candidate programs while simultaneousl
 
 ## Key Idea
 
-When the enumerator appends an instruction, it also updates a lightweight "current execution state" for that partially built program. Control-flow constructs (notably while-loops) are expanded only when execution indicates they will be used.
+When the enumerator appends an instruction, it also updates two parallel lightweight states for that partially built program:
+
+- **Execution state**: the runtime counter values and call stack, used to decide whether a `while` condition is true/false and what happens when the loop is entered.
+- **Analysis state**: an abstract interpretation state (see `Docs/loop-analyzer.md`) that tracks symbolic counter values, enabling pruning decisions (e.g., "this counter is provably zero") without full simulation.
+
+Control-flow constructs (notably while-loops) are expanded only when execution indicates they will be used.
 
 ## Rules of Construction
 
@@ -16,6 +21,7 @@ When the next instruction is a basic operation (i.e., not a control-flow constru
 
 - **Append** the instruction to the program.
 - **Update** the current execution state accordingly.
+- **Update** the analysis state: apply `decAndInc` to the abstract value of the affected counter (see `Docs/loop-analyzer.md` → `appBasicInstr`).
 
 ### While-loop Construction
 
@@ -25,6 +31,7 @@ When the enumerator appends a `while #` loop, it must decide whether the loop bo
 - **Check** whether the loop condition indicates immediate execution.
   - If the loop condition is satisfied, so the enumerator should **generate the loop body**.
   - If the loop condition is **not** satisfied, so the enumerator should **not generate the loop body**.
+- **Initialize** a new analysis state for the loop body via `defaultState(loopVar)`.
 
 ### Loop End Behavior
 
@@ -33,6 +40,7 @@ After expanding the loop body, the enumerator must repeatedly simulate the loop 
 - **Repeatedly execute the loop** until the loop terminates or new structure must be created.
   - If the loop terminates:
     - **Generate the loop tail** (the code that follows the loop).
+    - **Merge** the body's analysis state into the parent frame's analysis state via `loopBody` (see `Docs/loop-analyzer.md` → `exitLoopBody`).
   - If the loop body is undefined when execution reaches it:
     - **Generate the loop body** at that point.
     - Then **resume execution** of the root loop to continue expanding from the correct control-flow location.
@@ -50,6 +58,7 @@ The enumerator maintains two related "stacks":
   - `frame.program`: The TNF node list currently being appended to.
   - `frame.loopVar`: Records which loop variable the current root of this generation frame represents.
   - `frame.callStack`: Carries the execution stack snapshot needed to continue loop simulation later.
+  - `frame.analysis`: The abstract interpretation state for this loop body, initialized via `defaultState(loopVar)` (see `Docs/loop-analyzer.md`). Tracks abstract counter values as instructions are appended, enabling pruning decisions without full simulation.
 
 - **Push when entering a loop body region**:
   - When a while-loop node is appended and the construction decides the body must be expanded *immediately*, the enumerator creates a fresh child generation frame with an empty execution stack for the new body.

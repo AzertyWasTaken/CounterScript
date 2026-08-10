@@ -36,6 +36,8 @@ export function scanVars(program) {
 
 // Check if `program` has an undefined loop
 export function hasUndefinedLoop(program) {
+    if (!program) return false;
+
     for (const instr of program) {
         if (instr.type === "while")
             if (!instr.body || hasUndefinedLoop(instr.body))
@@ -45,16 +47,16 @@ export function hasUndefinedLoop(program) {
     return false;
 }
 
-// Check if for every counters in `loopVar`,
-// `program` has a while-loop on that counter
-export function hasWhileLoop(program, loopVar) {
+// Check if `program` has a while-loop for every counters in `loopVar`
+// Return `null` if `program` has undefined loops
+export function hasWhileLoop(program, loopVars) {
     function scan(block) {
         if (!block) return null;
 
         for (const instr of block) {
             if (instr.type === "while") {
-                loopVar.delete(instr.var);
-                if (loopVar.size === 0) return true;
+                loopVars.delete(instr.var);
+                if (loopVars.size === 0) return true;
 
                 const scanRes = scan(instr.body);
                 if (scanRes !== false) return scanRes;

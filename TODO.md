@@ -2,14 +2,15 @@
 
 ## Current baseline
 
-BBCS(12) `A+ wA{ B+ wB{`:
+BBCS(12) — `A+ wA{ B+ wB{`
 
-- Total: 2244 (3130)
-- Halted: 137 (200)
-- Nonhalted: 2087 (2910)
+- Total: 2665 (3130)
+- Halted: 200 (200)
+- Nonhalted: 2445 (2910)
 - Holdout: 20 (20)
+- Highscore: 5
 
-## Update log
+## Update logs
 
 ### L/Enumeration
 
@@ -18,6 +19,8 @@ BBCS(12) `A+ wA{ B+ wB{`:
 - [x] Decide 2-period cyclers
 - [x] Fix nested loops decider
 - [x] Just-in-time while-loops states
+- [x] Update analysis when a child undefined loop gets a body
+- [x] Fix pruning bug
 
 ### L/Documentation
 
@@ -48,16 +51,10 @@ BBCS(12) `A+ wA{ B+ wB{`:
 ## Enumeration
 
 - [ ] Enumerate BBCS(12) again
-- [ ] Merge `enumActions.js` and `nextState.js` and undo state for better time performances
 
-### Fix bug related to undefined loops and loopAnalyzer
+### Keep intermediate layers
 
-File: `enumActions.js`
-
-The bug is caused by loop state analysis merging skipping a level when a previously undefined loop is completed.
-
-1. When an undefined loop is generated, keep the previous frame and label it as finished.
-2. When the previously undefined loop generation ends, update intermediate frames with new analysis then check pruning.
+Keep intermediate enumeration stack layers (marked as "done") when generating into undefined loops.
 
 ### Just-in-time pruning `areVarsOrdered.js`
 
@@ -67,6 +64,18 @@ The bug is caused by loop state analysis merging skipping a level when a previou
 
 - [ ] Plan comment
 - [ ] Update props functions
+
+## Refractor `enumActions.js`
+
+- [ ] Merge `enumActions.js` and `nextState.js` and split into 4 functions
+- [ ] Undo state for better time performances
+
+## Library for analyzer operations
+
+- `decAndInc`
+- `countIterations`
+- `loopBody`
+- `defaultState`
 
 ## Undefined loops parser
 

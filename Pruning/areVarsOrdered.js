@@ -6,7 +6,7 @@ export function areVarsOrdered(body) {
 
     for (const instr of body) {
         if (instr.type === "while") {
-            const {isValid, incs, decs} = scanVars(instr.body)
+            const {isValid, incs, decs} = scanVars(instr.body);
 
             if (isValid) {
                 allowedVars = incs.union(decs);
@@ -14,7 +14,7 @@ export function areVarsOrdered(body) {
                 allowedVars = null;
             }
         } else {
-            if (allowedVars && !allowedVars.has(instr.var))
+            if (allowedVars !== null && !allowedVars.has(instr.var))
                 return false;
         }
     }

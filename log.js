@@ -24,11 +24,11 @@ export function strObject(obj) {
 }
 
 export function strValue(val) {
-    if (val === null) {return "null";}
-    if (Array.isArray(val)) {return strArray(val);}
-    if (val instanceof Map) {return strMap(val);}
-    if (val instanceof Set) {return strSet(val);}
-    if (typeof val === "object") {return strObject(val);}
+    if (val === null) return "null";
+    if (Array.isArray(val)) return strArray(val);
+    if (val instanceof Map) return strMap(val);
+    if (val instanceof Set) return strSet(val);
+    if (typeof val === "object") return strObject(val);
     return val;
 }
 

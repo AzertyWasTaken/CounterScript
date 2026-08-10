@@ -1,4 +1,4 @@
-# Glossary
+# Terminology
 
 ## Core Concepts
 
@@ -48,3 +48,11 @@
 - **Loop body**: The body executed while a specific counter is positive.
 
 - **Translated cycler**: A variant where the same kind of repeating behavior occurs with "translation" (some counters repeatedly increase).
+
+## Coding
+
+- **Enumeration stack**: Stack used to enumerate CounterScript programs.
+
+- **Execution stack**: Stack used to execute CounterScript programs.
+
+- **Analysis stack**: Stack used to analyze CounterScript programs.

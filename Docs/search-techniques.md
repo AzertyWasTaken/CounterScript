@@ -84,7 +84,7 @@ Any `while #` loop must not contain a single `while #` loop with no other instru
 
 Avoid cyclic nesting of single-instruction loops.
 
-Condider the function `while A {while B {while A {...}}}`:
+Consider the function `while A {while B {while A {...}}}`:
 
 - `while B` must repeat at least once else `A` never reaches 0.
 - `while B` cannot repeat more than once because `A = 0` when it ends, thus ending the first `while A`.
@@ -140,7 +140,7 @@ Monitor counters evolution during an iteration.
 
 A `while #` loop is nonhalting if at the end of every iterations:
 
-- `#` is greater than 0.
+- `#` is greater or equal to 1.
 - `#` is equal to itself.
 
 ### Cyclers

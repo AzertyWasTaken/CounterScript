@@ -1,19 +1,18 @@
 "use strict";
+import {defaultState} from "../Pruning/loopAnalyzer.js";
+
 // Methods to update enumeration stack
 export const NextStack = {
     default() {
-        return [{
-            program: [],
-            loopVar: null,
-            callStack: null
-        }];
+        return [{program: []}];
     },
 
-    frame(instr, exeStack) {
+    frame(instr, exeStack, analysis) {
         return {
             program: instr.body,
             loopVar: instr.var,
-            callStack: exeStack
+            callStack: exeStack,
+            analysis: defaultState(instr.var)
         };
     },
 }

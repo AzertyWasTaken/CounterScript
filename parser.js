@@ -152,7 +152,7 @@ export function parseArea(program) {
         throw new Error(`Unknown instruction at position ${ctx.pointer}`);
     }
 
-    return [parseProgram(ctx, () => parseInstruction()), varsId];
+    return parseProgram(ctx, () => parseInstruction());
 }
 
 // Unparse

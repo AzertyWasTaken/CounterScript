@@ -2,28 +2,12 @@
 import {log} from "./log.js";
 import {enumerate} from "./Enumerate/enumerator.js";
 import {unparse, parseArea} from "./parser.js";
-
-// Config
-// ================================================================
-
-export const CONFIG = {
-    MAX_LENGTH: 12,
-    MAX_STEPS: 100,
-}
-
-const LOG = {
-    CHAMPION: true,
-    HALTED: false,
-    NONHALTED: false,
-    HOLDOUT: true,
-    SHOW_STATUS: false
-}
-
-const AREA = "A+ wA{ B+ wB{";
-const AREA_ENABLED = true;
+import {LOG, AREA} from "./config.js";
 
 // Initialize
 // ================================================================
+
+const enumArea = AREA.ENABLED ? parseArea(AREA.VALUE) : [];
 
 const count = {
     total: 0,
@@ -45,7 +29,9 @@ function logProgram(status, program, ...arg) {
 // Main function
 // ================================================================
 
-for (const [halted, program, state] of enumerate(AREA_ENABLED ? parseArea(AREA) : [])) {
+const start = performance.now();
+
+for (const [halted, program, state] of enumerate(enumArea)) {
     if (halted === true) {
         const score = state.vars.reduce(
             (best, value) => Math.max(best, value ?? 0),
@@ -77,7 +63,13 @@ for (const [halted, program, state] of enumerate(AREA_ENABLED ? parseArea(AREA) 
     count.total++;
 }
 
+const end = performance.now();
+
+// Results
+// ================================================================
+
 log("Total:", count.total);
 log("Halted:", count.halted);
 log("Nonhalted:", count.nonhalted);
 log("Holdout:", count.holdout);
+log(`Time: ${((end - start) / 1_000).toFixed(3)}s`);

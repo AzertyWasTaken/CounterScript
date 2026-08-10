@@ -1,6 +1,5 @@
 "use strict";
 // Basic operation methods related to counters
-
 export const Counters = {
     get(vars, id) {return vars[id] ?? 0;},
 

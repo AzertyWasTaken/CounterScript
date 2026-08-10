@@ -17,11 +17,11 @@ A CounterScript program is composed of 3 instruction types:
 
 | Instruction | Description |
 | - | - |
-| `#++;` | Increment `#` by 1 |
-| `#--;` | Decrement `#` by 1 if `#` > 0 |
-| `while # {...}` | Execute body while `#` > 0 |
+| `A++;` | Increment counter `A` by 1 |
+| `A--;` | Decrement `A` by 1 if `A > 0` |
+| `while A {...}` | Execute body while `A > 0` |
 
-`#`, `#_2`, `#_3`, ... are used to represent any counter.
+`A`, `B`, `C`, ... may represent any counter.
 
 ## Example
 

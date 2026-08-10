@@ -1,8 +1,8 @@
 "use strict";
 import {Counters} from "./counters.js";
-// Methods related to execution stack and frames
 
-export const Stack = {
+// Methods related to execution stack and frames
+export const ExeStack = {
     getCtx(program) {
         return {
             vars: [],

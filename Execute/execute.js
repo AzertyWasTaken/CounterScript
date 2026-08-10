@@ -3,7 +3,7 @@ import {log} from "../log.js";
 import {parse, unparse} from "../parser.js";
 import {isTransCycler} from "./decider.js";
 import {Counters} from "./counters.js";
-import {Stack} from "./exeStack.js";
+import {ExeStack} from "./exeStack.js";
 
 // Mutate a to a.intersection(b)
 function intersect(a, b) {
@@ -30,13 +30,13 @@ function handleProgramEnd(config, ctx, frame) {
         }
 
         // Go to next iteration
-        Stack.updateFrame(frame, ctx.vars);
+        ExeStack.updateFrame(frame, ctx.vars);
     } else {
         // End the loop
         ctx.stack.pop();
         if (ctx.stack.length === 0) return true;
 
-        const prevFrame = Stack.getFrame(ctx);
+        const prevFrame = ExeStack.getFrame(ctx);
         prevFrame.pc++;
 
         if (prevFrame.posVars)
@@ -52,7 +52,7 @@ function executeWhileInstruction(config, ctx, frame, instr) {
 
     if (!instr.body) return undefined;
 
-    ctx.stack.push(Stack.newFrame(instr.body, instr.var, ctx.vars));
+    ctx.stack.push(ExeStack.newFrame(instr.body, instr.var, ctx.vars));
     // Keep running with new frame
     return true;
 }
@@ -78,13 +78,13 @@ export function executeBasicInstr(vars, instr, frame = {}) {
 // ================================================================
 
 export function executeNext(config, ctx) {
-    const frame = Stack.getFrame(ctx);
+    const frame = ExeStack.getFrame(ctx);
 
     // Check if pc have reached the end of the program
     if (frame.pc >= frame.block.length) {
         return handleProgramEnd(config, ctx, frame);
     } else {
-        const instr = Stack.getInstruction(frame);
+        const instr = ExeStack.getInstruction(frame);
 
         // Execute the instruction
         if (instr.type === "while") {
@@ -117,5 +117,5 @@ export function execute(config, ctx) {
 }
 
 export function run(program, config = {maxSteps: 10000, deciders: false}) {
-    return execute(config, Stack.getCtx(program));
+    return execute(config, ExeStack.getCtx(program));
 }
