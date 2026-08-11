@@ -31,7 +31,7 @@ function* genBasicInstr(stack, state) {
     }
 }
 
-// Generate while loops
+// Generate while-loops
 // ================================================================
 
 // Generate all valid while-loop headers for the current state.
@@ -49,7 +49,7 @@ function* genWhileLoop(stack, state) {
     }
 }
 
-// Main functions
+// End program
 // ================================================================
 
 // Yield a completed program if it passes pruning.
@@ -78,17 +78,27 @@ function* endProgram(stack, state) {
                 );
             }
         } else {
+            const [savedAnalysis, prune] = Enum.getLoopAnalysis(stack);
+            if (prune) return;
+
             // Loop halted normally — exit body and generate the tail.
             const {state: newState, undo} =
             Enum.exitLoopBody(stack, state, halted, exeState);
+
             yield* nextInstr(stack, newState);
+
             undo();
+            if (savedAnalysis !== null)
+                stack.at(-2).analysis = savedAnalysis;
         }
     } else {
         // Root level: program completed — yield as halted.
         yield* yieldProgram(true, stack.at(-1).program, state);
     }
 }
+
+// Main functions
+// ================================================================
 
 // Generate all valid instructions.
 // `stack` - Program stack (TNF generation frames)

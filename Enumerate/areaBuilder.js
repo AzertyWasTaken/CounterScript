@@ -1,6 +1,5 @@
 "use strict";
-import {NextState} from "./nextState.js";
-import {NextStack} from "./nextStack.js";
+import {NextState, NextStack} from "./nextState.js";
 import {Enum} from "./enumActions.js";
 
 function checkHaltedErrors(halted, idx, state) {
@@ -38,9 +37,10 @@ export function buildArea(area) {
             }
 
             const [halted, exeState] = Enum.runLoopBody(stack, state);
-
             checkHaltedErrors(halted, idx, state);
+            Enum.getLoopAnalysis(stack);
 
+            // Loop halted normally — exit body and generate the tail.
             const {state: newState} = Enum.exitLoopBody(stack, state, halted, exeState);
             state = newState;
         }

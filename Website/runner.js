@@ -52,14 +52,9 @@ const config = {maxSteps: MAX_STEPS, deciders: false};
 // Stop control for async run loop (Reset cancels)
 let runToken = 0;
 
-/**
- * Pause control for async run loop (Pause does NOT cancel generator)
- *
- * Note: When the user closes the tab/window, the page is being torn down and
- * JS execution may stop immediately after lifecycle events. We still make a
- * best-effort to set `paused=true` and unblock any `await getPausePromise()`
- * so the run loop doesn't continue stepping longer than necessary.
- */
+// Pause control for async run loop (Pause does NOT cancel generator)
+// Note: When the user closes the tab/window, the page is being torn down and
+// JS execution may stop immediately after lifecycle events.
 let paused = true;
 let pauseWait = null;
 let pauseResolver = null;
@@ -96,7 +91,9 @@ function clearOutput() {
     updateSteps();
 
     el.compiled.innerHTML =
-        `<code style="font-size: 14px; color: #C0C0C0;">${strArray(parsedProgram)}</code>`;
+        `<code style="font-size: 14px; color: #C0C0C0;">
+        ${strArray(parsedProgram)}
+        </code>`;
 }
 
 function reset() {
@@ -164,6 +161,8 @@ function nextStep() {
     let res;
     while (res !== true) {
         const instr = Stack.getInstruction(Stack.getFrame(ctx));
+        if (instr.type === "while" && instr.body.length === 0)
+            throw new Error("Cannot execute empty while-loop");
 
         res = executeNext(config, ctx);
         if (instr && instr.type !== "while") break;
@@ -217,7 +216,10 @@ async function runFromCurrent() {
     // Run as many nextStep() iterations as we can within the per-step budget,
     // then yield once to the event loop. This avoids timer clamping overhead
     // from sleeping after every single step (especially for large runSpeed).
-    const now = () => (typeof performance !== "undefined" && performance.now ? performance.now() : Date.now());
+    const now = () => (
+        typeof performance !== "undefined" && performance.now
+        ? performance.now() : Date.now()
+    );
 
     // Token-bucket state MUST persist across yields, otherwise we lose accumulated tokens.
     let tokens = 0;

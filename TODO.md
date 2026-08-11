@@ -21,6 +21,7 @@ BBCS(12) — `A+ wA{ B+ wB{`
 - [x] Just-in-time while-loops states
 - [x] Update analysis when a child undefined loop gets a body
 - [x] Fix pruning bug
+- [x] Earlier pruning for invalid loops
 
 ### L/Documentation
 
@@ -38,6 +39,7 @@ BBCS(12) — `A+ wA{ B+ wB{`
 - [x] Create `AGENTS.md`
 - [x] Replace difficulty table with a more complete analysis
 - [x] "Is greater or equal to self" value `loopAnalyzer.js`
+- [x] Refractor analyzer operations
 
 ### L/Website
 
@@ -54,7 +56,8 @@ BBCS(12) — `A+ wA{ B+ wB{`
 
 ### Keep intermediate layers
 
-Keep intermediate enumeration stack layers (marked as "done") when generating into undefined loops.
+- [ ] New stack parameter to mark intermediate frames: `isDone`
+- [ ] Keep intermediate enumeration stack layers when generating into undefined loops.
 
 ### Just-in-time pruning `areVarsOrdered.js`
 
@@ -64,18 +67,6 @@ Keep intermediate enumeration stack layers (marked as "done") when generating in
 
 - [ ] Plan comment
 - [ ] Update props functions
-
-## Refractor `enumActions.js`
-
-- [ ] Merge `enumActions.js` and `nextState.js` and split into 4 functions
-- [ ] Undo state for better time performances
-
-## Library for analyzer operations
-
-- `decAndInc`
-- `countIterations`
-- `loopBody`
-- `defaultState`
 
 ## Undefined loops parser
 
@@ -115,6 +106,7 @@ Convert macros to a serie of standard instructions.
 - Decide multi-period cyclers
 - Ignore `while # {#--;}` if `#` is proven to be 2 or less
 - Nonhalting function that depend of starting counters
+- Undo state for better time performances
 
 ### I/Website
 

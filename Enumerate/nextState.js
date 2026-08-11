@@ -1,6 +1,10 @@
 "use strict";
 import {executeBasicInstr} from "../Execute/execute.js";
 import {ENUM} from "../config.js";
+import {Value} from "../Pruning/valueProps.js";
+
+// State
+// ================================================================
 
 // Estimate the number of variables a program of `length` can have.
 function maxVarsCount(length) {
@@ -78,6 +82,25 @@ export const NextState = {
             // Adopts the execution state's vars and steps.
             vars: exeState.vars,
             steps: exeState.steps
+        };
+    },
+}
+
+// Stack
+// ================================================================
+
+// Methods to update enumeration stack
+export const NextStack = {
+    default() {
+        return [{program: []}];
+    },
+
+    frame(instr, exeStack, analysis) {
+        return {
+            program: instr.body,
+            loopVar: instr.var,
+            callStack: exeStack,
+            analysis: Value.default(instr.var)
         };
     },
 }

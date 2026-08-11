@@ -153,9 +153,9 @@ Difficulty is comparable to **BB(2)**.
 ```js
 A++; while A {A>>B*2; B>>A}
 
-start -> F(1)
-F(a) -> F(2a)
-F(0) -> halt
+// start -> F(1)
+// F(a) -> F(2a)
+// F(0) -> halt
 ```
 
 **BBCS(11)**:
@@ -165,9 +165,9 @@ F(0) -> halt
 ```js
 A++; while A {B+=3; while A {A--; B--;} B>>A;}
 
-start -> F(1)
-F(a) -> F(3-a)
-F(0) -> halt
+// start -> F(1)
+// F(a) -> F(3-a)
+// F(0) -> halt
 ```
 
 More complex bouncers — subtracting after a multiplication.
@@ -175,9 +175,9 @@ More complex bouncers — subtracting after a multiplication.
 ```js
 A+=2; while A {A>>B*2; B>>A; A--;}
 
-start -> F(2)
-F(a) -> F(2a-1)
-F(0) -> halt
+// start -> F(2)
+// F(a) -> F(2a-1)
+// F(0) -> halt
 ```
 
 Bouncers but the bouncing counter is not the same as the loop counter.
@@ -204,10 +204,10 @@ A++; B++; while B {
   C>>A; D>>B*3; B--;
 }
 
-start -> (1, 1)
-(2a, b+1) -> (3a, b)
-(2a+1, b) -> (3a+2, b+2)
-(a, 0) -> halt
+// start -> (1, 1)
+// (2a, b+1) -> (3a, b)
+// (2a+1, b) -> (3a+2, b+2)
+// (a, 0) -> halt
 ```
 
 ## BBCS vs BB

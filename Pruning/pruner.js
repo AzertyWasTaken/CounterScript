@@ -5,7 +5,7 @@ import {ENUM} from "../config.js";
 import {areVarsOrdered} from "./areVarsOrdered.js";
 import {scanVars, hasUndefinedLoop} from "./scanner.js";
 import {isLoopNested} from "./isLoopNested.js";
-import {filterLoop, countIterations} from "./loopAnalyzer.js";
+import {filterLoop} from "./loopAnalyzer.js";
 import {Value} from "./valueProps.js";
 
 // Methods to prune programs during or after enumeration
@@ -82,7 +82,7 @@ export const Prune = {
             const parentState = parentFrame.analysis;
             const parentValue = Value.get(parentState, loopVar);
 
-            const repeatCount = countIterations(parentValue, bodyValue);
+            const repeatCount = Value.countIterations(parentValue, bodyValue);
             if (Value.isOne(repeatCount)) return true;
         }
 
@@ -101,12 +101,12 @@ export const Prune = {
             const program = item.block;
             const loopVar = item.loopVar;
 
-            if (i === 0 && filterLoop(program, loopVar)) return true;
-
             if (
                 isLoopNested(program, new Set([loopVar]))
                 || !areVarsOrdered(program)
             ) return true;
+
+            if (i === 0 && filterLoop(program, loopVar)) return true;
         }
 
         return false;
