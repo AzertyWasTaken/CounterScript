@@ -4,7 +4,7 @@ import {parse} from "../parser.js";
 import {executeNext} from "../Execute/execute.js";
 import {initLineNumbers} from "./lineNumbers.js";
 import {renderCounters} from "./renderCounters.js";
-import {Stack} from "../Execute/exeStack.js";
+import {ExeStack} from "../Execute/exeStack.js";
 
 const el = {
     btnReset: document.getElementById("btn-reset"),
@@ -148,7 +148,7 @@ function compile() {
 
     parsedProgram = parsed;
 
-    ctx = Stack.getCtx(parsedProgram);
+    ctx = ExeStack.getCtx(parsedProgram);
     halted = false;
     steps = 0;
 
@@ -160,7 +160,7 @@ function compile() {
 function nextStep() {
     let res;
     while (res !== true) {
-        const instr = Stack.getInstruction(Stack.getFrame(ctx));
+        const instr = ExeStack.getInstruction(ExeStack.getFrame(ctx));
         if (instr.type === "while" && instr.body.length === 0)
             throw new Error("Cannot execute empty while-loop");
 
