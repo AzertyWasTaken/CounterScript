@@ -5,6 +5,20 @@ import {run} from "./Execute/execute.js";
 import {areVarsOrdered} from "./Pruning/areVarsOrdered.js";
 import {analyzeLoop} from "./Pruning/loopAnalyzer.js";
 import {buildArea} from "./Enumerate/areaBuilder.js";
+import {Value} from "./Pruning/valueProps.js";
+import {Enum} from "./Enumerate/enumActions.js";
+
+// Enumerator tester
+// ================================================================
+
+export function testEnum(program, target, ...output) {
+    if (unparse(program) === target) {
+        log("Stack:");
+        for (let i = 0; i < output.length; i++) {
+            log(i, output[i]);
+        }
+    }
+}
 
 // Helper functions
 // ================================================================
@@ -16,13 +30,21 @@ function test(callback, progList) {
     }
 }
 
+function logFrame(frame) {
+    log("program:", unparse(frame.program), "callStack:", frame?.callStack);
+}
+
 function testArea(checklist) {
     for (const area of checklist) {
         try {
             const [stack, state] = buildArea(parseArea(area));
+            // log("State:", state);
 
-            for (const frame of stack) {
-                log(frame?.analysis?.eq);
+            log("Stack:");
+            for (let i = 0; i < stack.length; i++) {
+                log(i, stack[i]);
+                // log(unparse(frame.program));
+                // log(frame?.analysis?.eq);
                 // log(frame?.analysis?.def);
             }
         } catch (error) {
@@ -181,41 +203,15 @@ const TEST_AREA = [
 // log(parse("A++; while A {while A {A--; B++;} while B {A++; B--; foo++;} A--;}"));
 // log("==== Are vars ordered ====");
 // test(areVarsOrdered, TEST_ARE_VARS_ORDERED);
-// log("==== Test run ====");
+// log("==== Execute ====");
 // test(run, TEST_RUN);
 // log("==== Analyze loop ====");
 // test(analyzeLoop, TEST_ANALYZE_LOOP);
-// log("==== Test area ====");
+// log("==== Area ====");
 // testArea(TEST_AREA);
+// log("==== Count iterations ====");
+// log(Value.countIterations({t: "isEqualToSelf", d: 0, i: 1, p: false}, {t: "isEqualTo", v: 0}));
+// log(Value.isOne({t: "isEqualTo", v: 1}));
+// log(Value.isPositive({t: "isEqualToSelf", d: 1, i: 0, p: true}));
 
-// test(analyzeLoop, [
-//     ["A--; while B {B--; C++;} while C {B++; C--;}", 0],
-//     ["A++; B++; while B {B--; while A {A--; C++;} while C {A++; C--;}}", 0],
-// ]);
-
-// test(analyzeLoop, [
-//     ["A++; while A {A--; while B {B--; C++;} B++;} while C {A++; C--;}", 0],
-// ]);
-
-// testArea(["A+ B+ wA{ wB{ B- C+ } B+ wC{ C- wB{ A+ B-"]);
-// testArea(["A+ B+ wA{ wB{ B- C+ } B+ wC{ C- wB{ A+ B- }"]);
-// testArea(["A+ B+ wA{ wB{ B- C+ } B+ wC{ C- wB{ A+ B- } }"]);
-
-// // A++; while A {A++; while A {_}}
-// testArea(["A+ wA{ A+ wA{"]);
-// // A++; while A {A++; while A {while B {} _}}
-// testArea(["A+ wA{ A+ wA{ wB{"]);
-// // A++; while A {A++; while A {while B {} B++; _}}
-// testArea(["A+ wA{ A+ wA{ wB{ B+"]);
-// // A++; while A {A++; while A {while B {_} B++;}}
-// testArea(["A+ wA{ A+ wA{ wB{ B+ }"]);
-// A++; while A {A++; while A {while B {A--; B--; C++; _} B++;}}
-testArea(["A+ wA{ A+ wA{ wB{ B+ } A- B- C+"]);
-// A++; while A {A++; while A {while B {A--; B--; C++;} B++;} _}
-testArea(["A+ wA{ A+ wA{ wB{ B+ } A- B- C+ }"]);
-// // A++; while A {A++; while A {while B {A--; B--; C++;} B++;} while C {A++; C--; _}}
-// testArea(["A+ wA{ A+ wA{ wB{ B+ } A- B- C+ } wC{ A+ C-"]);
-// // A++; while A {A++; while A {while B {A--; B--; C++;} B++;} while C {A++; C--;} _}
-// testArea(["A+ wA{ A+ wA{ wB{ B+ } A- B- C+ } wC{ A+ C- }"]);
-
-// A++; while A {A++; while A {while B {A--; B--; C++;} B++;} while C {A++; C--;}}
+// log("==== Other ====");

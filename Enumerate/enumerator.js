@@ -61,40 +61,41 @@ function* yieldProgram(halted, program, state) {
 
 // Handle the case where the current program segment being built is "complete".
 function* endProgram(stack, state) {
-    if (stack.length > 1) {
-        // We are inside a loop body that has just been completed.
-        if (Prune.newLoopBody(stack, state) || Prune.loopBody(stack)) return;
-
-        const [halted, exeState] = Enum.runLoopBody(stack, state);
-        if (Prune.undefinedLoop(halted, stack)) return;
-
-        if (halted === false || halted === null) {
-            // Loop is proven non-halting or timed out — yield final result.
-            if (!Prune.holdout(stack)) {
-                yield* yieldProgram(
-                    halted,
-                    stack[0].program,
-                    NextState.holdout(state, exeState)
-                );
-            }
-        } else {
-            const [savedAnalysis, prune] = Enum.getLoopAnalysis(stack);
-            if (prune) return;
-
-            // Loop halted normally — exit body and generate the tail.
-            const {state: newState, undo} =
-            Enum.exitLoopBody(stack, state, halted, exeState);
-
-            yield* nextInstr(stack, newState);
-
-            undo();
-            if (savedAnalysis !== null)
-                stack.at(-2).analysis = savedAnalysis;
-        }
-    } else {
+    if (stack.length <= 1) {
         // Root level: program completed — yield as halted.
         yield* yieldProgram(true, stack.at(-1).program, state);
+        return;
     }
+
+    // We are inside a loop body that has just been completed.
+    if (Prune.newLoopBody(stack, state) || Prune.loopBody(stack)) return;
+
+    const [halted, exeState] = Enum.runLoopBody(stack, state);
+    if (Prune.undefinedLoop(halted, stack)) return;
+
+    if (halted === false || halted === null) {
+        // Loop is proven non-halting or timed out — yield final result.
+        if (!Prune.holdout(stack)) {
+            yield* yieldProgram(
+                halted,
+                stack[0].program,
+                NextState.holdout(state, exeState)
+            );
+        }
+        return;
+    }
+
+    const [savedAnalysis, pruned] = Enum.setLoopAnalysis(stack);
+    if (pruned) return;
+
+    // Loop halted normally — exit body and generate the tail.
+    const {state: newState, undo} =
+    Enum.exitLoopBody(stack, state, halted, exeState);
+
+    yield* nextInstr(stack, newState);
+
+    undo();
+    if (savedAnalysis) stack.at(-2).analysis = savedAnalysis;
 }
 
 // Main functions

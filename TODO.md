@@ -4,9 +4,9 @@
 
 BBCS(12) — `A+ wA{ B+ wB{`
 
-- Total: 2665 (3130)
-- Halted: 200 (200)
-- Nonhalted: 2445 (2910)
+- Total: 2511 (3130)
+- Halted: 180 (200)
+- Nonhalted: 2311 (2910)
 - Holdout: 20 (20)
 - Highscore: 5
 
@@ -22,6 +22,8 @@ BBCS(12) — `A+ wA{ B+ wB{`
 - [x] Update analysis when a child undefined loop gets a body
 - [x] Fix pruning bug
 - [x] Earlier pruning for invalid loops
+- [x] Better analysis `appBasicInstr` undo (avoid adding default values)
+- [x] Implement enumeration testing for specific programs
 
 ### L/Documentation
 
@@ -53,6 +55,7 @@ BBCS(12) — `A+ wA{ B+ wB{`
 ## Enumeration
 
 - [ ] Enumerate BBCS(12) again
+- [ ] Return `loopAnalyzer.js/filterLoop` analysis result
 
 ### Keep intermediate layers
 
@@ -84,6 +87,9 @@ For `while # {undefined}`.
 
 - [ ] Auto programs coloring
 - [ ] Color selected line
+- [ ] Show program length
+- [ ] Auto identations
+- [ ] Normal slash comment
 
 ### Add macros parser
 
@@ -107,6 +113,7 @@ Convert macros to a serie of standard instructions.
 - Ignore `while # {#--;}` if `#` is proven to be 2 or less
 - Nonhalting function that depend of starting counters
 - Undo state for better time performances
+- Check analysis undo
 
 ### I/Website
 

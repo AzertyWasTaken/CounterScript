@@ -1,6 +1,6 @@
 "use strict";
 
-// Operations
+// Decrement and increment
 // ================================================================
 
 // Apply a decrement of `dec` and an increment of `inc` to an abstract value.
@@ -31,6 +31,9 @@ function decAndInc(value, dec, inc) {
     }
 }
 
+// Count loop iterations
+// ================================================================
+
 // Get how many times a loop iterates, given the head (entry) value of the
 // loop variable and the body's effect on it.
 function countIterations(parentValue, bodyValue) {
@@ -56,6 +59,9 @@ function countIterations(parentValue, bodyValue) {
     return {t: "isAtLeast", v: 0};
 }
 
+// Apply loop body
+// ================================================================
+
 // Net effect of repeating a `dec`/`inc` pair `itr` times.
 // Returns {dec, inc} describing the combined single-step effect.
 function repeatedAddSub(dec, inc, itr) {
@@ -74,18 +80,18 @@ function applyPositiveIterations(parentValue, bodyValue, iterations) {
 
     if (bodyValue.t === "isEqualToSelf") {
         if (iterations.t === "isEqualTo") {
-            const {dec, inc} = repeatedAddSub(
-                bodyValue.d, bodyValue.i, iterations.v
-            );
+            const {dec, inc} =
+            repeatedAddSub(bodyValue.d, bodyValue.i, iterations.v);
+
             return decAndInc(parentValue, dec, inc);
         }
 
         if (bodyValue.d < bodyValue.i) {
             const headRange = Value.getMinRange(parentValue);
             const loopRange = Value.getMinRange(iterations);
-            const {dec, inc} = repeatedAddSub(
-                bodyValue.d, bodyValue.i, loopRange
-            );
+            const {dec, inc} =
+            repeatedAddSub(bodyValue.d, bodyValue.i, loopRange);
+
             return {t: "isAtLeast", v: Math.max(headRange - dec, 0) + inc};
         }
 
@@ -142,6 +148,7 @@ function loopInstr(parentValue, bodyValue, iterations) {
 }
 
 // Mutate `state` to apply `bodyState`, iterated `iterations` times.
+// Do not mutate individual `.eq` values.
 function loopBody(headState, bodyState, iterations, loopVar) {
     // Default value is unknown if a loop body is unknown (ignore other keys).
     if (bodyState.def.t !== "isEqualToSelf") headState.def = bodyState.def;

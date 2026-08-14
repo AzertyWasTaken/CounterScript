@@ -1,5 +1,4 @@
 "use strict";
-import {log} from "../log.js";
 import {Counters} from "../Execute/counters.js";
 import {ENUM} from "../config.js";
 import {areVarsOrdered} from "./areVarsOrdered.js";
@@ -75,9 +74,7 @@ export const Prune = {
         }
         else if (frame.callStack.length === 0) {
             // Nested: abstract analysis determines if loop repeats only once.
-            const bodyState = frame.analysis;
-            const bodyValue = Value.get(bodyState, loopVar);
-
+            // Must not "jump" a layer to prevent incorrect pruning.
             const parentFrame = stack.at(-2);
             const parentState = parentFrame.analysis;
             const parentValue = Value.get(parentState, loopVar);
@@ -91,10 +88,11 @@ export const Prune = {
         || !areVarsOrdered(program);
     },
 
-    // Prune a loop body after nested body generation.
+    // Prune intermediate layers when a nested loop body is generated.
     // Checks every frame on the execution stack for validity.
     loopBody(stack) {
         const callStack = stack.at(-1).callStack;
+        if (callStack.length === 0) return false;
 
         for (let i = 0; i < callStack.length; i++) {
             const item = callStack[i];
@@ -105,11 +103,13 @@ export const Prune = {
                 isLoopNested(program, new Set([loopVar]))
                 || !areVarsOrdered(program)
             ) return true;
-
-            if (i === 0 && filterLoop(program, loopVar)) return true;
         }
 
-        return false;
+        const item = callStack[0];
+        const program = item.block;
+        const loopVar = item.loopVar;
+
+        return filterLoop(program, loopVar);
     },
 
     // Prune programs that would be holdouts but contain invalid nesting.

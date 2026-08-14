@@ -18,27 +18,44 @@ function applyAnalysisInstr(value, instr) {
     : Value.decAndInc(value, 1, 0);
 }
 
+// Undo analysis and remove added values.
+function undoAnalysis(analysis, instrVar, analysisValue, analysisLength) {
+    if (!analysis) return;
+
+    if (analysisValue) {
+        Value.set(analysis, instrVar, analysisValue);
+    } else {
+        delete analysis.eq[instrVar];
+        analysis.eq.splice(analysisLength);
+    }
+}
+
 // Append a basic instruction (inc/dec) to the current frame.
 // Returns {state, undo} so the caller can revert.
 function appBasicInstr(stack, state, instr) {
     const frame = stack.at(-1);
     frame.program.push(instr);
 
-    let savedAnalysis = null;
+    const analysis = frame.analysis;
+    const instrVar = instr.var;
+    let analysisValue;
+    let analysisLength;
 
-    if (frame.analysis) {
+    if (analysis) {
         // We're inside a loop body — update the abstract analysis.
-        savedAnalysis = Value.get(frame.analysis, instr.var);
-        const nextValue = applyAnalysisInstr(savedAnalysis, instr);
-        Value.set(frame.analysis, instr.var, nextValue);
+        analysisValue = analysis.eq[instrVar];
+        analysisLength = analysis.eq.length;
+
+        const currValue = Value.get(analysis, instrVar);
+        const nextValue = applyAnalysisInstr(currValue, instr);
+        Value.set(analysis, instrVar, nextValue);
     }
 
     return {
         state: NextState.basicInstr(state, instr),
         undo: () => {
             frame.program.pop();
-            if (savedAnalysis !== null)
-                Value.set(frame.analysis, instr.var, savedAnalysis);
+            undoAnalysis(frame.analysis, instrVar, analysisValue, analysisLength);
         }
     };
 }
@@ -62,7 +79,6 @@ function appWhileLoop(stack, state, instr) {
             undo: () => {
                 stack.pop();
                 frame.program.pop();
-                instr.body = undefined;
             }
         };
     }
@@ -78,9 +94,65 @@ function appWhileLoop(stack, state, instr) {
         undo: () => {
             frame.program.pop();
             frame.analysis = savedAnalysis;
-            instr.body = undefined;
         }
     };
+}
+
+// Get loop analysis
+// ================================================================
+
+// Shallow-copy the portion of analysis state that `loopBody` may mutate.
+// Note: `analysisState.def` is immutable.
+function cloneAnalysisState(analysisState) {
+    return {
+        eq: [...analysisState.eq],
+        def: analysisState.def
+    };
+}
+
+// Merge the just-completed loop body's analysis into its parent frame.
+// Returns a copy of the parent analysis before the merge.
+function mergeLoopAnalysis(parentFrame, bodyFrame) {
+    const parentState = parentFrame.analysis;
+    const bodyState = bodyFrame.analysis;
+    const loopVar = bodyFrame.loopVar;
+
+    const savedAnalysis = cloneAnalysisState(parentState);
+
+    const headValue = Value.get(parentState, loopVar);
+    const bodyValue = Value.get(bodyState, loopVar);
+    const iterations = Value.countIterations(headValue, bodyValue);
+
+    Value.loopBody(parentState, bodyState, iterations, loopVar);
+    return savedAnalysis;
+}
+
+// Update parent analysis state when a while-loop ends.
+// Return saved analysis so it can be undone.
+// If program should be pruned, do not update state analysis.
+function setLoopAnalysis(stack) {
+    if (stack.length <= 2) return [undefined, false];
+    const parentFrame = stack.at(-2);
+    const bodyFrame = stack.at(-1);
+
+    // Check if an undefined loop just got a body
+    if (bodyFrame.callStack.length === 0) {
+        // Keep a copy of the enclosing analysis to restore on undo.
+        return [mergeLoopAnalysis(parentFrame, bodyFrame), false];
+    }
+
+    // Redo the analysis to increase its precision.
+    const savedAnalysis = parentFrame.analysis;
+
+    const newAnalysis = analyzeLoop(parentFrame.program, parentFrame.loopVar);
+    if (newAnalysis === null) return [savedAnalysis, true];
+
+    const bodyValue = Value.get(newAnalysis, parentFrame.loopVar);
+    if (Value.isNonhalting(bodyValue)) return [savedAnalysis, true];
+
+    parentFrame.analysis = newAnalysis;
+
+    return [savedAnalysis, false];
 }
 
 // Run loops bodies
@@ -104,64 +176,6 @@ function runLoopBody(stack, state) {
         steps: state.steps,
         stack: callStack
     });
-}
-
-// Get loop analysis
-// ================================================================
-
-// Shallow-copy the portion of analysis state that `loopBody` may mutate.
-// Note: `analysisState.def` is immutable.
-function cloneAnalysisState(analysisState) {
-    return {
-        eq: [...analysisState.eq],
-        def: analysisState.def
-    };
-}
-
-// Merge the just-completed loop body's analysis into its enclosing frame,
-// then mark the loop variable as exhausted (zero). Returns a copy of the
-// enclosing analysis before the merge, so the write can be undone later.
-function mergeLoopAnalysis(parentFrame, bodyFrame) {
-    const parentState = parentFrame.analysis;
-    const bodyState = bodyFrame.analysis;
-    const loopVar = bodyFrame.loopVar;
-
-    const saved = cloneAnalysisState(parentState);
-
-    const headValue = Value.get(parentState, loopVar);
-    const bodyValue = Value.get(bodyState, loopVar);
-    const iterations = Value.countIterations(headValue, bodyValue);
-
-    Value.loopBody(parentState, bodyState, iterations, loopVar);
-    return saved;
-}
-
-// Update analysis state when a while-loop ends.
-// Return saved analysis so it can be undone.
-// If program should be pruned, do not update state analysis.
-function getLoopAnalysis(stack) {
-    const parentFrame = stack.at(-2);
-    if (!parentFrame.analysis) return [null, false];
-    const bodyFrame = stack.at(-1);
-
-    // Check if an undefined loop just got a body
-    if (bodyFrame.callStack.length > 0) {
-        // Redo the analysis to increase its precision.
-        const savedAnalysis = parentFrame.analysis;
-
-        const newAnalysis = analyzeLoop(parentFrame.program, parentFrame.loopVar);
-        if (newAnalysis === null) return [savedAnalysis, true];
-
-        const bodyValue = Value.get(newAnalysis, parentFrame.loopVar);
-        if (Value.isNonhalting(bodyValue)) return [savedAnalysis, true];
-
-        parentFrame.analysis = newAnalysis;
-
-        return [savedAnalysis, false];
-    }
-
-    // Keep a copy of the enclosing analysis to restore on undo.
-    return [mergeLoopAnalysis(parentFrame, bodyFrame), false];
 }
 
 // Exit loops generation
@@ -189,7 +203,7 @@ function exitLoopBody(stack, state, halted, exeState) {
     loopInstr.body = [];
 
     stack.push(NextStack.frame(loopInstr, exeState.stack));
-    
+
     return {
         state: NextState.loopBody(state, exeState, 1),
         undo: () => {
@@ -207,6 +221,6 @@ export const Enum = {
     appBasicInstr,
     appWhileLoop,
     runLoopBody,
-    getLoopAnalysis,
+    setLoopAnalysis,
     exitLoopBody
 };

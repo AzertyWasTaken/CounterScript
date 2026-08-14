@@ -38,7 +38,7 @@ export function buildArea(area) {
 
             const [halted, exeState] = Enum.runLoopBody(stack, state);
             checkHaltedErrors(halted, idx, state);
-            Enum.getLoopAnalysis(stack);
+            Enum.setLoopAnalysis(stack);
 
             // Loop halted normally — exit body and generate the tail.
             const {state: newState} = Enum.exitLoopBody(stack, state, halted, exeState);
