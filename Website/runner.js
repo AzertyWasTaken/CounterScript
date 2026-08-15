@@ -1,5 +1,5 @@
 "use strict";
-import {log, strArray, strObject} from "../log.js"
+import {log, strValue} from "../log.js"
 import {parse} from "../parser.js";
 import {executeNext} from "../Execute/execute.js";
 import {initLineNumbers} from "./lineNumbers.js";
@@ -92,7 +92,7 @@ function clearOutput() {
 
     el.compiled.innerHTML =
         `<code style="font-size: 14px; color: #C0C0C0;">
-        ${strArray(parsedProgram)}
+        ${strValue(parsedProgram)}
         </code>`;
 }
 
@@ -160,11 +160,14 @@ function compile() {
 function nextStep() {
     let res;
     while (res !== true) {
-        const instr = ExeStack.getInstruction(ExeStack.getFrame(ctx));
-        if (instr.type === "while" && instr.body.length === 0)
+        const frame = ExeStack.getFrame(ctx);
+        const instr = ExeStack.getInstruction(frame);
+
+        if (instr && instr.type === "while" && instr.body.length === 0)
             throw new Error("Cannot execute empty while-loop");
 
         res = executeNext(config, ctx);
+
         if (instr && instr.type !== "while") break;
     }
 

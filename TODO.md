@@ -4,10 +4,10 @@
 
 BBCS(12) — `A+ wA{ B+ wB{`
 
-- Total: 2511 (3130)
-- Halted: 180 (200)
-- Nonhalted: 2311 (2910)
-- Holdout: 20 (20)
+- Total: 2511
+- Halted: 180
+- Nonhalted: 2311
+- Holdout: 20
 - Highscore: 5
 
 ## Update logs
@@ -61,6 +61,7 @@ BBCS(12) — `A+ wA{ B+ wB{`
 
 - [ ] New stack parameter to mark intermediate frames: `isDone`
 - [ ] Keep intermediate enumeration stack layers when generating into undefined loops.
+- [ ] Store parent analysis and loop position in intermediate frames.
 
 ### Just-in-time pruning `areVarsOrdered.js`
 
@@ -113,7 +114,7 @@ Convert macros to a serie of standard instructions.
 - Ignore `while # {#--;}` if `#` is proven to be 2 or less
 - Nonhalting function that depend of starting counters
 - Undo state for better time performances
-- Check analysis undo
+- Test analysis undo
 
 ### I/Website
 
